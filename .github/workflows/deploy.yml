@@ -23,22 +23,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ビルドに必要な依存関係をインストール
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake libblas-dev liblapack-dev gfortran
+      # manylinuxコンテナを使用してビルド
+      - name: Build manylinux wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release --strip
+          manylinux: auto
+          container: off
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-
-      - name: Build package
-        run: python -m build
+      - name: Install twine
+        run: pip install twine
 
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        run: twine upload target/wheels/*
