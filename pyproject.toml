@@ -1,6 +1,6 @@
 [project]
 name = "tls_regressor"
-version = "0.1.1"
+version = "0.1.2"
 description = "Fast Total Least Squares regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
