@@ -2,11 +2,10 @@
 TLS回帰のPythonインターフェース
 """
 
-import numpy as np
 from typing import Tuple, Optional
 
-# Rustから実装をインポート
-from tls_regressor import calculate_tls_regression
+import numpy as np
+from . import calculate_tls_regression  # 相対インポートに変更
 
 
 class TLSRegressor:
