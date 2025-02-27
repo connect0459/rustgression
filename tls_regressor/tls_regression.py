@@ -5,7 +5,7 @@ TLS回帰のPythonインターフェース
 from typing import Tuple, Optional
 
 import numpy as np
-from . import calculate_tls_regression  # 相対インポートに変更
+from .tls_regressor import calculate_tls_regression
 
 
 class TLSRegressor:

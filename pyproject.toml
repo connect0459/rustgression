@@ -25,3 +25,21 @@ build-backend = "maturin"
 [tool.maturin]
 python-source = "."                  # "tls_regressor" から "." に変更
 features = ["pyo3/extension-module"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
+
+[tool.uv]
+managed = true
+dev-dependencies = [
+  "build>=1.2.2.post1",
+  "hatchling>=1.25.0",
+  "ipykernel>=6.29.5",
+  "pdoc>=15.0.1",
+  "pytest>=8.3.4",
+  "python-dotenv>=1.0.1",
+  "ruff>=0.6.8",
+  "twine>=5.1.1",
+]
