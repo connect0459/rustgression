@@ -18,6 +18,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      # バージョン確認ステップを追加
+      - name: Check versions
+        run: |
+          # Gitタグからバージョンを取得（v0.1.0 -> 0.1.0）
+          GIT_VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Cargo.tomlのバージョンを取得
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
+
+          # pyproject.tomlのバージョンを取得
+          PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f2)
+
+          # バージョンの一致を確認
+          if [ "$GIT_VERSION" != "$CARGO_VERSION" ] || [ "$GIT_VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "Version mismatch!"
+            echo "Git tag: $GIT_VERSION"
+            echo "Cargo.toml: $CARGO_VERSION"
+            echo "pyproject.toml: $PYPROJECT_VERSION"
+            exit 1
+          fi
+          echo "Versions match: $GIT_VERSION"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
