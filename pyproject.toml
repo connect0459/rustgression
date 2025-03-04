@@ -1,7 +1,7 @@
 [project]
 name = "regression_tools"
 version = "0.1.0"
-description = "Fast TLS and OLS regression using Rust backend"
+description = "Fast OLS and TLS and regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -23,7 +23,8 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [tool.maturin]
-python-source = "."
+# python-source = "."
+python-source = "./regression_tools"
 features = ["pyo3/extension-module"]
 
 [tool.pytest.ini_options]
