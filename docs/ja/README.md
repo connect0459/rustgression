@@ -1,24 +1,24 @@
 # rustgression
 
-This project provides fast regression analysis (OLS, TLS) as a Python package.
+本プロジェクトは、高速な回帰分析（OLS、TLS）をPythonパッケージとして提供します。
 
-## Overview
+## 概要
 
-`rustgression` provides high-performance regression analysis tools implemented in Rust as a Python package.
-It includes the following features:
+`rustgression`はRustを利用した高速な回帰分析ツールをPythonパッケージとして提供します。
+以下の機能を含みます：
 
-- **Ordinary Least Squares (OLS)**: Traditional least squares method. Minimizes errors only in the y-direction.
-- **Total Least Squares (TLS)**: Orthogonal regression. Considers errors in both variables (x-axis and y-axis).
+- **Ordinary Least Squares (OLS)**: 通常の最小二乗法。y方向の誤差のみを最小化します。
+- **Total Least Squares (TLS)**: 直交回帰。両方の変数（x軸とy軸）の誤差を考慮します。
 
-This package targets Python version `3.11` and above.
+Pythonのバージョンは`3.11`以上を対象としています。
 
-## Installation
+## インストール
 
 ```bash
 pip install rustgression
 ```
 
-## Usage
+## 使用方法
 
 ```python
 import numpy as np
@@ -29,24 +29,24 @@ from rustgression import (
     TlsRegressor,
 )
 
-# Prepare data
+# データの準備
 x = np.linspace(0, 10, 100)
 y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
 
-# OLS model
+# OLSモデル
 ols_model = OlsRegressor(x, y)
 ols_params: OlsRegressionParams = ols_model.get_params()
 ols_slope = ols_params.slope
 ols_intercept = ols_params.intercept
 r_value = ols_params.r_value
 
-# TLS model
+# TLSモデル
 tls_model = TlsRegressor(x, y)
 tls_params: RegressionParams = tls_model.get_params()
 tls_slope = tls_params.slope
 tls_intercept = tls_params.intercept
 ```
 
-## Author
+## 著者
 
 [connect0459](https://github.com/connect0459)
