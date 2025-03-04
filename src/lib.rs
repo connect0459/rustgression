@@ -24,7 +24,7 @@ mod regression;
 ///
 /// Returns
 /// -------
-/// PyResult<()> 
+/// PyResult<()>
 ///     A result indicating success or failure of the module initialization.
 #[pymodule]
 fn rustgression(_py: Python, m: &PyModule) -> PyResult<()> {

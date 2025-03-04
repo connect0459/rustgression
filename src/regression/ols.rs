@@ -22,9 +22,11 @@ pub fn calculate_ols_regression<'py>(
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64)> {
     // Convert numpy arrays to ndarray
-    let x_array = x.as_array().to_owned();
-    let y_array = y.as_array().to_owned();
-    let n = x_array.len() as f64;
+    let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
+        x.as_array().to_owned();
+    let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
+        y.as_array().to_owned();
+    let n: f64 = x_array.len() as f64;
 
     if n < 2.0 {
         return Err(pyo3::exceptions::PyValueError::new_err(
@@ -97,7 +99,8 @@ pub fn calculate_ols_regression<'py>(
     };
 
     // Calculate predicted values
-    let y_pred = x_array.mapv(|v| slope * v + intercept);
+    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
+        x_array.mapv(|v| slope * v + intercept);
 
     // Return results to Python
     Ok((
