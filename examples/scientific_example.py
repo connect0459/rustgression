@@ -6,7 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
-from regression_tools import OlsRegressor, TlsRegressor
+from regression_tools import (
+    OlsRegressionParams,
+    OlsRegressor,
+    RegressionParams,
+    TlsRegressor,
+)
 
 
 @dataclass
@@ -234,11 +239,11 @@ def plot_all_comparison(
 
     # OlsRegressor
     ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
-    ols_params = ols_model.get_params()
+    ols_params: OlsRegressionParams = ols_model.get_params()
 
     # TlsRegressor
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
-    tls_params = tls_model.get_params()
+    tls_params: RegressionParams = tls_model.get_params()
 
     # プロット用のデータ準備
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
