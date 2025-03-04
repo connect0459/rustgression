@@ -1,5 +1,18 @@
 """
-回帰分析クラスのテストコード
+Test code for regression analysis classes.
+
+This module contains unit tests for the OlsRegressor and TlsRegressor classes,
+including tests for input validation, regression analysis, and comparison of
+the two regression methods.
+
+Functions:
+----------
+- sample_data: Fixture to generate sample data for testing.
+- test_create_regressor: Tests the factory function for creating regressors.
+- test_input_validation: Tests input validation for the OlsRegressor.
+- TestOlsRegressor: Class containing tests for the OlsRegressor.
+- TestTlsRegressor: Class containing tests for the TlsRegressor.
+- test_compare_methods: Tests the comparison between OLS and TLS regression methods.
 """
 
 import numpy as np
@@ -16,107 +29,136 @@ from rustgression import (
 
 @pytest.fixture
 def sample_data():
-    """テスト用のサンプルデータを生成"""
+    """Generate sample data for testing.
+
+    Returns:
+        tuple: A tuple containing the input features (x) and the target values (y).
+    """
     np.random.seed(42)
     x = np.linspace(0, 10, 100)
-    # y = 2x + 1 + ノイズ
+    # y = 2x + 1 + noise
     y = 2 * x + 1 + np.random.normal(0, 0.5, 100)
     return x, y
 
 
 def test_create_regressor(sample_data):
-    """ファクトリ関数のテスト"""
+    """Test the factory function for creating regressors.
+
+    This function tests the creation of OlsRegressor and TlsRegressor
+    instances, as well as the default behavior and error handling for
+    invalid regression methods.
+    """
     x, y = sample_data
-    
-    # 正常系
+
+    # Normal case
     ols = create_regressor(x, y, "ols")
     assert isinstance(ols, OlsRegressor)
-    
+
     tls = create_regressor(x, y, "tls")
     assert isinstance(tls, TlsRegressor)
-    
-    # デフォルト値
+
+    # Default value
     default = create_regressor(x, y)
     assert isinstance(default, OlsRegressor)
-    
-    # 異常系
-    with pytest.raises(ValueError, match="未知の回帰手法です"):
+
+    # Error case
+    with pytest.raises(ValueError, match="Unknown regression method"):
         create_regressor(x, y, "invalid")
 
 
 def test_input_validation():
-    """入力バリデーションのテスト"""
-    # 配列長不一致
-    with pytest.raises(ValueError, match="入力配列の長さが一致しません"):
+    """Test input validation for the OlsRegressor.
+
+    This function tests the behavior of the OlsRegressor when provided
+    with invalid input data, such as mismatched array lengths and
+    insufficient data points.
+    """
+    # Mismatched array lengths
+    with pytest.raises(ValueError, match="The lengths of the input arrays do not match."):
         OlsRegressor(np.array([1, 2]), np.array([1]))
-    
-    # データ点不足
-    with pytest.raises(ValueError, match="回帰には少なくとも2つのデータポイントが必要です"):
+
+    # Insufficient data points
+    with pytest.raises(
+        ValueError, match="At least two data points are required for regression"
+    ):
         OlsRegressor(np.array([1]), np.array([1]))
 
 
 class TestOlsRegressor:
-    """OLSRegressorのテスト"""
-    
+    """Tests for the OlsRegressor class."""
+
     def test_regression(self, sample_data):
-        """回帰分析のテスト"""
+        """Test regression analysis with OlsRegressor.
+
+        This function tests the regression analysis performed by the
+        OlsRegressor, including parameter validation and prediction accuracy.
+        """
         x, y = sample_data
         regressor = OlsRegressor(x, y)
-        
-        # パラメータの確認
+
+        # Parameter validation
         params = regressor.get_params()
         assert isinstance(params, OlsRegressionParams)
-        assert 1.9 < params.slope < 2.1  # 理論値は2.0
-        assert 0.8 < params.intercept < 1.2  # 理論値は1.0
-        assert 0.95 < params.correlation < 1.0
+        assert 1.9 < params.slope < 2.1  # Theoretical value is 2.0
+        assert 0.8 < params.intercept < 1.2  # Theoretical value is 1.0
+        assert 0.95 < params.r_value < 1.0
         assert params.p_value < 0.05
-        assert params.std_err > 0
-        
-        # 予測
+        assert params.stderr > 0
+
+        # Prediction
         y_pred = regressor.predict(x)
         assert y_pred.shape == y.shape
-        
-        # 予測値の精度確認（R²で評価）
+
+        # Check prediction accuracy (evaluated with R²)
         r2 = 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
         assert r2 > 0.95
 
 
 class TestTlsRegressor:
-    """TLSRegressorのテスト"""
-    
+    """Tests for the TlsRegressor class."""
+
     def test_regression(self, sample_data):
-        """回帰分析のテスト"""
+        """Test regression analysis with TlsRegressor.
+
+        This function tests the regression analysis performed by the
+        TlsRegressor, including parameter validation and prediction accuracy.
+        """
         x, y = sample_data
         regressor = TlsRegressor(x, y)
-        
-        # パラメータの確認
+
+        # Parameter validation
         params = regressor.get_params()
         assert isinstance(params, RegressionParams)
-        assert 1.9 < params.slope < 2.1  # 理論値は2.0
-        assert 0.8 < params.intercept < 1.2  # 理論値は1.0
-        assert 0.95 < params.correlation < 1.0
-        
-        # 予測
+        assert 1.9 < params.slope < 2.1  # Theoretical value is 2.0
+        assert 0.8 < params.intercept < 1.2  # Theoretical value is 1.0
+        assert 0.95 < params.r_value < 1.0
+
+        # Prediction
         y_pred = regressor.predict(x)
         assert y_pred.shape == y.shape
-        
-        # 予測値の精度確認（R²で評価）
+
+        # Check prediction accuracy (evaluated with R²)
         r2 = 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
         assert r2 > 0.95
 
 
 def test_compare_methods(sample_data):
-    """OLSとTLSの比較テスト"""
+    """Test comparison between OLS and TLS regression methods.
+
+    This function tests the similarity of parameters obtained from
+    both OlsRegressor and TlsRegressor to ensure they yield close
+    results.
+    """
     x, y = sample_data
-    
-    # 両方のモデルをインスタンス化
+
+    # Instantiate both models
     ols = OlsRegressor(x, y)
     tls = TlsRegressor(x, y)
-    
-    # パラメータの比較（近い値になるはず）
+
+    # Compare parameters (should be close)
     ols_params = ols.get_params()
     tls_params = tls.get_params()
-    
+
     assert abs(ols_params.slope - tls_params.slope) < 0.1
     assert abs(ols_params.intercept - tls_params.intercept) < 0.1
-    assert abs(ols_params.correlation - tls_params.correlation) < 0.1
+    assert abs(ols_params.r_value - tls_params.r_value) < 0.1

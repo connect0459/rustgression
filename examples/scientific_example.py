@@ -16,25 +16,46 @@ from rustgression import (
 
 @dataclass
 class RegressionData:
-    """回帰分析用のデータクラス"""
+    """Data class for regression analysis.
 
-    x: np.ndarray  # 真のx値
-    y: np.ndarray  # 真のy値
-    x_noisy: np.ndarray  # ノイズ入りx値
-    y_noisy: np.ndarray  # ノイズ入りy値
-    true_slope: float
-    true_intercept: float
-    description: str
+    Attributes
+    ----------
+    x : np.ndarray
+        True x values.
+    y : np.ndarray
+        True y values.
+    x_noisy : np.ndarray
+        Noisy x values.
+    y_noisy : np.ndarray
+        Noisy y values.
+    true_slope : float
+        The true slope of the linear relationship.
+    true_intercept : float
+        The true intercept of the linear relationship.
+    description : str
+        A description of the dataset.
+    """
 
 
 def generate_linear_measurement_data(n_points: int = 100) -> RegressionData:
-    """単純な線形測定データの生成"""
+    """Generate simple linear measurement data.
+
+    Parameters
+    ----------
+    n_points : int, optional
+        The number of data points to generate (default is 100).
+
+    Returns
+    -------
+    RegressionData
+        An instance of RegressionData containing the generated data.
+    """
     np.random.seed(42)
     x = np.linspace(0, 10, n_points)
     true_slope = 2.0
     true_intercept = 1.0
 
-    # x, yともに同程度のノイズ
+    # Both x and y have similar noise
     noise_scale = 0.3
     x_noisy = x + np.random.normal(0, noise_scale, n_points)
     y_noisy = (
@@ -53,13 +74,24 @@ def generate_linear_measurement_data(n_points: int = 100) -> RegressionData:
 
 
 def generate_spectroscopy_data(n_points: int = 100) -> RegressionData:
-    """分光分析のような、x軸の誤差が小さく、y軸の誤差が大きいデータ"""
+    """Generate data resembling spectroscopy, with small x-axis error and large y-axis error.
+
+    Parameters
+    ----------
+    n_points : int, optional
+        The number of data points to generate (default is 100).
+
+    Returns
+    -------
+    RegressionData
+        An instance of RegressionData containing the generated data.
+    """
     np.random.seed(43)
     x = np.linspace(0, 5, n_points)
     true_slope = 0.5
     true_intercept = 2.0
 
-    # x軸の誤差は小さく、y軸の誤差は大きい
+    # Small error in x-axis and large error in y-axis
     x_noisy = x + np.random.normal(0, 0.1, n_points)
     y_noisy = true_slope * x + true_intercept + np.random.normal(0, 0.4, n_points)
 
@@ -75,13 +107,24 @@ def generate_spectroscopy_data(n_points: int = 100) -> RegressionData:
 
 
 def generate_particle_tracking_data(n_points: int = 100) -> RegressionData:
-    """粒子追跡のような、両軸とも大きな誤差を持つデータ"""
+    """Generate data resembling particle tracking, with large errors in both axes.
+
+    Parameters
+    ----------
+    n_points : int, optional
+        The number of data points to generate (default is 100).
+
+    Returns
+    -------
+    RegressionData
+        An instance of RegressionData containing the generated data.
+    """
     np.random.seed(44)
     x = np.linspace(0, 8, n_points)
     true_slope = 1.5
     true_intercept = 0.5
 
-    # 両軸とも大きな誤差
+    # Large errors in both axes
     x_noisy = x + np.random.normal(0, 0.5, n_points)
     y_noisy = true_slope * x + true_intercept + np.random.normal(0, 0.5, n_points)
 
@@ -103,9 +146,23 @@ def plot_ols_comparison(
     save_fig: bool = True,
     show_fig: bool = True,
 ) -> None:
-    """OLS回帰の比較プロット(stats.linregressとOlsRegressor)"""
+    """Plot comparison of OLS regression using stats.linregress and OlsRegressor.
+
+    Parameters
+    ----------
+    data : RegressionData
+        The regression data to be analyzed.
+    output_dirpath : str | Path | None
+        The directory path where the figure will be saved.
+    output_filename : str, optional
+        The filename for the saved figure (default is "ols_comparison.png").
+    save_fig : bool, optional
+        Whether to save the figure (default is True).
+    show_fig : bool, optional
+        Whether to display the figure (default is True).
+    """
     # stats.linregress
-    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
+    stats_slope, stats_intercept, stats_r_value, _, _ = stats.linregress(
         data.x_noisy, data.y_noisy
     )
 
@@ -113,7 +170,7 @@ def plot_ols_comparison(
     ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
     ols_params = ols_model.get_params()
 
-    # プロット用のデータ準備
+    # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
     ols_y_plot = ols_model.predict(x_plot)
     stats_y_plot = stats_slope * x_plot + stats_intercept
@@ -135,14 +192,14 @@ def plot_ols_comparison(
         stats_y_plot,
         color="purple",
         linewidth=2,
-        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_r_value:.3f})",
     )
     plt.plot(
         x_plot,
         ols_y_plot,
         color="red",
         linewidth=2,
-        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.correlation:.3f})",
+        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.r_value:.3f})",
     )
 
     plt.xlabel("X")
@@ -167,9 +224,23 @@ def plot_tls_comparison(
     save_fig: bool = True,
     show_fig: bool = True,
 ) -> None:
-    """TLS回帰の比較プロット(stats.linregressとTlsRegressor)"""
+    """Plot comparison of TLS regression using stats.linregress and TlsRegressor.
+
+    Parameters
+    ----------
+    data : RegressionData
+        The regression data to be analyzed.
+    output_dirpath : str | Path | None
+        The directory path where the figure will be saved.
+    output_filename : str, optional
+        The filename for the saved figure (default is "tls_comparison.png").
+    save_fig : bool, optional
+        Whether to save the figure (default is True).
+    show_fig : bool, optional
+        Whether to display the figure (default is True).
+    """
     # stats.linregress
-    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
+    stats_slope, stats_intercept, stats_r_value, _, _ = stats.linregress(
         data.x_noisy, data.y_noisy
     )
 
@@ -177,7 +248,7 @@ def plot_tls_comparison(
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
     tls_params = tls_model.get_params()
 
-    # プロット用のデータ準備
+    # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
     tls_y_plot = tls_model.predict(x_plot)
     stats_y_plot = stats_slope * x_plot + stats_intercept
@@ -199,14 +270,14 @@ def plot_tls_comparison(
         stats_y_plot,
         color="purple",
         linewidth=2,
-        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_r_value:.3f})",
     )
     plt.plot(
         x_plot,
         tls_y_plot,
         color="red",
         linewidth=2,
-        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.correlation:.3f})",
+        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.r_value:.3f})",
     )
 
     plt.xlabel("X")
@@ -231,9 +302,23 @@ def plot_all_comparison(
     save_fig: bool = True,
     show_fig: bool = True,
 ) -> None:
-    """全ての回帰手法の比較プロット"""
+    """Plot comparison of all regression methods.
+
+    Parameters
+    ----------
+    data : RegressionData
+        The regression data to be analyzed.
+    output_dirpath : str | Path | None
+        The directory path where the figure will be saved.
+    output_filename : str, optional
+        The filename for the saved figure (default is "all_comparison.png").
+    save_fig : bool, optional
+        Whether to save the figure (default is True).
+    show_fig : bool, optional
+        Whether to display the figure (default is True).
+    """
     # stats.linregress
-    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
+    stats_slope, stats_intercept, stats_r_value, _, _ = stats.linregress(
         data.x_noisy, data.y_noisy
     )
 
@@ -245,7 +330,7 @@ def plot_all_comparison(
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
     tls_params: RegressionParams = tls_model.get_params()
 
-    # プロット用のデータ準備
+    # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
     ols_y_plot = ols_model.predict(x_plot)
     tls_y_plot = tls_model.predict(x_plot)
@@ -268,21 +353,21 @@ def plot_all_comparison(
         stats_y_plot,
         color="purple",
         linewidth=2,
-        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_r_value:.3f})",
     )
     plt.plot(
         x_plot,
         ols_y_plot,
         color="orange",
         linewidth=2,
-        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.correlation:.3f})",
+        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.r_value:.3f})",
     )
     plt.plot(
         x_plot,
         tls_y_plot,
         color="red",
         linewidth=2,
-        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.correlation:.3f})",
+        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.r_value:.3f})",
     )
 
     plt.xlabel("X")
@@ -303,7 +388,7 @@ def plot_all_comparison(
 if __name__ == "__main__":
     output_dir = "examples/outputs"
 
-    # 3つの異なるケースでテスト
+    # Test with three different cases
     datasets = [
         (generate_linear_measurement_data(), "linear_measurement"),
         (generate_spectroscopy_data(), "spectroscopy"),
@@ -311,7 +396,7 @@ if __name__ == "__main__":
     ]
 
     for data, base_filename in datasets:
-        # OLS比較
+        # OLS comparison
         plot_ols_comparison(
             data,
             output_dirpath=output_dir,
@@ -319,7 +404,7 @@ if __name__ == "__main__":
             show_fig=False,
         )
 
-        # TLS比較
+        # TLS comparison
         plot_tls_comparison(
             data,
             output_dirpath=output_dir,
@@ -327,7 +412,7 @@ if __name__ == "__main__":
             show_fig=False,
         )
 
-        # 全手法比較
+        # Comparison of all methods
         plot_all_comparison(
             data,
             output_dirpath=output_dir,

@@ -1,5 +1,5 @@
 """
-回帰分析のPythonインターフェース
+Python interface for regression analysis.
 """
 
 from abc import ABC, abstractmethod
@@ -13,160 +13,200 @@ from ..rustgression import calculate_ols_regression, calculate_tls_regression
 
 @dataclass
 class RegressionParams:
-    """基本的な回帰パラメータを格納するデータクラス"""
+    """Data class to store basic regression parameters.
+
+    Attributes
+    ----------
+    slope : float
+        The slope of the regression line.
+    intercept : float
+        The y-intercept of the regression line.
+    r_value : float
+        The correlation coefficient indicating the strength of the relationship.
+    """
 
     slope: float
     intercept: float
-    correlation: float
+    r_value: float
 
 
 @dataclass
 class OlsRegressionParams(RegressionParams):
-    """OLS回帰のパラメータを格納するデータクラス"""
+    """Data class to store parameters for Ordinary Least Squares (OLS) regression.
+
+    Attributes
+    ----------
+    p_value : float
+        The p-value associated with the regression slope.
+    stderr : float
+        The standard error of the regression slope.
+    intercept_stderr : float
+        The standard error of the intercept.
+    """
 
     p_value: float
-    std_err: float
+    stderr: float
+    intercept_stderr: float
 
 
 class BaseRegressor(ABC):
-    """回帰分析の基底クラス
+    """Base class for regression analysis.
 
-    全ての回帰実装の共通インターフェースを定義します。
+    This class defines a common interface for all regression implementations.
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray):
-        """回帰モデルの初期化とフィッティング
+        """Initialize and fit the regression model.
 
         Parameters
         ----------
         x : np.ndarray
-            x軸データ (独立変数)
+            The independent variable data (x-axis).
         y : np.ndarray
-            y軸データ (従属変数)
+            The dependent variable data (y-axis).
         """
-        # 入力データの検証と前処理
+        # Validate and preprocess input data
         self.x = np.asarray(x, dtype=np.float64).flatten()
         self.y = np.asarray(y, dtype=np.float64).flatten()
 
         if self.x.shape[0] != self.y.shape[0]:
-            raise ValueError("入力配列の長さが一致しません")
+            raise ValueError("The lengths of the input arrays do not match.")
 
         if self.x.shape[0] < 2:
-            raise ValueError("回帰には少なくとも2つのデータポイントが必要です")
+            raise ValueError("At least two data points are required for regression.")
 
-        # 基本パラメータの初期化
+        # Initialize basic parameters
         self.slope: float
         self.intercept: float
-        self.correlation: float
+        self.r_value: float
 
-        # フィッティングの実行
+        # Execute fitting
         self._fit()
 
     @abstractmethod
     def _fit(self) -> None:
-        """回帰を実行する抽象メソッド"""
+        """Abstract method to perform regression."""
         pass
 
     def predict(self, x: np.ndarray) -> np.ndarray:
-        """回帰モデルを使って予測を行う
+        """Make predictions using the regression model.
 
         Parameters
         ----------
         x : np.ndarray
-            予測のための入力データ
+            Input data for making predictions.
 
         Returns
         -------
         np.ndarray
-            予測値
+            The predicted values.
         """
         x = np.asarray(x, dtype=np.float64)
         return self.slope * x + self.intercept
 
     def get_params(self) -> RegressionParams:
-        """回帰パラメータを取得する
+        """Retrieve regression parameters.
 
         Returns
         -------
         RegressionParams
-            回帰パラメータを含むデータクラス
+            A data class containing the regression parameters.
         """
         return RegressionParams(
-            slope=self.slope, intercept=self.intercept, correlation=self.correlation
+            slope=self.slope, intercept=self.intercept, r_value=self.r_value
         )
 
     def __repr__(self) -> str:
-        """文字列表現
+        """String representation of the regression model.
 
         Returns
         -------
         str
-            文字列表現
+            A string representation of the regression model.
         """
         return (
             f"{self.__class__.__name__}("
             f"slope={self.slope:.6f}, "
             f"intercept={self.intercept:.6f}, "
-            f"correlation={self.correlation:.6f})"
+            f"r_value={self.r_value:.6f})"
         )
 
 
 class OlsRegressor(BaseRegressor):
-    """Ordinary Least Squares (OLS)回帰を計算するクラス
+    """Class for calculating Ordinary Least Squares (OLS) regression.
 
-    y方向の誤差を最小化する標準的な最小二乗法を実装します。
+    This class implements the standard least squares method, which minimizes
+    the errors in the y-direction.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Input data for the independent variable (x-axis).
+    y : np.ndarray
+        Input data for the dependent variable (y-axis).
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray):
-        """OLSRegressorの初期化とフィッティング
+        """Initialize the OlsRegressor and fit the model.
 
         Parameters
         ----------
         x : np.ndarray
-            x軸データ (独立変数)
+            Input data for the independent variable (x-axis).
         y : np.ndarray
-            y軸データ (従属変数)
+            Input data for the dependent variable (y-axis).
         """
         self.p_value: float
-        self.std_err: float
+        self.stderr: float
+        self.intercept_stderr: float
         super().__init__(x, y)
 
     def _fit(self) -> None:
-        """OLS回帰を実行"""
-        # Rust実装を呼び出し
-        _, self.slope, self.intercept, self.correlation, self.p_value, self.std_err = (
-            calculate_ols_regression(self.x, self.y)
-        )
+        """Perform OLS regression."""
+        # Call the Rust implementation
+        (
+            _,
+            self.slope,
+            self.intercept,
+            self.r_value,
+            self.p_value,
+            self.stderr,
+            self.intercept_stderr,
+        ) = calculate_ols_regression(self.x, self.y)
 
     def get_params(self) -> OlsRegressionParams:
-        """回帰パラメータを取得する
+        """Retrieve regression parameters.
 
         Returns
         -------
         OlsRegressionParams
-            全ての回帰パラメータを含むデータクラス
+            A data class containing all regression parameters, including
+            slope, intercept, r_value, p_value, stderr, and intercept_stderr.
         """
         return OlsRegressionParams(
             slope=self.slope,
             intercept=self.intercept,
-            correlation=self.correlation,
+            r_value=self.r_value,
             p_value=self.p_value,
-            std_err=self.std_err,
+            stderr=self.stderr,
+            intercept_stderr=self.intercept_stderr,
         )
 
 
 class TlsRegressor(BaseRegressor):
-    """Total Least Squares (TLS)回帰、または直交回帰を計算するクラス
+    """Class for calculating Total Least Squares (TLS) regression.
 
-    通常の最小二乗法(OLS)がy方向の誤差のみを最小化するのに対し、
-    TLSは両方の変数(xとy)の誤差を考慮します。これは、両変数に測定誤差が
-    存在する場合により適切なアプローチとなります。
+    Unlike Ordinary Least Squares (OLS), which minimizes errors only in the
+    y-direction, TLS considers errors in both variables (x and y). This
+    approach is more appropriate when measurement errors exist in both
+    variables.
+
     """
 
     def _fit(self) -> None:
-        """TLS回帰を実行"""
-        # Rust実装を呼び出し
-        _, self.slope, self.intercept, self.correlation = calculate_tls_regression(
+        """Perform TLS regression."""
+        # Call the Rust implementation
+        _, self.slope, self.intercept, self.r_value = calculate_tls_regression(
             self.x, self.y
         )
 
@@ -174,25 +214,30 @@ class TlsRegressor(BaseRegressor):
 def create_regressor(
     x: np.ndarray, y: np.ndarray, method: Literal["ols", "tls"] = "ols"
 ) -> BaseRegressor:
-    """回帰モデルのファクトリ関数
+    """Factory function for creating a regression model.
 
     Parameters
     ----------
     x : np.ndarray
-        x軸データ (独立変数)
+        Input data for the independent variable (x-axis).
     y : np.ndarray
-        y軸データ (従属変数)
+        Input data for the dependent variable (y-axis).
     method : str
-        使用する回帰手法 ("ols" または "tls")
+        The regression method to use ("ols" or "tls").
 
     Returns
     -------
     BaseRegressor
-        指定された回帰モデルのインスタンス
+        An instance of the specified regression model.
+    
+    Raises
+    ------
+    ValueError
+        If an unknown regression method is specified.
     """
     if method == "ols":
         return OlsRegressor(x, y)
     elif method == "tls":
         return TlsRegressor(x, y)
     else:
-        raise ValueError(f"未知の回帰手法です: {method}")
+        raise ValueError(f"Unknown regression method: {method}")

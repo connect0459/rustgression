@@ -1,10 +1,44 @@
 """
-rustgression  - 高速Total Least Squares回帰
+rustgression
+===========
 
-このパッケージはRustバックエンドを使った高速なTLS (直交) 回帰を提供します。
+A Python package that implements fast Total Least Squares (TLS) regression.
+
+This package provides high-performance TLS (orthogonal) regression analysis using a backend implemented in Rust. It supports both ordinary least squares (OLS) regression and TLS regression.
+
+Main Features
+-------------
+- Fast Rust backend
+- Total Least Squares (TLS) regression
+- Ordinary Least Squares (OLS) regression
+- User-friendly Python interface
+
+Classes
+-------
+- OlsRegressor
+    Class for performing regression analysis using ordinary least squares.
+
+- TlsRegressor
+    Class for performing regression analysis using Total Least Squares.
+
+Functions
+---------
+- create_regressor
+    Factory function for creating a regression analyzer.
+
+References
+----------
+Van Huffel, S., & Vandewalle, J. (1991). The Total Least Squares Problem:
+Computational Aspects and Analysis. SIAM.
+
+Examples
+--------
+>>> import rustgression
+>>> regressor = rustgression.create_regressor()
+>>> result = regressor.fit(X, y)
 """
 
-# Rustモジュールから直接インポート
+# Directly import from Rust module
 from .regression.regressor import (
     OlsRegressionParams,
     OlsRegressor,
@@ -12,15 +46,12 @@ from .regression.regressor import (
     TlsRegressor,
     create_regressor,
 )
-from .rustgression import calculate_ols_regression, calculate_tls_regression
 
 __all__ = [
     "OlsRegressionParams",
     "OlsRegressor",
     "RegressionParams",
     "TlsRegressor",
-    "calculate_ols_regression",
-    "calculate_tls_regression",
     "create_regressor",
 ]
 
