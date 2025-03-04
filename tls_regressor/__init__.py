@@ -5,8 +5,9 @@ tls_regressor - 高速Total Least Squares回帰
 """
 
 # Rustモジュールから直接インポート
+from .tls_regression import TlsRegressor
 from .tls_regressor import calculate_tls_regression
-from .tls_regression import TLSRegressor
-# from .tls_regression import calculate_tls_regression, TLSRegressor
 
-__all__ = ["TLSRegressor", "calculate_tls_regression"]
+# from .tls_regression import calculate_tls_regression, TlsRegressor
+
+__all__ = ["TlsRegressor", "calculate_tls_regression"]

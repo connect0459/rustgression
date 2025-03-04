@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from tls_regressor import TLSRegressor, calculate_tls_regression
+from python import TlsRegressor, calculate_tls_regression
 
 
 def test_tls_regressor_basic():
@@ -11,8 +11,8 @@ def test_tls_regressor_basic():
     true_intercept = 1.0
     y = true_slope * x + true_intercept + np.random.normal(0, 0.5, 100)
 
-    # TLSRegressorのテスト
-    model = TLSRegressor()
+    # TlsRegressorのテスト
+    model = TlsRegressor()
     model.fit(x, y)
 
     # パラメータの取得
@@ -55,7 +55,7 @@ def test_calculate_tls_regression_direct():
 
 
 def test_input_validation():
-    model = TLSRegressor()
+    model = TlsRegressor()
 
     # 異なる長さの入力配列
     with pytest.raises(ValueError):

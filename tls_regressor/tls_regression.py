@@ -2,13 +2,13 @@
 TLS回帰のPythonインターフェース
 """
 
-from typing import Tuple, Optional
 
 import numpy as np
+
 from .tls_regressor import calculate_tls_regression
 
 
-class TLSRegressor:
+class TlsRegressor:
     """Total Least Squares (TLS)回帰、または直交回帰を計算するクラス。
 
     通常の最小二乗法(OLS)がy方向の誤差のみを最小化するのに対し、
@@ -24,13 +24,13 @@ class TLSRegressor:
     """
 
     def __init__(self):
-        """TLSRegressorの初期化"""
-        self.slope: Optional[float] = None
-        self.intercept: Optional[float] = None
-        self.correlation: Optional[float] = None
+        """TlsRegressorの初期化"""
+        self.slope: float | None = None
+        self.intercept: float | None = None
+        self.correlation: float | None = None
         self.is_fitted: bool = False
 
-    def fit(self, x: np.ndarray, y: np.ndarray) -> "TLSRegressor":
+    def fit(self, x: np.ndarray, y: np.ndarray) -> "TlsRegressor":
         """データにTLS回帰をフィットさせる
 
         Parameters
@@ -42,7 +42,7 @@ class TLSRegressor:
 
         Returns
         -------
-        self : TLSRegressor
+        self : TlsRegressor
             フィットした回帰モデル
         """
         # 1次元配列に変換
@@ -80,7 +80,7 @@ class TLSRegressor:
         x = np.asarray(x, dtype=np.float64)
         return self.slope * x + self.intercept
 
-    def get_params(self) -> Tuple[float, float, float]:
+    def get_params(self) -> tuple[float, float, float]:
         """回帰パラメータを取得する
 
         Returns
@@ -103,8 +103,8 @@ class TLSRegressor:
         """
         if self.is_fitted:
             return (
-                f"TLSRegressor(slope={self.slope:.6f}, "
+                f"TlsRegressor(slope={self.slope:.6f}, "
                 f"intercept={self.intercept:.6f}, "
                 f"correlation={self.correlation:.6f})"
             )
-        return "TLSRegressor(unfitted)"
+        return "TlsRegressor(unfitted)"

@@ -12,7 +12,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
-dependencies = ["numpy>=1.20.0"]
+dependencies = ["matplotlib>=3.10.1", "numpy>=1.20.0", "scipy>=1.15.2"]
 
 [project.urls]
 "Homepage" = "https://github.com/connect0459/tls_regressor"
@@ -31,15 +31,64 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v"
 
+[tool.ruff]
+# 行の長さ制限
+line-length = 88
+
+# 検査するファイルやディレクトリ
+src = ["tls_regressor", "tests"]
+
+# 無視するファイルやディレクトリ
+exclude = [".git", ".venv", "__pycache__", "build", "dist"]
+
+# 有効にするルール
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "I",   # isort
+  "N",   # pep8-naming
+  "UP",  # pyupgrade
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "RUF", # ruff-specific rules
+]
+
+# 無視するルール
+ignore = [
+  "E501", # line length violations
+  "RUF003", # allow "KATAKANA LETTER"
+]
+
+# 自動修正の対象とするルール
+# fixable = ["I", "F401"]
+fixable = ["I", "F401", "UP006", "UP007", "UP035"]
+
+[tool.ruff.lint.isort]
+# isortの設定
+known-first-party = ["tls_regressor"]
+known-third-party = ["numpy", "pandas"]
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "local-folder",
+]
+
+[tool.ruff.lint.mccabe]
+# 循環的複雑度の最大値
+max-complexity = 10
+
+[tool.ruff.lint.pydocstyle]
+# docstringのスタイル
+convention = "numpy"
+
 [tool.uv]
 managed = true
 dev-dependencies = [
-  "build>=1.2.2.post1",
-  "hatchling>=1.25.0",
-  "ipykernel>=6.29.5",
-  "pdoc>=15.0.1",
+  "maturin>=1.8.2",
   "pytest>=8.3.4",
-  "python-dotenv>=1.0.1",
   "ruff>=0.6.8",
   "twine>=5.1.1",
 ]
