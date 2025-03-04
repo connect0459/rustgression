@@ -1,15 +1,14 @@
 [package]
-name = "tls_regressor"
-version = "0.1.2"
+name = "regression_tools"
+version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "tls_regressor"
+name = "regression_tools"
 crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.19", features = ["extension-module"] }
 numpy = "0.19"
 ndarray = "0.15"
-# ndarray-linalg の features を変更
 ndarray-linalg = { version = "0.16", features = ["netlib"] }

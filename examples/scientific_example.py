@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
-from tls_regressor import TlsRegressor
+from regression_tools import OlsRegressor, TlsRegressor
 
 
 @dataclass
@@ -91,36 +91,32 @@ def generate_particle_tracking_data(n_points: int = 100) -> RegressionData:
     )
 
 
-def plot_regression_comparison(
+def plot_ols_comparison(
     data: RegressionData,
     output_dirpath: str | Path | None,
-    output_filename: str = "regression_comparison.png",
+    output_filename: str = "ols_comparison.png",
     save_fig: bool = True,
     show_fig: bool = True,
-) -> tuple[float, float, float, float]:
-    """回帰分析の比較プロット"""
-    # TLS回帰の実行
-    tls_model = TlsRegressor()
-    tls_model.fit(data.x_noisy, data.y_noisy)
-    tls_slope, tls_intercept, tls_correlation = tls_model.get_params()
-
-    # OLS回帰の実行
-    ols_slope, ols_intercept, ols_correlation, _, _ = stats.linregress(
+) -> None:
+    """OLS回帰の比較プロット(stats.linregressとOlsRegressor)"""
+    # stats.linregress
+    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
         data.x_noisy, data.y_noisy
     )
 
+    # OlsRegressor
+    ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
+    ols_params = ols_model.get_params()
+
     # プロット用のデータ準備
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
-    tls_y_plot = tls_model.predict(x_plot)
-    ols_y_plot = ols_slope * x_plot + ols_intercept
+    ols_y_plot = ols_model.predict(x_plot)
+    stats_y_plot = stats_slope * x_plot + stats_intercept
 
-    # プロット
     plt.figure(figsize=(12, 8))
     plt.scatter(
         data.x_noisy, data.y_noisy, color="blue", alpha=0.5, label="Observed Data"
     )
-
-    # 真の関係
     plt.plot(
         data.x,
         data.y,
@@ -129,39 +125,24 @@ def plot_regression_comparison(
         linewidth=2,
         label=f"True Relationship (Slope={data.true_slope:.3f})",
     )
-
-    # 回帰線
     plt.plot(
         x_plot,
-        tls_y_plot,
-        color="red",
+        stats_y_plot,
+        color="purple",
         linewidth=2,
-        label=f"TLS Regression (Slope={tls_slope:.3f}, r={tls_correlation:.3f})",
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
     )
     plt.plot(
         x_plot,
         ols_y_plot,
-        color="purple",
+        color="red",
         linewidth=2,
-        label=f"OLS Regression (Slope={ols_slope:.3f}, r={ols_correlation:.3f})",
-    )
-
-    # MSEの計算と表示
-    tls_mse = np.mean((data.y_noisy - tls_model.predict(data.x_noisy)) ** 2)
-    ols_mse = np.mean((data.y_noisy - (ols_slope * data.x_noisy + ols_intercept)) ** 2)
-
-    plt.text(
-        0.02,
-        0.98,
-        f"TLS MSE: {tls_mse:.4f}\nOLS MSE: {ols_mse:.4f}",
-        transform=plt.gca().transAxes,
-        verticalalignment="top",
-        bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.8},
+        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.correlation:.3f})",
     )
 
     plt.xlabel("X")
     plt.ylabel("Y")
-    plt.title(f"Regression Comparison\n{data.description}")
+    plt.title(f"OLS Regression Comparison\n{data.description}")
     plt.legend()
     plt.grid(True)
 
@@ -169,12 +150,149 @@ def plot_regression_comparison(
         if output_dirpath is None:
             raise ValueError("When save_fig=True, please specify output_dirpath.")
         os.makedirs(output_dirpath, exist_ok=True)
-        output_filepath = os.path.join(output_dirpath, output_filename)
-        plt.savefig(output_filepath)
+        plt.savefig(os.path.join(output_dirpath, output_filename))
     if show_fig:
         plt.show()
 
-    return tls_slope, tls_intercept, ols_slope, ols_intercept
+
+def plot_tls_comparison(
+    data: RegressionData,
+    output_dirpath: str | Path | None,
+    output_filename: str = "tls_comparison.png",
+    save_fig: bool = True,
+    show_fig: bool = True,
+) -> None:
+    """TLS回帰の比較プロット(stats.linregressとTlsRegressor)"""
+    # stats.linregress
+    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
+        data.x_noisy, data.y_noisy
+    )
+
+    # TlsRegressor
+    tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
+    tls_params = tls_model.get_params()
+
+    # プロット用のデータ準備
+    x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
+    tls_y_plot = tls_model.predict(x_plot)
+    stats_y_plot = stats_slope * x_plot + stats_intercept
+
+    plt.figure(figsize=(12, 8))
+    plt.scatter(
+        data.x_noisy, data.y_noisy, color="blue", alpha=0.5, label="Observed Data"
+    )
+    plt.plot(
+        data.x,
+        data.y,
+        "--",
+        color="green",
+        linewidth=2,
+        label=f"True Relationship (Slope={data.true_slope:.3f})",
+    )
+    plt.plot(
+        x_plot,
+        stats_y_plot,
+        color="purple",
+        linewidth=2,
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
+    )
+    plt.plot(
+        x_plot,
+        tls_y_plot,
+        color="red",
+        linewidth=2,
+        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.correlation:.3f})",
+    )
+
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.title(f"TLS vs OLS Regression Comparison\n{data.description}")
+    plt.legend()
+    plt.grid(True)
+
+    if save_fig:
+        if output_dirpath is None:
+            raise ValueError("When save_fig=True, please specify output_dirpath.")
+        os.makedirs(output_dirpath, exist_ok=True)
+        plt.savefig(os.path.join(output_dirpath, output_filename))
+    if show_fig:
+        plt.show()
+
+
+def plot_all_comparison(
+    data: RegressionData,
+    output_dirpath: str | Path | None,
+    output_filename: str = "all_comparison.png",
+    save_fig: bool = True,
+    show_fig: bool = True,
+) -> None:
+    """全ての回帰手法の比較プロット"""
+    # stats.linregress
+    stats_slope, stats_intercept, stats_correlation, _, _ = stats.linregress(
+        data.x_noisy, data.y_noisy
+    )
+
+    # OlsRegressor
+    ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
+    ols_params = ols_model.get_params()
+
+    # TlsRegressor
+    tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
+    tls_params = tls_model.get_params()
+
+    # プロット用のデータ準備
+    x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
+    ols_y_plot = ols_model.predict(x_plot)
+    tls_y_plot = tls_model.predict(x_plot)
+    stats_y_plot = stats_slope * x_plot + stats_intercept
+
+    plt.figure(figsize=(12, 8))
+    plt.scatter(
+        data.x_noisy, data.y_noisy, color="blue", alpha=0.5, label="Observed Data"
+    )
+    plt.plot(
+        data.x,
+        data.y,
+        "--",
+        color="green",
+        linewidth=2,
+        label=f"True Relationship (Slope={data.true_slope:.3f})",
+    )
+    plt.plot(
+        x_plot,
+        stats_y_plot,
+        color="purple",
+        linewidth=2,
+        label=f"stats.linregress (Slope={stats_slope:.3f}, r={stats_correlation:.3f})",
+    )
+    plt.plot(
+        x_plot,
+        ols_y_plot,
+        color="orange",
+        linewidth=2,
+        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.correlation:.3f})",
+    )
+    plt.plot(
+        x_plot,
+        tls_y_plot,
+        color="red",
+        linewidth=2,
+        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.correlation:.3f})",
+    )
+
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.title(f"All Regression Methods Comparison\n{data.description}")
+    plt.legend()
+    plt.grid(True)
+
+    if save_fig:
+        if output_dirpath is None:
+            raise ValueError("When save_fig=True, please specify output_dirpath.")
+        os.makedirs(output_dirpath, exist_ok=True)
+        plt.savefig(os.path.join(output_dirpath, output_filename))
+    if show_fig:
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -182,12 +300,32 @@ if __name__ == "__main__":
 
     # 3つの異なるケースでテスト
     datasets = [
-        (generate_linear_measurement_data(), "linear_measurement.png"),
-        (generate_spectroscopy_data(), "spectroscopy.png"),
-        (generate_particle_tracking_data(), "particle_tracking.png"),
+        (generate_linear_measurement_data(), "linear_measurement"),
+        (generate_spectroscopy_data(), "spectroscopy"),
+        (generate_particle_tracking_data(), "particle_tracking"),
     ]
 
-    for data, filename in datasets:
-        plot_regression_comparison(
-            data, output_dirpath=output_dir, output_filename=filename, show_fig=False
+    for data, base_filename in datasets:
+        # OLS比較
+        plot_ols_comparison(
+            data,
+            output_dirpath=output_dir,
+            output_filename=f"{base_filename}_ols_comparison.png",
+            show_fig=False,
+        )
+
+        # TLS比較
+        plot_tls_comparison(
+            data,
+            output_dirpath=output_dir,
+            output_filename=f"{base_filename}_tls_comparison.png",
+            show_fig=False,
+        )
+
+        # 全手法比較
+        plot_all_comparison(
+            data,
+            output_dirpath=output_dir,
+            output_filename=f"{base_filename}_all_comparison.png",
+            show_fig=False,
         )

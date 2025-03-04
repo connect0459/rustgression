@@ -1,6 +1,6 @@
 import numpy as np
 
-from tls_regressor import TlsRegressor
+from regression_tools import TlsRegressor
 
 
 def main():
@@ -12,14 +12,13 @@ def main():
     y = true_slope * x + true_intercept + np.random.normal(0, 0.5, 100)
 
     # TlsRegressorのインスタンス化とフィッティング
-    model = TlsRegressor()
-    model.fit(x, y)
+    model = TlsRegressor(x, y)
 
     # パラメータの取得と表示
-    slope, intercept, correlation = model.get_params()
-    print(f"推定された傾き: {slope:.4f} (真の値: {true_slope})")
-    print(f"推定された切片: {intercept:.4f} (真の値: {true_intercept})")
-    print(f"相関係数: {correlation:.4f}")
+    params = model.get_params()
+    print(f"推定された傾き: {params.slope:.4f} (真の値: {true_slope})")
+    print(f"推定された切片: {params.intercept:.4f} (真の値: {true_intercept})")
+    print(f"相関係数: {params.correlation:.4f}")
 
     # 予測の実行
     x_test = np.array([0, 5, 10])

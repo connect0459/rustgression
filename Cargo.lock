@@ -407,6 +407,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "regression_tools"
+version = "0.1.0"
+dependencies = [
+ "ndarray",
+ "ndarray-linalg",
+ "numpy",
+ "pyo3",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -496,16 +506,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.99",
-]
-
-[[package]]
-name = "tls_regressor"
-version = "0.1.2"
-dependencies = [
- "ndarray",
- "ndarray-linalg",
- "numpy",
- "pyo3",
 ]
 
 [[package]]

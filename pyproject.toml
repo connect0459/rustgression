@@ -1,7 +1,7 @@
 [project]
-name = "tls_regressor"
-version = "0.1.2"
-description = "Fast Total Least Squares regression using Rust backend"
+name = "regression_tools"
+version = "0.1.0"
+description = "Fast TLS and OLS regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,15 +15,15 @@ classifiers = [
 dependencies = ["matplotlib>=3.10.1", "numpy>=1.20.0", "scipy>=1.15.2"]
 
 [project.urls]
-"Homepage" = "https://github.com/connect0459/tls_regressor"
-"Bug Tracker" = "https://github.com/connect0459/tls_regressor/issues"
+"Homepage" = "https://github.com/connect0459/regression_tools"
+"Bug Tracker" = "https://github.com/connect0459/regression_tools/issues"
 
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [tool.maturin]
-python-source = "."                  # "tls_regressor" から "." に変更
+python-source = "."
 features = ["pyo3/extension-module"]
 
 [tool.pytest.ini_options]
@@ -36,7 +36,7 @@ addopts = "-v"
 line-length = 88
 
 # 検査するファイルやディレクトリ
-src = ["tls_regressor", "tests"]
+src = ["regression_tools", "tests"]
 
 # 無視するファイルやディレクトリ
 exclude = [".git", ".venv", "__pycache__", "build", "dist"]
@@ -61,12 +61,11 @@ ignore = [
 ]
 
 # 自動修正の対象とするルール
-# fixable = ["I", "F401"]
-fixable = ["I", "F401", "UP006", "UP007", "UP035"]
+fixable = ["I", "F401", "RUF002", "RUF022", "UP006", "UP007", "UP035"]
 
 [tool.ruff.lint.isort]
 # isortの設定
-known-first-party = ["tls_regressor"]
+known-first-party = ["regression_tools"]
 known-third-party = ["numpy", "pandas"]
 section-order = [
   "future",
