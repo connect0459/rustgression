@@ -23,3 +23,5 @@ __all__ = [
     "calculate_tls_regression",
     "create_regressor",
 ]
+
+__version__ = "0.0.1"
