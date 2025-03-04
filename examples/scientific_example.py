@@ -9,7 +9,7 @@ from scipy import stats
 from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
-    RegressionParams,
+    TlsRegressionParams,
     TlsRegressor,
 )
 
@@ -336,7 +336,7 @@ def plot_all_comparison(
 
     # TlsRegressor
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
-    tls_params: RegressionParams = tls_model.get_params()
+    tls_params: TlsRegressionParams = tls_model.get_params()
 
     # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)

@@ -42,7 +42,7 @@ Examples
 from .regression.mod import (
     OlsRegressionParams,
     OlsRegressor,
-    RegressionParams,
+    TlsRegressionParams,
     TlsRegressor,
     create_regressor,
 )
@@ -50,7 +50,7 @@ from .regression.mod import (
 __all__ = [
     "OlsRegressionParams",
     "OlsRegressor",
-    "RegressionParams",
+    "TlsRegressionParams",
     "TlsRegressor",
     "create_regressor",
 ]

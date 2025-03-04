@@ -21,7 +21,7 @@ import pytest
 from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
-    RegressionParams,
+    TlsRegressionParams,
     TlsRegressor,
     create_regressor,
 )
@@ -128,7 +128,7 @@ class TestTlsRegressor:
 
         # Parameter validation
         params = regressor.get_params()
-        assert isinstance(params, RegressionParams)
+        assert isinstance(params, TlsRegressionParams)
         assert 1.9 < params.slope < 2.1  # Theoretical value is 2.0
         assert 0.8 < params.intercept < 1.2  # Theoretical value is 1.0
         assert 0.95 < params.r_value < 1.0

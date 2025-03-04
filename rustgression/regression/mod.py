@@ -4,16 +4,46 @@ Python interface for regression analysis.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Literal
+from typing import Generic, Literal, TypeVar
 
 import numpy as np
 
 from ..rustgression import calculate_ols_regression, calculate_tls_regression
 
+T = TypeVar("T")
+
 
 @dataclass
-class RegressionParams:
-    """Data class to store basic regression parameters.
+class OlsRegressionParams:
+    """Data class to store parameters for Ordinary Least Squares (OLS) regression.
+
+    Attributes
+    ----------
+    slope : float
+        The slope of the regression line.
+    intercept : float
+        The y-intercept of the regression line.
+    r_value : float
+        The correlation coefficient indicating the strength of the relationship.
+    p_value : float
+        The p-value associated with the regression slope.
+    stderr : float
+        The standard error of the regression slope.
+    intercept_stderr : float
+        The standard error of the intercept.
+    """
+
+    slope: float
+    intercept: float
+    r_value: float
+    p_value: float
+    stderr: float
+    intercept_stderr: float
+
+
+@dataclass
+class TlsRegressionParams:
+    """Data class to store parameters for Total Least Squares (TLS) regression.
 
     Attributes
     ----------
@@ -30,26 +60,7 @@ class RegressionParams:
     r_value: float
 
 
-@dataclass
-class OlsRegressionParams(RegressionParams):
-    """Data class to store parameters for Ordinary Least Squares (OLS) regression.
-
-    Attributes
-    ----------
-    p_value : float
-        The p-value associated with the regression slope.
-    stderr : float
-        The standard error of the regression slope.
-    intercept_stderr : float
-        The standard error of the intercept.
-    """
-
-    p_value: float
-    stderr: float
-    intercept_stderr: float
-
-
-class BaseRegressor(ABC):
+class BaseRegressor(ABC, Generic[T]):
     """Base class for regression analysis.
 
     This class defines a common interface for all regression implementations.
@@ -104,17 +115,16 @@ class BaseRegressor(ABC):
         x = np.asarray(x, dtype=np.float64)
         return self.slope * x + self.intercept
 
-    def get_params(self) -> RegressionParams:
+    @abstractmethod
+    def get_params(self) -> T:
         """Retrieve regression parameters.
 
         Returns
         -------
-        RegressionParams
+        T
             A data class containing the regression parameters.
         """
-        return RegressionParams(
-            slope=self.slope, intercept=self.intercept, r_value=self.r_value
-        )
+        pass
 
     def __repr__(self) -> str:
         """String representation of the regression model.
@@ -132,7 +142,7 @@ class BaseRegressor(ABC):
         )
 
 
-class OlsRegressor(BaseRegressor):
+class OlsRegressor(BaseRegressor[OlsRegressionParams]):
     """Class for calculating Ordinary Least Squares (OLS) regression.
 
     This class implements the standard least squares method, which minimizes
@@ -193,7 +203,7 @@ class OlsRegressor(BaseRegressor):
         )
 
 
-class TlsRegressor(BaseRegressor):
+class TlsRegressor(BaseRegressor[TlsRegressionParams]):
     """Class for calculating Total Least Squares (TLS) regression.
 
     Unlike Ordinary Least Squares (OLS), which minimizes errors only in the
@@ -208,6 +218,18 @@ class TlsRegressor(BaseRegressor):
         # Call the Rust implementation
         _, self.slope, self.intercept, self.r_value = calculate_tls_regression(
             self.x, self.y
+        )
+
+    def get_params(self) -> TlsRegressionParams:
+        """Retrieve regression parameters.
+
+        Returns
+        -------
+        TlsRegressionParams
+            A data class containing the regression parameters.
+        """
+        return TlsRegressionParams(
+            slope=self.slope, intercept=self.intercept, r_value=self.r_value
         )
 
 
@@ -229,7 +251,7 @@ def create_regressor(
     -------
     BaseRegressor
         An instance of the specified regression model.
-    
+
     Raises
     ------
     ValueError

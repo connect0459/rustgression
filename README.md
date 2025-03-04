@@ -25,7 +25,7 @@ import numpy as np
 from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
-    RegressionParams,
+    TlsRegressionParams,
     TlsRegressor,
 )
 
@@ -42,7 +42,7 @@ r_value = ols_params.r_value
 
 # TLS model
 tls_model = TlsRegressor(x, y)
-tls_params: RegressionParams = tls_model.get_params()
+tls_params: TlsRegressionParams = tls_model.get_params()
 tls_slope = tls_params.slope
 tls_intercept = tls_params.intercept
 ```
