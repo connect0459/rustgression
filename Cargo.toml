@@ -1,10 +1,10 @@
 [package]
-name = "regression_tools"
+name = "rustgression"
 version = "0.0.1"
 edition = "2021"
 
 [lib]
-name = "regression_tools"
+name = "rustgression"
 crate-type = ["cdylib"]
 
 [dependencies]

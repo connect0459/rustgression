@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from regression_tools import (
+from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
     RegressionParams,

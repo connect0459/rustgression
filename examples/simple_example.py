@@ -1,6 +1,6 @@
 import numpy as np
 
-from regression_tools import TlsRegressor
+from rustgression import TlsRegressor
 
 
 def main():

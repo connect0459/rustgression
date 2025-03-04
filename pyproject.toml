@@ -1,5 +1,5 @@
 [project]
-name = "regression_tools"
+name = "rustgression"
 version = "0.0.1"
 description = "Fast OLS and TLS and regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
@@ -15,8 +15,8 @@ classifiers = [
 dependencies = ["matplotlib>=3.10.1", "numpy>=1.20.0", "scipy>=1.15.2"]
 
 [project.urls]
-"Homepage" = "https://github.com/connect0459/regression_tools"
-"Bug Tracker" = "https://github.com/connect0459/regression_tools/issues"
+"Homepage" = "https://github.com/connect0459/rustgression"
+"Bug Tracker" = "https://github.com/connect0459/rustgression/issues"
 
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
@@ -36,7 +36,7 @@ addopts = "-v"
 line-length = 88
 
 # 検査するファイルやディレクトリ
-src = ["regression_tools", "tests"]
+src = ["rustgression", "tests"]
 
 # 無視するファイルやディレクトリ
 exclude = [".git", ".venv", "__pycache__", "build", "dist"]
@@ -65,7 +65,7 @@ fixable = ["I", "F401", "RUF002", "RUF022", "UP006", "UP007", "UP035"]
 
 [tool.ruff.lint.isort]
 # isortの設定
-known-first-party = ["regression_tools"]
+known-first-party = ["rustgression"]
 known-third-party = ["numpy", "pandas"]
 section-order = [
   "future",

@@ -8,7 +8,7 @@ from typing import Literal
 
 import numpy as np
 
-from ..regression_tools import calculate_ols_regression, calculate_tls_regression
+from ..rustgression import calculate_ols_regression, calculate_tls_regression
 
 
 @dataclass

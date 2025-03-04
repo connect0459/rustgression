@@ -1,10 +1,10 @@
-# regression_tools
+# rustgression
 
 本プロジェクトは、高速な回帰分析（OLS、TLS）をPythonパッケージとして提供します。
 
 ## 概要
 
-`regression_tools`はRustを利用した高速な回帰分析ツールをPythonパッケージとして提供します。
+`rustgression`はRustを利用した高速な回帰分析ツールをPythonパッケージとして提供します。
 以下の機能を含みます：
 
 - **Ordinary Least Squares (OLS)**: 通常の最小二乗法。y方向の誤差のみを最小化します。
@@ -15,14 +15,14 @@ Pythonのバージョンは`3.11`以上を対象としています。
 ## インストール
 
 ```bash
-pip install regression_tools
+pip install rustgression
 ```
 
 ## 使用方法
 
 ```python
 import numpy as np
-from regression_tools import (
+from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
     RegressionParams,

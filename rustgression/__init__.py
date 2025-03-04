@@ -1,5 +1,5 @@
 """
-regression_tools  - 高速Total Least Squares回帰
+rustgression  - 高速Total Least Squares回帰
 
 このパッケージはRustバックエンドを使った高速なTLS (直交) 回帰を提供します。
 """
@@ -12,7 +12,7 @@ from .regression.regressor import (
     TlsRegressor,
     create_regressor,
 )
-from .regression_tools import calculate_ols_regression, calculate_tls_regression
+from .rustgression import calculate_ols_regression, calculate_tls_regression
 
 __all__ = [
     "OlsRegressionParams",

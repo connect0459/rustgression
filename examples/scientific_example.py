@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
-from regression_tools import (
+from rustgression import (
     OlsRegressionParams,
     OlsRegressor,
     RegressionParams,
