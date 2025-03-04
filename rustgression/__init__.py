@@ -39,7 +39,7 @@ Examples
 """
 
 # Directly import from Rust module
-from .regression.regressor import (
+from .regression.mod import (
     OlsRegressionParams,
     OlsRegressor,
     RegressionParams,
@@ -55,4 +55,4 @@ __all__ = [
     "create_regressor",
 ]
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"

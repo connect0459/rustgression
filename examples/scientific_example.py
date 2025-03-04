@@ -36,6 +36,14 @@ class RegressionData:
         A description of the dataset.
     """
 
+    x: np.ndarray
+    y: np.ndarray
+    x_noisy: np.ndarray
+    y_noisy: np.ndarray
+    true_slope: float
+    true_intercept: float
+    description: str
+
 
 def generate_linear_measurement_data(n_points: int = 100) -> RegressionData:
     """Generate simple linear measurement data.
