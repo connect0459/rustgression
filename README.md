@@ -29,22 +29,46 @@ from rustgression import (
     TlsRegressor,
 )
 
-# Prepare data
-x = np.linspace(0, 10, 100)
-y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
+def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
+    """Generate sample data for regression example.
+    
+    Args:
+        size: Number of data points
+        noise_std: Standard deviation of noise
+    
+    Returns:
+        Tuple of (x, y) arrays
+    """
+    x = np.linspace(0, 10, size)
+    true_slope, true_intercept = 2.0, 1.0
+    y = true_slope * x + true_intercept + np.random.normal(0, noise_std, size)
+    return x, y
 
-# OLS model
-ols_model = OlsRegressor(x, y)
-ols_params: OlsRegressionParams = ols_model.get_params()
-ols_slope = ols_params.slope
-ols_intercept = ols_params.intercept
-r_value = ols_params.r_value
+def main():
+    # Generate sample data
+    x, y = generate_sample_data()
+    
+    # Ordinary Least Squares (OLS) Regression
+    print("=== Ordinary Least Squares (OLS) Results ===")
+    ols_model = OlsRegressor(x, y)
+    ols_params: OlsRegressionParams = ols_model.get_params()
+    print(f"Slope: {ols_params.slope:.4f}")
+    print(f"Intercept: {ols_params.intercept:.4f}")
+    print(f"R-value: {ols_params.r_value:.4f}")
+    print(f"P-value: {ols_params.p_value:.4e}")
+    print(f"Standard Error: {ols_params.stderr:.4f}")
+    print(f"Intercept Standard Error: {ols_params.intercept_stderr:.4f}\n")
+    
+    # Total Least Squares (TLS) Regression
+    print("=== Total Least Squares (TLS) Results ===")
+    tls_model = TlsRegressor(x, y)
+    tls_params: TlsRegressionParams = tls_model.get_params()
+    print(f"Slope: {tls_params.slope:.4f}")
+    print(f"Intercept: {tls_params.intercept:.4f}")
+    print(f"R-value: {tls_params.r_value:.4f}")
 
-# TLS model
-tls_model = TlsRegressor(x, y)
-tls_params: TlsRegressionParams = tls_model.get_params()
-tls_slope = tls_params.slope
-tls_intercept = tls_params.intercept
+if __name__ == "__main__":
+    main()
 ```
 
 ## Author
