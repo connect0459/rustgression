@@ -52,14 +52,14 @@ jobs:
         run: |
           python -c "import rustgression; print(f'Successfully imported rustgression {rustgression.__version__}')"
 
-      # テストがある場合は実行
+      # もしテストがある場合は実行
       - name: Run tests
         run: |
           python -m pytest
 
       # ビルド成果物をアップロード（確認用）
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
           path: target/wheels/*.whl
