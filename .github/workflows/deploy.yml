@@ -1,13 +1,85 @@
-name: Deploy to PyPI
+# name: Deploy to PyPI
+
+# on:
+#   release:
+#     types: [published]
+
+# jobs:
+#   deploy-to-pypi:
+#     if: github.event_name == 'release'
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       id-token: write
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+
+#       # バージョン確認ステップを追加
+#       - name: Check versions
+#         run: |
+#           # Gitタグからバージョンを取得（v0.0.1 -> 0.0.1）
+#           GIT_VERSION=${GITHUB_REF#refs/tags/v}
+
+#           # Cargo.tomlのバージョンを取得
+#           CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
+
+#           # pyproject.tomlのバージョンを取得
+#           PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f2)
+
+#           # バージョンの一致を確認
+#           if [ "$GIT_VERSION" != "$CARGO_VERSION" ] || [ "$GIT_VERSION" != "$PYPROJECT_VERSION" ]; then
+#             echo "Version mismatch!"
+#             echo "Git tag: $GIT_VERSION"
+#             echo "Cargo.toml: $CARGO_VERSION"
+#             echo "pyproject.toml: $PYPROJECT_VERSION"
+#             exit 1
+#           fi
+#           echo "Versions match: $GIT_VERSION"
+
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
+
+#       # manylinuxコンテナを使用してビルド
+#       - name: Build manylinux wheels
+#         uses: PyO3/maturin-action@v1
+#         with:
+#           target: x86_64
+#           args: --release --strip
+#           manylinux: auto
+#           container: off
+
+#       - name: Install twine
+#         run: pip install twine
+
+#       - name: Publish to PyPI
+#         env:
+#           TWINE_USERNAME: __token__
+#           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+#         run: twine upload target/wheels/*
+
+name: Build and Deploy
 
 on:
   release:
     types: [published]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch: # 手動実行も可能にする
 
 jobs:
-  deploy-to-pypi:
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
     permissions:
       contents: read
       id-token: write
@@ -18,8 +90,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      # バージョン確認ステップを追加
+      # バージョン確認ステップ（リリース時のみ実行）
       - name: Check versions
+        if: github.event_name == 'release'
+        shell: bash
         run: |
           # Gitタグからバージョンを取得（v0.0.1 -> 0.0.1）
           GIT_VERSION=${GITHUB_REF#refs/tags/v}
@@ -43,22 +117,55 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
-      # manylinuxコンテナを使用してビルド
-      - name: Build manylinux wheels
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # maturinを使用してホイールをビルド
+      - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
-          target: x86_64
+          target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-msvc' || 'x86_64' }}
           args: --release --strip
           manylinux: auto
           container: off
 
-      - name: Install twine
-        run: pip install twine
+      # ビルドされたホイールをインストールしてテスト
+      - name: Install built wheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          wheel_path=$(find target/wheels -name "*.whl" | head -n 1)
+          python -m pip install $wheel_path
 
+      # パッケージのインポートテスト
+      - name: Test import
+        run: |
+          python -c "import rustgression; print(f'Successfully imported rustgression')"
+
+      # テストの実行（テストが存在する場合）
+      - name: Run tests
+        run: |
+          python -m pytest
+
+      # ビルド成果物をアップロード（PRとワークフロー手動実行時のみ）
+      - name: Upload wheels as artifacts
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: target/wheels/*.whl
+          retention-days: 7
+
+      # PyPIへの公開（リリース時のみ）
       - name: Publish to PyPI
+        if: github.event_name == 'release'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload target/wheels/*
+        run: |
+          pip install twine
+          twine upload target/wheels/*
