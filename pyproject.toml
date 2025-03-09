@@ -25,6 +25,7 @@ build-backend = "maturin"
 [tool.maturin]
 python-source = "."
 features = ["pyo3/extension-module"]
+bindings = "pyo3"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

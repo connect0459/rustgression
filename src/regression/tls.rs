@@ -42,38 +42,51 @@ pub fn calculate_tls_regression<'py>(
     let data_matrix: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> =
         ndarray::stack![Axis(1), x_centered.view(), y_centered.view()];
 
-    // Perform SVD
-    let (_, s, v_t) = data_matrix.svd(true, true).unwrap();
-    let v_t: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> =
-        v_t.expect("SVD failed to compute V^T matrix");
+    // SVDの実行とエラーハンドリングの改善
+    let svd_result = data_matrix.svd(true, true);
+    
+    match svd_result {
+        Ok((_, s, v_t_opt)) => {
+            if let Some(v_t) = v_t_opt {
+                // 最小特異値に対応する特異ベクトルを見つける
+                let min_singular_idx = s
+                    .iter()
+                    .enumerate()
+                    .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(s.len() - 1);
 
-    // Find the singular vector corresponding to the smallest singular value
-    // Fix: Find the index of the smallest singular value
-    let min_singular_idx: usize = s
-        .iter()
-        .enumerate()
-        .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-        .map(|(idx, _)| idx)
-        .unwrap();
+                let v = v_t.row(min_singular_idx);
 
-    let v: ndarray::ArrayBase<ndarray::ViewRepr<&f64>, ndarray::Dim<[usize; 1]>> =
-        v_t.row(min_singular_idx);
+                // Ensure we don't divide by zero
+                if v[1].abs() < 1e-10 {
+                    return Err(pyo3::exceptions::PyValueError::new_err(
+                        "Division by zero in TLS calculation: v[1] is too close to zero",
+                    ));
+                }
 
-    // Calculate the slope of TLS: -v_x / v_y (from the elements of the singular vector corresponding to the smallest singular value)
-    let slope: f64 = -v[0] / v[1];
+                // Calculate slope and intercept
+                let slope = -v[0] / v[1];
+                let intercept = y_mean - slope * x_mean;
 
-    // Calculate the intercept
-    let intercept: f64 = y_mean - slope * x_mean;
+                // Calculate correlation
+                let r_value = compute_r_value(&x_array, &y_array);
 
-    // Calculate the correlation coefficient
-    let r_value: f64 = compute_r_value(&x_array, &y_array);
+                // Calculate predicted values
+                let y_pred = x_array.mapv(|v| slope * v + intercept);
 
-    // Calculate predicted values from slope and intercept
-    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x_array.mapv(|v| slope * v + intercept);
-
-    // Return results to Python
-    Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
+                Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
+            } else {
+                Err(pyo3::exceptions::PyRuntimeError::new_err(
+                    "SVD computation failed to return V matrix",
+                ))
+            }
+        }
+        Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+            "SVD computation failed: {}",
+            e
+        ))),
+    }
 }
 
 // Helper function to compute the correlation coefficient
