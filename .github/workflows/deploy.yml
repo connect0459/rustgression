@@ -7,10 +7,7 @@ on:
 jobs:
   deploy-to-pypi:
     if: github.event_name == 'release'
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -21,20 +18,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Windows環境でのBLASライブラリのセットアップ
-      - name: Setup BLAS (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install -y mingw
-          choco install -y msys2
-          refreshenv
-
+      # バージョン確認ステップを追加
       - name: Check versions
-        shell: bash
         run: |
+          # Gitタグからバージョンを取得（v0.0.1 -> 0.0.1）
           GIT_VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Cargo.tomlのバージョンを取得
           CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
+
+          # pyproject.tomlのバージョンを取得
           PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f2)
+
+          # バージョンの一致を確認
           if [ "$GIT_VERSION" != "$CARGO_VERSION" ] || [ "$GIT_VERSION" != "$PYPROJECT_VERSION" ]; then
             echo "Version mismatch!"
             echo "Git tag: $GIT_VERSION"
@@ -49,20 +45,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Windowsビルド用の環境変数設定
-      - name: Set Windows environment
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "RUSTFLAGS=-C target-feature=+crt-static" >> $GITHUB_ENV
-          echo "OPENBLAS_DIR=C:/msys64/mingw64" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Build wheels
+      # manylinuxコンテナを使用してビルド
+      - name: Build manylinux wheels
         uses: PyO3/maturin-action@v1
         with:
-          target: ${{ matrix.os == 'windows-latest' && 'x64' || 'x86_64' }}
+          target: x86_64
           args: --release --strip
-          manylinux: ${{ matrix.os == 'ubuntu-latest' && 'auto' || 'off' }}
+          manylinux: auto
           container: off
 
       - name: Install twine
