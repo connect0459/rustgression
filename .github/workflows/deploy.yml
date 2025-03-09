@@ -73,62 +73,76 @@ jobs:
           # Windowsでは基本的なツールのみ必要
           choco install cmake -y
 
-      # maturinを使用してホイールをビルド
-      - name: Build wheels
+      # maturinを使用してホイールをビルド (GitHub Actionsのみ)
+      - name: Build wheels with maturin-action
         uses: PyO3/maturin-action@v1
+        if: false # このステップはスキップ - 代わりに直接maturin developを使用
         with:
           target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-msvc' || 'x86_64' }}
           args: --release --strip
           manylinux: auto
           container: off
         env:
-          # デバッグ情報を表示
           RUST_BACKTRACE: 1
 
-      # ビルド成果物の確認
-      - name: Check wheel files
+      # ビルドしてインストール (maturin developを使用)
+      - name: Build and install with maturin develop
         shell: bash
         run: |
-          echo "Checking wheel files in target/wheels directory:"
-          ls -la target/wheels/ || echo "Directory not found or empty"
+          # 環境情報を表示
+          echo "Building environment info:"
+          python --version
+          rustc --version
 
-          # Windowsの場合は特定のディレクトリも確認
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            echo "Checking wheels in release directory:"
-            ls -la target/release/ || echo "Directory not found or empty"
-          fi
+          # maturinでビルドしてインストール (ホイールではなく直接develop)
+          pip install maturin
+          maturin develop
 
-      # ビルドされたホイールをインストールしてテスト
-      - name: Install built wheel
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pytest
+          # モジュールのパスを確認
+          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
 
-          # OSに依存しない方法でwheelファイルを検索
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Windowsでの処理
-            wheel_file=$(ls -t target/wheels/*.whl 2>/dev/null | head -1)
-          else
-            # Linux/Macでの処理
-            wheel_file=$(find target/wheels -name "*.whl" | head -n 1)
-          fi
-
-          if [ -n "$wheel_file" ]; then
-            echo "Installing wheel: $wheel_file"
-            python -m pip install "$wheel_file"
-          else
-            echo "No wheel file found!"
-            ls -la target/wheels/
-            exit 1
-          fi
+          # インストールされたモジュールを確認
+          pip list
 
       # パッケージのインポートテスト
       - name: Test import
         shell: bash
         run: |
+          # バージョン情報だけでインポートテスト
           python -c "import rustgression; print(f'Successfully imported rustgression {rustgression.__version__}')" || {
             echo "Failed to import rustgression"
+            exit 1
+          }
+
+          # 簡単なクラスのインスタンス化テスト
+          python -c "
+          import rustgression
+          import numpy as np
+          try:
+              # 簡単なデータを作成
+              x = np.array([1.0, 2.0, 3.0])
+              y = np.array([2.0, 4.0, 6.0])
+              
+              # OLSレグレッサーを試す
+              print('Creating OLS regressor...')
+              regressor = rustgression.OlsRegressor(x, y)
+              params = regressor.get_params()
+              print(f'OLS slope: {params.slope}')
+              
+              # TLSレグレッサーも試す
+              print('Creating TLS regressor...')
+              tls = rustgression.TlsRegressor(x, y)
+              tls_params = tls.get_params()
+              print(f'TLS slope: {tls_params.slope}')
+              
+              print('All classes imported and tested successfully!')
+          except Exception as e:
+              print(f'Error during class testing: {e}')
+              import traceback
+              traceback.print_exc()
+              exit(1)
+          " || {
+            echo "Failed to import and test rustgression classes"
             exit 1
           }
 
