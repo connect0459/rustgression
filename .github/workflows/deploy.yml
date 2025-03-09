@@ -85,8 +85,8 @@ jobs:
         env:
           RUST_BACKTRACE: 1
 
-      # ビルドしてインストール (maturin buildとpip installを使用)
-      - name: Build and install with maturin build
+      # ビルドしてインストール (maturin developを使用)
+      - name: Build and install with maturin develop
         shell: bash
         run: |
           # 環境情報を表示
@@ -94,34 +94,29 @@ jobs:
           python --version
           rustc --version
 
+          # 仮想環境を認識できるようにする
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            # Windowsでの処理
+            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
+          else
+            # Linux/Macでの処理
+            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
+          fi
+          echo "Setting VIRTUAL_ENV=$VIRTUAL_ENV"
+
           # maturinをインストール
           pip install maturin
 
-          # maturin buildでホイールをビルド
-          maturin build --release
-
-          # ビルドされたホイールを探してインストール（OS固有の処理）
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Windowsでの処理
-            wheel_file=$(ls -t target/wheels/*.whl 2>/dev/null | head -1 || echo "")
-          else
-            # Linux/Macでの処理
-            wheel_file=$(find target/wheels -name "*.whl" | head -n 1 || echo "")
-          fi
-
-          if [ -n "$wheel_file" ]; then
-            echo "Installing wheel: $wheel_file"
-            pip install "$wheel_file"
-          else
-            echo "ホイールファイルが見つかりません！"
-            echo "target/wheels内のファイル一覧:"
-            ls -la target/wheels/ || echo "ディレクトリが見つからないか空です"
-            exit 1
-          fi
+          # maturin developでビルド・インストール
+          VIRTUAL_ENV=$VIRTUAL_ENV maturin develop
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
           pip list
+
+          # Pythonモジュールパスとモジュール構造を確認
+          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
+          python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
 
       # パッケージのインポートテスト
       - name: Test import
