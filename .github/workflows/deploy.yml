@@ -70,21 +70,8 @@ jobs:
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          # 必要なツールのインストール
+          # 必要に応じてWindows固有の依存関係をインストール
           choco install cmake -y
-
-          # vcpkgのセットアップ
-          git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
-          cd $HOME/vcpkg
-          ./bootstrap-vcpkg.bat -disableMetrics
-          ./vcpkg.exe integrate install
-
-          # OpenBLASのインストール
-          ./vcpkg.exe install openblas:x64-windows-static-md
-
-          # 環境変数の設定
-          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
-          echo "$HOME/vcpkg" >> $GITHUB_PATH
 
       # maturinを使用してホイールをビルド
       - name: Build wheels

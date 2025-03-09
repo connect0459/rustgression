@@ -1,8 +1,8 @@
-use ndarray::{Array1, Axis};
-use ndarray_linalg::SVD;
+use ndarray::{Array1, Array2, Axis};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
+use svdrs::SVD;
 
 /// Total Least Squares regression implemented in Rust.
 ///
@@ -16,83 +16,88 @@ use std::f64;
 /// Returns
 /// -------
 /// tuple
-///     A tuple containing (slope, intercept, r_value).
+///     A tuple containing (predicted values, slope, intercept, r_value).
 #[pyfunction]
 pub fn calculate_tls_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64)> {
-    // Convert numpy arrays to ndarray::Array1
-    let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x.as_array().to_owned();
-    let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        y.as_array().to_owned();
+    // NumPy配列をndarrayに変換
+    let x_array: Array1<f64> = x.as_array().to_owned();
+    let y_array: Array1<f64> = y.as_array().to_owned();
 
-    // Center the data (subtract the mean)
-    let x_mean: f64 = x_array.mean().unwrap();
-    let y_mean: f64 = y_array.mean().unwrap();
+    // データの中心化（平均の減算）
+    let x_mean = x_array.mean().unwrap_or(0.0);
+    let y_mean = y_array.mean().unwrap_or(0.0);
 
-    let x_centered: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x_array.mapv(|v: f64| v - x_mean);
-    let y_centered: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        y_array.mapv(|v: f64| v - y_mean);
+    let x_centered = x_array.mapv(|v| v - x_mean);
+    let y_centered = y_array.mapv(|v| v - y_mean);
 
-    // Create data matrix - stack centered data into a matrix
-    let data_matrix: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> =
-        ndarray::stack![Axis(1), x_centered.view(), y_centered.view()];
-
-    // SVDの実行とエラーハンドリングの改善
-    let svd_result = data_matrix.svd(true, true);
-    
-    match svd_result {
-        Ok((_, s, v_t_opt)) => {
-            if let Some(v_t) = v_t_opt {
-                // 最小特異値に対応する特異ベクトルを見つける
-                let min_singular_idx = s
-                    .iter()
-                    .enumerate()
-                    .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-                    .map(|(idx, _)| idx)
-                    .unwrap_or(s.len() - 1);
-
-                let v = v_t.row(min_singular_idx);
-
-                // Ensure we don't divide by zero
-                if v[1].abs() < 1e-10 {
-                    return Err(pyo3::exceptions::PyValueError::new_err(
-                        "Division by zero in TLS calculation: v[1] is too close to zero",
-                    ));
-                }
-
-                // Calculate slope and intercept
-                let slope = -v[0] / v[1];
-                let intercept = y_mean - slope * x_mean;
-
-                // Calculate correlation
-                let r_value = compute_r_value(&x_array, &y_array);
-
-                // Calculate predicted values
-                let y_pred = x_array.mapv(|v| slope * v + intercept);
-
-                Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
-            } else {
-                Err(pyo3::exceptions::PyRuntimeError::new_err(
-                    "SVD computation failed to return V matrix",
-                ))
-            }
-        }
-        Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
-            "SVD computation failed: {}",
-            e
-        ))),
+    // データ行列の作成 - 中心化したデータを行列としてスタック
+    let mut data_matrix = Array2::zeros((x_centered.len(), 2));
+    for i in 0..x_centered.len() {
+        data_matrix[[i, 0]] = x_centered[i];
+        data_matrix[[i, 1]] = y_centered[i];
     }
+
+    // svdrsを使用したSVD計算
+    let svd = SVD::new();
+
+    // SVD計算を実行
+    // data_matrixをフラット化して計算
+    let rows = data_matrix.shape()[0];
+    let cols = data_matrix.shape()[1];
+    let flat_data: Vec<f64> = data_matrix.iter().copied().collect();
+
+    let (u, s, v) = match svd.svd_flat(flat_data.as_slice(), rows, cols) {
+        Ok(result) => result,
+        Err(e) => {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "SVD calculation failed: {}",
+                e
+            )));
+        }
+    };
+
+    // 最小特異値のインデックスを見つける
+    let min_singular_idx = s
+        .iter()
+        .enumerate()
+        .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(idx, _)| idx)
+        .unwrap_or(0);
+
+    // 最小特異値に対応する右特異ベクトルを取得
+    // V行列は転置されていないので、列ベクトルとして取得
+    let v_col1 = v[min_singular_idx];
+    let v_col2 = v[min_singular_idx + v.len() / 2]; // V行列は横に並んでいるので、次の列の値はv.len()/2離れている
+
+    // 0除算防止
+    if v_col2.abs() < 1e-10 {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "Division by zero in TLS calculation",
+        ));
+    }
+
+    // 傾きと切片の計算
+    let slope = -v_col1 / v_col2;
+    let intercept = y_mean - slope * x_mean;
+
+    // 相関係数の計算
+    let r_value = compute_r_value(&x_array, &y_array);
+
+    // 予測値の計算
+    let y_pred = x_array.mapv(|v| slope * v + intercept);
+
+    // 結果をPythonに返す
+    Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
 }
 
-// Helper function to compute the correlation coefficient
+// 相関係数を計算するヘルパー関数
 fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
-    let x_mean = x.mean().unwrap();
-    let y_mean = y.mean().unwrap();
+    let x_mean = x.mean().unwrap_or(0.0);
+    let y_mean = y.mean().unwrap_or(0.0);
 
     let mut sum_xy = 0.0;
     let mut sum_x2 = 0.0;
