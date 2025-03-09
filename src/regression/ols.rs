@@ -122,7 +122,6 @@ fn calculate_p_value(t_value: f64, df: f64) -> f64 {
         2.0 * (1.0 - normal_cdf(x.abs()))
     } else {
         // Use simple approximation for small degrees of freedom
-        // A more accurate implementation of the t-distribution CDF is needed in practice
         let x = df / (df + t_value * t_value);
         // Incomplete p-value due to beta function approximation
         let p = 1.0 - x.powf(df / 2.0);

@@ -38,21 +38,36 @@ Examples
 >>> result = regressor.fit(X, y)
 """
 
-# Directly import from Rust module
-from .regression.mod import (
-    OlsRegressionParams,
-    OlsRegressor,
-    TlsRegressionParams,
-    TlsRegressor,
-    create_regressor,
-)
+# パッケージのバージョン
+__version__ = "0.1.4"
 
-__all__ = [
-    "OlsRegressionParams",
-    "OlsRegressor",
-    "TlsRegressionParams",
-    "TlsRegressor",
-    "create_regressor",
-]
+# Rustモジュールをまず直接インポート
+try:
+    from .rustgression import calculate_ols_regression, calculate_tls_regression
+except ImportError as e:
+    import sys
 
-__version__ = "0.1.3"
+    print(f"Error importing Rust module: {e}", file=sys.stderr)
+    print("Rust extension was not properly compiled or installed.", file=sys.stderr)
+
+# 次にPythonラッパーをインポート
+try:
+    from .regression.mod import (
+        OlsRegressionParams,
+        OlsRegressor,
+        TlsRegressionParams,
+        TlsRegressor,
+        create_regressor,
+    )
+
+    __all__ = [
+        "OlsRegressionParams",
+        "OlsRegressor",
+        "TlsRegressionParams",
+        "TlsRegressor",
+        "create_regressor",
+    ]
+except ImportError as e:
+    import sys
+
+    print(f"Error importing regression module: {e}", file=sys.stderr)
