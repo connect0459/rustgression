@@ -52,7 +52,7 @@ jobs:
         run: |
           python -c "import rustgression; print(f'Successfully imported rustgression {rustgression.__version__}')"
 
-      # もしテストがある場合は実行
+      # テストがある場合は実行
       - name: Run tests
         run: |
           python -m pytest
