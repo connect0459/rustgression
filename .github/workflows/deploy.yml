@@ -70,7 +70,7 @@ jobs:
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          # 必要に応じてWindows固有の依存関係をインストール
+          # Windowsでは基本的なツールのみ必要
           choco install cmake -y
 
       # maturinを使用してホイールをビルド
