@@ -23,30 +23,37 @@ pub fn calculate_tls_regression<'py>(
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64)> {
-    // NumPy配列をndarrayに変換
+    // Convert NumPy array to ndarray
     let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
         x.as_array().to_owned();
     let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
         y.as_array().to_owned();
 
-    // データの中心化（平均の減算）
+    // Center the data (subtract the mean)
     let x_mean = x_array.mean().unwrap_or(0.0);
     let y_mean = y_array.mean().unwrap_or(0.0);
 
-    let x_centered = x_array.mapv(|v| v - x_mean);
-    let y_centered = y_array.mapv(|v| v - y_mean);
+    let x_centered: ndarray::ArrayBase<ndarray::OwnedRepr<_>, ndarray::Dim<[usize; 1]>> =
+        x_array.mapv(|v| v - x_mean);
+    let y_centered: ndarray::ArrayBase<ndarray::OwnedRepr<_>, ndarray::Dim<[usize; 1]>> =
+        y_array.mapv(|v| v - y_mean);
 
-    // データをnalgebra行列に変換
-    let mut data_matrix = DMatrix::zeros(x_centered.len(), 2);
+    // Convert data to nalgebra matrix
+    let mut data_matrix: nalgebra::Matrix<
+        _,
+        nalgebra::Dyn,
+        nalgebra::Dyn,
+        nalgebra::VecStorage<_, nalgebra::Dyn, nalgebra::Dyn>,
+    > = DMatrix::zeros(x_centered.len(), 2);
     for i in 0..x_centered.len() {
         data_matrix[(i, 0)] = x_centered[i];
         data_matrix[(i, 1)] = y_centered[i];
     }
 
-    // SVDを実行
-    let svd = SVD::new(data_matrix, true, true);
+    // Perform SVD
+    let svd: SVD<_, nalgebra::Dyn, nalgebra::Dyn> = SVD::new(data_matrix, true, true);
 
-    // 右特異ベクトルVの取得（最後の特異値に対応する列）
+    // Get the right singular vector V (corresponding to the last singular value)
     let v = if let Some(v) = svd.v_t {
         v
     } else {
@@ -55,10 +62,15 @@ pub fn calculate_tls_regression<'py>(
         ));
     };
 
-    // 特異値の確認
-    let singular_values = svd.singular_values;
+    // Check singular values
+    let singular_values: nalgebra::Matrix<
+        _,
+        nalgebra::Dyn,
+        nalgebra::Const<1>,
+        nalgebra::VecStorage<_, nalgebra::Dyn, nalgebra::Const<1>>,
+    > = svd.singular_values;
 
-    // 最小特異値のインデックスを見つける
+    // Find the index of the minimum singular value
     let min_singular_idx = (0..singular_values.len())
         .min_by(|&a, &b| {
             singular_values[a]
@@ -67,31 +79,34 @@ pub fn calculate_tls_regression<'py>(
         })
         .unwrap_or(singular_values.len() - 1);
 
-    // 最小特異値に対応する右特異ベクトルを取得
+    // Get the right singular vector corresponding to the minimum singular value
     let v_col = v.row(min_singular_idx);
 
-    // 0除算防止
+    // Prevent division by zero
     if v_col[1].abs() < 1e-10 {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "Division by zero in TLS calculation: v[1] is too close to zero",
         ));
     }
 
-    // 傾きと切片の計算
-    let slope = -v_col[0] / v_col[1];
+    // Calculate the correlation coefficient and its sign
+    let r_value = compute_r_value(&x_array, &y_array);
+    let r_sign = r_value.signum();
+
+    // Calculate slope and intercept
+    // Adjust the slope direction based on the sign of the correlation coefficient
+    let slope = -v_col[0] / v_col[1] * r_sign;
     let intercept = y_mean - slope * x_mean;
 
-    // 相関係数の計算
-    let r_value = compute_r_value(&x_array, &y_array);
+    // Calculate predicted values
+    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<_>, ndarray::Dim<[usize; 1]>> =
+        x_array.mapv(|v| slope * v + intercept);
 
-    // 予測値の計算
-    let y_pred = x_array.mapv(|v| slope * v + intercept);
-
-    // 結果をPythonに返す
+    // Return results to Python
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
 }
 
-// 相関係数を計算するヘルパー関数
+// Helper function to calculate the correlation coefficient
 fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
     let x_mean = x.mean().unwrap_or(0.0);
     let y_mean = y.mean().unwrap_or(0.0);
