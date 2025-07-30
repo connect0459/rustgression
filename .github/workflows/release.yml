@@ -7,7 +7,7 @@ on:
 jobs:
   publish:
     runs-on: ${{ matrix.os }}
-    if: github.event.release.target_commitish == 'main'
+    if: github.ref == 'refs/heads/main'
     strategy:
       fail-fast: false
       matrix:
