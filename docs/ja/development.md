@@ -52,16 +52,13 @@ docker compose up
 
 ```bash
 # テストの実行
-docker compose exec rustgression-dev uv run pytest
+docker compose exec rustgression-dev -w /workspace uv run pytest
 
 # Lintの実行
-docker compose exec rustgression-dev uv run ruff check
+docker compose exec rustgression-dev -w /workspace uv run ruff check
 
 # パッケージの再ビルド（ファイル変更後）
-docker compose exec rustgression-dev uv run maturin develop
-
-# Bashシェルに入る
-docker compose exec rustgression-dev /bin/bash
+docker compose exec rustgression-dev -w /workspace uv run maturin develop
 ```
 
 ### 開発環境の管理
@@ -78,17 +75,7 @@ docker compose up --build
 
 # ボリュームも含めて完全に削除
 docker compose down -v
-```
-
-### 従来のDockerコマンドでの起動（非推奨）
-
-```bash
-# イメージのビルド
-docker build -t rustgression-dev .
-
-# コンテナの起動
-docker run -d --name rustgression-container rustgression-dev
 
 # コンテナ外からのコマンド実行
-docker exec rustgression-container uv run pytest
+docker compose exec rustgression-container -w /workspace uv run pytest
 ```
