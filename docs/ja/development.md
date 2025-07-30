@@ -36,52 +36,59 @@ uv run maturin develop
 
 ## Dockerを使った開発環境
 
-Dockerコンテナを使って開発環境を構築することもできます。
+Docker Composeを使って開発環境を構築できます。ボリュームマウントによりホスト側のファイル変更がリアルタイムで反映されます。
 
-### イメージのビルド
-
-```bash
-docker build -t rustgression-dev .
-```
-
-### コンテナの起動
+### 開発環境の起動
 
 ```bash
-# コンテナを起動（バックグラウンド）
-docker run -d --name rustgression-container rustgression-dev
+# コンテナをバックグラウンドで起動
+docker compose up -d
 
-# またはインタラクティブモードで起動
-docker run -it --name rustgression-container rustgression-dev
+# またはログを表示しながら起動
+docker compose up
 ```
 
-### コンテナ外からのコマンド実行
+### コンテナ内でのコマンド実行
 
 ```bash
 # テストの実行
-docker exec rustgression-container uv run pytest
+docker compose exec rustgression-dev uv run pytest
 
 # Lintの実行
-docker exec rustgression-container uv run ruff check
+docker compose exec rustgression-dev uv run ruff check
 
-# パッケージの再ビルド
-docker exec rustgression-container uv run maturin develop
+# パッケージの再ビルド（ファイル変更後）
+docker compose exec rustgression-dev uv run maturin develop
 
 # Bashシェルに入る
-docker exec -it rustgression-container /bin/bash
+docker compose exec rustgression-dev /bin/bash
 ```
 
-### コンテナの管理
+### 開発環境の管理
 
 ```bash
 # コンテナの停止
-docker stop rustgression-container
+docker compose stop
 
-# コンテナの開始
-docker start rustgression-container
+# コンテナの停止と削除
+docker compose down
 
-# コンテナの削除
-docker rm rustgression-container
+# イメージの再ビルドとコンテナの再作成
+docker compose up --build
 
-# イメージの削除
-docker rmi rustgression-dev
+# ボリュームも含めて完全に削除
+docker compose down -v
+```
+
+### 従来のDockerコマンドでの起動（非推奨）
+
+```bash
+# イメージのビルド
+docker build -t rustgression-dev .
+
+# コンテナの起動
+docker run -d --name rustgression-container rustgression-dev
+
+# コンテナ外からのコマンド実行
+docker exec rustgression-container uv run pytest
 ```

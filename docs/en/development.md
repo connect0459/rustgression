@@ -36,52 +36,59 @@ uv run maturin develop
 
 ## Docker Development Environment
 
-You can also set up a development environment using Docker containers.
+You can set up a development environment using Docker Compose. With volume mounting, file changes on the host are reflected in real-time.
 
-### Building the Image
-
-```bash
-docker build -t rustgression-dev .
-```
-
-### Starting the Container
+### Starting the Development Environment
 
 ```bash
 # Start container in background
-docker run -d --name rustgression-container rustgression-dev
+docker compose up -d
 
-# Or start in interactive mode
-docker run -it --name rustgression-container rustgression-dev
+# Or start with logs displayed
+docker compose up
 ```
 
-### Running Commands from Outside the Container
+### Running Commands in the Container
 
 ```bash
 # Run tests
-docker exec rustgression-container uv run pytest
+docker compose exec rustgression-dev uv run pytest
 
 # Run linting
-docker exec rustgression-container uv run ruff check
+docker compose exec rustgression-dev uv run ruff check
 
-# Rebuild the package
-docker exec rustgression-container uv run maturin develop
+# Rebuild the package (after file changes)
+docker compose exec rustgression-dev uv run maturin develop
 
 # Enter bash shell
-docker exec -it rustgression-container /bin/bash
+docker compose exec rustgression-dev /bin/bash
 ```
 
-### Container Management
+### Development Environment Management
 
 ```bash
 # Stop container
-docker stop rustgression-container
+docker compose stop
+
+# Stop and remove container
+docker compose down
+
+# Rebuild image and recreate container
+docker compose up --build
+
+# Complete removal including volumes
+docker compose down -v
+```
+
+### Legacy Docker Commands (Deprecated)
+
+```bash
+# Build image
+docker build -t rustgression-dev .
 
 # Start container
-docker start rustgression-container
+docker run -d --name rustgression-container rustgression-dev
 
-# Remove container
-docker rm rustgression-container
-
-# Remove image
-docker rmi rustgression-dev
+# Run commands from outside container
+docker exec rustgression-container uv run pytest
 ```
