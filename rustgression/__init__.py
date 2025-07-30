@@ -52,7 +52,7 @@ except ImportError as e:
 
 # 次にPythonラッパーをインポート
 try:
-    from .regression.mod import (
+    from .regression import (
         OlsRegressionParams,
         OlsRegressor,
         TlsRegressionParams,
