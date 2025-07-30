@@ -5,7 +5,8 @@ on:
     types: [published]
 
 jobs:
-  publish:
+  # Step 1: 全プラットフォームでビルド
+  build:
     runs-on: ${{ matrix.os }}
     if: github.event.release.target_commitish == 'main'
     strategy:
@@ -13,9 +14,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.11"]
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
       - name: Checkout code
@@ -69,53 +67,58 @@ jobs:
         run: |
           choco install cmake -y
 
-      # PyPIへの公開
-      - name: Publish to PyPI
+      # ホイールをビルド
+      - name: Build wheels
         shell: bash
         run: |
-          echo "Building wheels for release..."
+          echo "Building wheels for ${{ matrix.os }}..."
           pip install maturin
-          pip install twine
 
           # ホイールを明示的にビルド
           maturin build --release
 
           # ビルドされたホイールの場所を確認
-          echo "Checking for wheel files:"
-          find target -name "*.whl" || echo "No wheels found with find"
-          ls -la target/wheels/ || echo "No wheels directory"
+          echo "Built wheels:"
+          ls -la target/wheels/ || echo "No wheels directory found"
 
-          # ホイールが見つかったらアップロード
-          wheel_files=$(find target -name "*.whl")
-          if [ -n "$wheel_files" ]; then
-            echo "Uploading wheel files to PyPI:"
-            echo "$wheel_files"
+      # ビルドしたホイールをアーティファクトとしてアップロード
+      - name: Upload wheels as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: target/wheels/*.whl
+          retention-days: 1
 
-            # 環境変数を設定
-            export TWINE_USERNAME=__token__
-            export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
+  # Step 2: 全てのビルドが成功した後に一括パブリッシュ
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
-            # twineでアップロード
-            twine upload $wheel_files
-          else
-            echo "No wheel files found. Building with PEP517 as fallback..."
-            pip install build
-            python -m build
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist/
+          merge-multiple: true
 
-            # distディレクトリを確認
-            ls -la dist/ || echo "No dist directory"
+      - name: Verify downloaded wheels
+        run: |
+          echo "Downloaded wheels:"
+          ls -la dist/
+          echo "Wheel count: $(ls -1 dist/*.whl | wc -l)"
 
-            # distにファイルがあればアップロード
-            if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
-              echo "Uploading dist files to PyPI:"
-              ls -la dist/
+      - name: Publish to PyPI
+        run: |
+          pip install twine
 
-              export TWINE_USERNAME=__token__
-              export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
+          # 環境変数を設定
+          export TWINE_USERNAME=__token__
+          export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
 
-              twine upload dist/*
-            else
-              echo "No distribution files found"
-              exit 1
-            fi
-          fi
+          # 全てのホイールを一括アップロード
+          echo "Uploading all wheels to PyPI:"
+          twine upload dist/*.whl
