@@ -1,0 +1,21 @@
+services:
+  rustgression-dev:
+    build: .
+    container_name: rustgression-container
+    volumes:
+      # Mount project root for real-time file sync
+      - .:/workspace
+      # Persist Cargo cache directory
+      - cargo-cache:/root/.cargo
+      # Persist uv cache directory
+      - uv-cache:/root/.cache/uv
+      # Persist Rust target directory for build artifacts cache
+      - target-cache:/workspace/target
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+
+volumes:
+  cargo-cache:
+  uv-cache:
+  target-cache:

@@ -143,3 +143,172 @@ fn normal_cdf(x: f64) -> f64 {
         prob
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod calculate_ols_regression {
+        use super::*;
+
+        #[test]
+        fn valid_regression() {
+            let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+            let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
+            
+            let result = perform_ols(&x, &y);
+            
+            assert!((result.slope - 2.0).abs() < 1e-10);
+            assert!(result.intercept.abs() < 1e-10);
+            assert!((result.r_value - 1.0).abs() < 1e-10);
+        }
+
+        #[test]
+        fn insufficient_data_points() {
+            let x = vec![1.0];
+            let y = vec![2.0];
+            
+            let result = perform_ols(&x, &y);
+            assert!(result.slope.is_nan() || result.slope.is_infinite());
+        }
+
+        #[test]
+        fn edge_cases_table_driven() {
+            let test_cases = vec![
+                (
+                    "horizontal_line",
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![3.0, 3.0, 3.0, 3.0, 3.0],
+                    0.0, 3.0, f64::NAN
+                ),
+                (
+                    "negative_correlation",
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![10.0, 8.0, 6.0, 4.0, 2.0],
+                    -2.0, 12.0, -1.0
+                ),
+                (
+                    "weak_positive_correlation",
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![2.1, 3.9, 6.2, 7.8, 10.1],
+                    2.0, 0.06, 0.999
+                ),
+                (
+                    "intercept_offset",
+                    vec![0.0, 1.0, 2.0, 3.0, 4.0],
+                    vec![5.0, 7.0, 9.0, 11.0, 13.0],
+                    2.0, 5.0, 1.0
+                ),
+            ];
+
+            for (name, x, y, expected_slope, expected_intercept, expected_r) in test_cases {
+                let result = perform_ols(&x, &y);
+                assert!(
+                    (result.slope - expected_slope).abs() < 1e-1,
+                    "{}: slope mismatch. expected: {}, got: {}",
+                    name, expected_slope, result.slope
+                );
+                assert!(
+                    (result.intercept - expected_intercept).abs() < 1e-1,
+                    "{}: intercept mismatch. expected: {}, got: {}",
+                    name, expected_intercept, result.intercept
+                );
+                if expected_r.is_nan() {
+                    assert!(
+                        result.r_value.is_nan(),
+                        "{}: expected NaN r_value, got: {}",
+                        name, result.r_value
+                    );
+                } else {
+                    assert!(
+                        (result.r_value - expected_r).abs() < 1e-1,
+                        "{}: r_value mismatch. expected: {}, got: {}",
+                        name, expected_r, result.r_value
+                    );
+                }
+            }
+        }
+
+        #[test]
+        fn boundary_cases_table_driven() {
+            let test_cases = vec![
+                (
+                    "identical_x_values",
+                    vec![2.0, 2.0, 2.0],
+                    vec![1.0, 2.0, 3.0],
+                    true, false
+                ),
+                (
+                    "identical_y_values", 
+                    vec![1.0, 2.0, 3.0],
+                    vec![5.0, 5.0, 5.0],
+                    false, true
+                ),
+                (
+                    "two_points_only",
+                    vec![1.0, 3.0],
+                    vec![2.0, 6.0],
+                    false, false
+                ),
+            ];
+
+            for (name, x, y, expect_nan_slope, expect_zero_r) in test_cases {
+                let result = perform_ols(&x, &y);
+                if expect_nan_slope {
+                    assert!(
+                        result.slope.is_nan() || result.slope.is_infinite(),
+                        "{}: expected NaN/infinite slope, got: {}",
+                        name, result.slope
+                    );
+                }
+                if expect_zero_r {
+                    assert!(
+                        result.r_value.abs() < 1e-10 || result.r_value.is_nan(),
+                        "{}: expected zero or NaN r_value, got: {}",
+                        name, result.r_value
+                    );
+                }
+            }
+        }
+    }
+
+    mod calculate_p_value {
+        use super::*;
+
+        #[test]
+        fn large_degrees_of_freedom() {
+            let p_val = calculate_p_value(2.0, 100.0);
+            assert!(p_val > 0.0 && p_val < 1.0);
+        }
+    }
+
+    struct OlsResult {
+        slope: f64,
+        intercept: f64,
+        r_value: f64,
+    }
+
+    fn perform_ols(x: &[f64], y: &[f64]) -> OlsResult {
+        let n = x.len() as f64;
+        let x_mean = x.iter().sum::<f64>() / n;
+        let y_mean = y.iter().sum::<f64>() / n;
+
+        let mut ss_xx = 0.0;
+        let mut ss_xy = 0.0;
+        let mut ss_yy = 0.0;
+
+        for i in 0..x.len() {
+            let x_diff = x[i] - x_mean;
+            let y_diff = y[i] - y_mean;
+            ss_xx += x_diff * x_diff;
+            ss_xy += x_diff * y_diff;
+            ss_yy += y_diff * y_diff;
+        }
+
+        let slope = ss_xy / ss_xx;
+        let intercept = y_mean - slope * x_mean;
+        let r_value = ss_xy / (ss_xx.sqrt() * ss_yy.sqrt());
+
+        OlsResult { slope, intercept, r_value }
+    }
+}

@@ -114,3 +114,175 @@ fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
 
     sum_xy / (sum_x2.sqrt() * sum_y2.sqrt())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod calculate_tls_regression {
+        use super::*;
+
+        #[test]
+        fn valid_regression() {
+            let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+            let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
+            
+            let result = perform_tls(&x, &y);
+            
+            assert!((result.slope - 2.0).abs() < 1e-10);
+            assert!(result.intercept.abs() < 1e-10);
+            assert!((result.r_value - 1.0).abs() < 1e-10);
+        }
+
+        #[test]
+        fn zero_division_protection() {
+            let x = vec![1.0, 1.0, 1.0];
+            let y = vec![2.0, 2.0, 2.0];
+            
+            let result = perform_tls(&x, &y);
+            assert!(result.slope.is_nan() || result.slope.is_infinite());
+        }
+
+        #[test]
+        fn edge_cases_table_driven() {
+            let test_cases = vec![
+                (
+                    "negative_correlation",
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![10.0, 8.0, 6.0, 4.0, 2.0],
+                    -2.0, 12.0, -1.0
+                ),
+                (
+                    "intercept_offset",
+                    vec![0.0, 1.0, 2.0, 3.0, 4.0],
+                    vec![5.0, 7.0, 9.0, 11.0, 13.0],
+                    2.0, 5.0, 1.0
+                ),
+                (
+                    "noisy_positive_correlation",
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![2.1, 3.9, 6.2, 7.8, 10.1],
+                    2.0, 0.06, 0.999
+                ),
+                (
+                    "steep_slope",
+                    vec![1.0, 2.0, 3.0],
+                    vec![5.0, 10.0, 15.0],
+                    5.0, 0.0, 1.0
+                ),
+            ];
+
+            for (name, x, y, expected_slope, expected_intercept, expected_r) in test_cases {
+                let result = perform_tls(&x, &y);
+                assert!(
+                    (result.slope - expected_slope).abs() < 1e-1,
+                    "{}: slope mismatch. expected: {}, got: {}",
+                    name, expected_slope, result.slope
+                );
+                assert!(
+                    (result.intercept - expected_intercept).abs() < 1e-1,
+                    "{}: intercept mismatch. expected: {}, got: {}",
+                    name, expected_intercept, result.intercept
+                );
+                assert!(
+                    (result.r_value - expected_r).abs() < 1e-1,
+                    "{}: r_value mismatch. expected: {}, got: {}",
+                    name, expected_r, result.r_value
+                );
+            }
+        }
+
+        #[test]
+        fn boundary_cases_table_driven() {
+            let test_cases = vec![
+                (
+                    "vertical_line_case",
+                    vec![2.0, 2.0, 2.0, 2.0],
+                    vec![1.0, 2.0, 3.0, 4.0],
+                    true, false
+                ),
+                (
+                    "horizontal_line_case",
+                    vec![1.0, 2.0, 3.0, 4.0],
+                    vec![5.0, 5.0, 5.0, 5.0],
+                    false, true
+                ),
+                (
+                    "minimal_data_points",
+                    vec![1.0, 2.0],
+                    vec![3.0, 6.0],
+                    false, false
+                ),
+            ];
+
+            for (name, x, y, expect_extreme_slope, expect_zero_r) in test_cases {
+                let result = perform_tls(&x, &y);
+                if expect_extreme_slope {
+                    assert!(
+                        result.slope.is_nan() || result.slope.is_infinite() || result.slope.abs() > 1000.0,
+                        "{}: expected extreme slope, got: {}",
+                        name, result.slope
+                    );
+                }
+                if expect_zero_r {
+                    assert!(
+                        result.r_value.abs() < 1e-10,
+                        "{}: expected zero r_value, got: {}",
+                        name, result.r_value
+                    );
+                }
+            }
+        }
+    }
+
+    mod compute_r_value {
+        use super::*;
+
+        #[test]
+        fn perfect_correlation() {
+            let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+            let y = Array1::from_vec(vec![2.0, 4.0, 6.0]);
+            
+            let r = compute_r_value(&x, &y);
+            assert!((r - 1.0).abs() < 1e-10);
+        }
+    }
+
+    struct TlsResult {
+        slope: f64,
+        intercept: f64,
+        r_value: f64,
+    }
+
+    fn perform_tls(x: &[f64], y: &[f64]) -> TlsResult {
+        let x_mean = x.iter().sum::<f64>() / x.len() as f64;
+        let y_mean = y.iter().sum::<f64>() / y.len() as f64;
+
+        let x_centered: Vec<f64> = x.iter().map(|v| v - x_mean).collect();
+        let y_centered: Vec<f64> = y.iter().map(|v| v - y_mean).collect();
+
+        let mut data_matrix = DMatrix::zeros(x_centered.len(), 2);
+        for i in 0..x_centered.len() {
+            data_matrix[(i, 0)] = x_centered[i];
+            data_matrix[(i, 1)] = y_centered[i];
+        }
+
+        let svd = SVD::new(data_matrix, true, true);
+        let v = svd.v_t.unwrap();
+        let singular_values = svd.singular_values;
+
+        let min_singular_idx = (0..singular_values.len())
+            .min_by(|&a, &b| singular_values[a].partial_cmp(&singular_values[b]).unwrap())
+            .unwrap();
+
+        let v_col = v.row(min_singular_idx);
+        let slope = -v_col[0] / v_col[1];
+        let intercept = y_mean - slope * x_mean;
+
+        let x_array = Array1::from_vec(x.to_vec());
+        let y_array = Array1::from_vec(y.to_vec());
+        let r_value = compute_r_value(&x_array, &y_array);
+
+        TlsResult { slope, intercept, r_value }
+    }
+}
