@@ -1,14 +1,14 @@
-name: Build and Deploy
+name: Test and Build
 
 on:
-  release:
-    types: [published]
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
   workflow_dispatch: # 手動実行も可能にする
 
 jobs:
-  build-and-deploy:
+  test-and-build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
@@ -17,37 +17,12 @@ jobs:
         python-version: ["3.11"]
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # バージョン確認ステップ（リリース時のみ実行）
-      - name: Check versions
-        if: github.event_name == 'release'
-        shell: bash
-        run: |
-          # Gitタグからバージョンを取得（v0.0.1 -> 0.0.1）
-          GIT_VERSION=${GITHUB_REF#refs/tags/v}
-
-          # Cargo.tomlのバージョンを取得
-          CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
-
-          # pyproject.tomlのバージョンを取得
-          PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f2)
-
-          # バージョンの一致を確認
-          if [ "$GIT_VERSION" != "$CARGO_VERSION" ] || [ "$GIT_VERSION" != "$PYPROJECT_VERSION" ]; then
-            echo "Version mismatch!"
-            echo "Git tag: $GIT_VERSION"
-            echo "Cargo.toml: $CARGO_VERSION"
-            echo "pyproject.toml: $PYPROJECT_VERSION"
-            exit 1
-          fi
-          echo "Versions match: $GIT_VERSION"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -72,18 +47,6 @@ jobs:
         run: |
           # Windowsでは基本的なツールのみ必要
           choco install cmake -y
-
-      # maturinを使用してホイールをビルド (GitHub Actionsのみ)
-      - name: Build wheels with maturin-action
-        uses: PyO3/maturin-action@v1
-        if: false # このステップはスキップ - 代わりに直接maturin developを使用
-        with:
-          target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-msvc' || 'x86_64' }}
-          args: --release --strip
-          manylinux: auto
-          container: off
-        env:
-          RUST_BACKTRACE: 1
 
       # ビルドしてインストール (maturin developを使用)
       - name: Build and install with maturin develop
@@ -171,61 +134,8 @@ jobs:
 
       # ビルド成果物をアップロード（PRとワークフロー手動実行時のみ）
       - name: Upload wheels as artifacts
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
           path: target/wheels/*.whl
           retention-days: 7
-
-      # PyPIへの公開（リリース時のみ）
-      - name: Publish to PyPI
-        if: github.event_name == 'release'
-        shell: bash
-        run: |
-          echo "Building wheels for release..."
-          pip install maturin
-          pip install twine
-
-          # ホイールを明示的にビルド
-          maturin build --release
-
-          # ビルドされたホイールの場所を確認
-          echo "Checking for wheel files:"
-          find target -name "*.whl" || echo "No wheels found with find"
-          ls -la target/wheels/ || echo "No wheels directory"
-
-          # ホイールが見つかったらアップロード
-          wheel_files=$(find target -name "*.whl")
-          if [ -n "$wheel_files" ]; then
-            echo "Uploading wheel files to PyPI:"
-            echo "$wheel_files"
-            
-            # 環境変数を設定
-            export TWINE_USERNAME=__token__
-            export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-            
-            # twineでアップロード
-            twine upload $wheel_files
-          else
-            echo "No wheel files found. Building with PEP517 as fallback..."
-            pip install build
-            python -m build
-            
-            # distディレクトリを確認
-            ls -la dist/ || echo "No dist directory"
-            
-            # distにファイルがあればアップロード
-            if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
-              echo "Uploading dist files to PyPI:"
-              ls -la dist/
-              
-              export TWINE_USERNAME=__token__
-              export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-              
-              twine upload dist/*
-            else
-              echo "No distribution files found"
-              exit 1
-            fi
-          fi
