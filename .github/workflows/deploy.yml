@@ -122,7 +122,7 @@ jobs:
       - name: Test import
         shell: bash
         run: |
-          python scripts/test-import.py
+          python scripts/test-import-operation.py
 
       # テストの実行
       - name: Run tests

@@ -35,17 +35,19 @@ def test_basic_functionality():
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
 
-        # OLSレグレッサーを試す
+        # OLSレグレッサーを試す（新しいプロパティメソッドAPI）
         print("Creating OLS regressor...")
         regressor = rustgression.OlsRegressor(x, y)
-        params = regressor.get_params()
-        print(f"OLS slope: {params.slope}")
+        print(f"OLS slope: {regressor.slope()}")
+        print(f"OLS intercept: {regressor.intercept()}")
+        print(f"OLS r_value: {regressor.r_value()}")
 
-        # TLSレグレッサーも試す
+        # TLSレグレッサーも試す（新しいプロパティメソッドAPI）
         print("Creating TLS regressor...")
         tls = rustgression.TlsRegressor(x, y)
-        tls_params = tls.get_params()
-        print(f"TLS slope: {tls_params.slope}")
+        print(f"TLS slope: {tls.slope()}")
+        print(f"TLS intercept: {tls.intercept()}")
+        print(f"TLS r_value: {tls.r_value()}")
 
         print("All classes imported and tested successfully!")
         return True
