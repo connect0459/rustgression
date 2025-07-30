@@ -122,43 +122,7 @@ jobs:
       - name: Test import
         shell: bash
         run: |
-          # バージョン情報だけでインポートテスト
-          python -c "import rustgression; print(f'Successfully imported rustgression {rustgression.__version__}')" || {
-            echo "Failed to import rustgression"
-            exit 1
-          }
-
-          # 簡単なクラスのインスタンス化テスト
-          python -c "
-          import rustgression
-          import numpy as np
-          try:
-              # 簡単なデータを作成
-              x = np.array([1.0, 2.0, 3.0])
-              y = np.array([2.0, 4.0, 6.0])
-              
-              # OLSレグレッサーを試す
-              print('Creating OLS regressor...')
-              regressor = rustgression.OlsRegressor(x, y)
-              params = regressor.get_params()
-              print(f'OLS slope: {params.slope}')
-              
-              # TLSレグレッサーも試す
-              print('Creating TLS regressor...')
-              tls = rustgression.TlsRegressor(x, y)
-              tls_params = tls.get_params()
-              print(f'TLS slope: {tls_params.slope}')
-              
-              print('All classes imported and tested successfully!')
-          except Exception as e:
-              print(f'Error during class testing: {e}')
-              import traceback
-              traceback.print_exc()
-              exit(1)
-          " || {
-            echo "Failed to import and test rustgression classes"
-            exit 1
-          }
+          python scripts/test-import-operation.py
 
       # テストの実行
       - name: Run tests
@@ -200,29 +164,29 @@ jobs:
           if [ -n "$wheel_files" ]; then
             echo "Uploading wheel files to PyPI:"
             echo "$wheel_files"
-            
+
             # 環境変数を設定
             export TWINE_USERNAME=__token__
             export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-            
+
             # twineでアップロード
             twine upload $wheel_files
           else
             echo "No wheel files found. Building with PEP517 as fallback..."
             pip install build
             python -m build
-            
+
             # distディレクトリを確認
             ls -la dist/ || echo "No dist directory"
-            
+
             # distにファイルがあればアップロード
             if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
               echo "Uploading dist files to PyPI:"
               ls -la dist/
-              
+
               export TWINE_USERNAME=__token__
               export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-              
+
               twine upload dist/*
             else
               echo "No distribution files found"

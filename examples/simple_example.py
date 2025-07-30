@@ -5,7 +5,7 @@ from rustgression import TlsRegressor
 
 def main():
     """
-    Main function to generate test data, fit a TlsRegressor model, 
+    Main function to generate test data, fit a TlsRegressor model,
     and display the estimated parameters and predictions.
 
     This function performs the following steps:
@@ -28,11 +28,12 @@ def main():
     # Instantiate and fit the TlsRegressor
     model = TlsRegressor(x, y)
 
-    # Retrieve and display parameters
-    params = model.get_params()
-    print(f"Estimated slope: {params.slope:.4f} (True value: {true_slope})")
-    print(f"Estimated intercept: {params.intercept:.4f} (True value: {true_intercept})")
-    print(f"Correlation coefficient: {params.r_value:.4f}")
+    # Retrieve and display parameters using new property method API
+    print(f"Estimated slope: {model.slope():.4f} (True value: {true_slope})")
+    print(
+        f"Estimated intercept: {model.intercept():.4f} (True value: {true_intercept})"
+    )
+    print(f"Correlation coefficient: {model.r_value():.4f}")
 
     # Execute predictions
     x_test = np.array([0, 5, 10])

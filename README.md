@@ -22,20 +22,15 @@ pip install rustgression
 
 ```python
 import numpy as np
-from rustgression import (
-    OlsRegressionParams,
-    OlsRegressor,
-    TlsRegressionParams,
-    TlsRegressor,
-)
+from rustgression import OlsRegressor, TlsRegressor
 
 def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
     """Generate sample data for regression example.
-    
+
     Args:
         size: Number of data points
         noise_std: Standard deviation of noise
-    
+
     Returns:
         Tuple of (x, y) arrays
     """
@@ -47,25 +42,23 @@ def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.nd
 def main():
     # Generate sample data
     x, y = generate_sample_data()
-    
+
     # Ordinary Least Squares (OLS) Regression
     print("=== Ordinary Least Squares (OLS) Results ===")
     ols_model = OlsRegressor(x, y)
-    ols_params: OlsRegressionParams = ols_model.get_params()
-    print(f"Slope: {ols_params.slope:.4f}")
-    print(f"Intercept: {ols_params.intercept:.4f}")
-    print(f"R-value: {ols_params.r_value:.4f}")
-    print(f"P-value: {ols_params.p_value:.4e}")
-    print(f"Standard Error: {ols_params.stderr:.4f}")
-    print(f"Intercept Standard Error: {ols_params.intercept_stderr:.4f}\n")
-    
+    print(f"Slope: {ols_model.slope():.4f}")
+    print(f"Intercept: {ols_model.intercept():.4f}")
+    print(f"R-value: {ols_model.r_value():.4f}")
+    print(f"P-value: {ols_model.p_value():.4e}")
+    print(f"Standard Error: {ols_model.stderr():.4f}")
+    print(f"Intercept Standard Error: {ols_model.intercept_stderr():.4f}\n")
+
     # Total Least Squares (TLS) Regression
     print("=== Total Least Squares (TLS) Results ===")
     tls_model = TlsRegressor(x, y)
-    tls_params: TlsRegressionParams = tls_model.get_params()
-    print(f"Slope: {tls_params.slope:.4f}")
-    print(f"Intercept: {tls_params.intercept:.4f}")
-    print(f"R-value: {tls_params.r_value:.4f}")
+    print(f"Slope: {tls_model.slope():.4f}")
+    print(f"Intercept: {tls_model.intercept():.4f}")
+    print(f"R-value: {tls_model.r_value():.4f}")
 
 if __name__ == "__main__":
     main()

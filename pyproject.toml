@@ -88,6 +88,7 @@ convention = "numpy"
 managed = true
 dev-dependencies = [
   "maturin>=1.8.2",
+  "pre-commit>=4.0.1",
   "pytest>=8.3.4",
   "ruff>=0.6.8",
   "twine>=5.1.1",

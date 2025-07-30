@@ -2,6 +2,9 @@ use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
 
+// Type alias to reduce complexity
+type OlsResult<'py> = (&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64);
+
 /// Rust implementation of Ordinary Least Squares regression (similar to stats.linregress).
 ///
 /// Parameters
@@ -20,7 +23,7 @@ pub fn calculate_ols_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
-) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64)> {
+) -> PyResult<OlsResult<'py>> {
     // Convert numpy arrays to ndarray
     let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
         x.as_array().to_owned();
@@ -155,9 +158,9 @@ mod tests {
         fn valid_regression() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
-            
+
             let result = perform_ols(&x, &y);
-            
+
             assert!((result.slope - 2.0).abs() < 1e-10);
             assert!(result.intercept.abs() < 1e-10);
             assert!((result.r_value - 1.0).abs() < 1e-10);
@@ -167,7 +170,7 @@ mod tests {
         fn insufficient_data_points() {
             let x = vec![1.0];
             let y = vec![2.0];
-            
+
             let result = perform_ols(&x, &y);
             assert!(result.slope.is_nan() || result.slope.is_infinite());
         }
@@ -179,25 +182,33 @@ mod tests {
                     "horizontal_line",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![3.0, 3.0, 3.0, 3.0, 3.0],
-                    0.0, 3.0, f64::NAN
+                    0.0,
+                    3.0,
+                    f64::NAN,
                 ),
                 (
                     "negative_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![10.0, 8.0, 6.0, 4.0, 2.0],
-                    -2.0, 12.0, -1.0
+                    -2.0,
+                    12.0,
+                    -1.0,
                 ),
                 (
                     "weak_positive_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![2.1, 3.9, 6.2, 7.8, 10.1],
-                    2.0, 0.06, 0.999
+                    2.0,
+                    0.06,
+                    0.999,
                 ),
                 (
                     "intercept_offset",
                     vec![0.0, 1.0, 2.0, 3.0, 4.0],
                     vec![5.0, 7.0, 9.0, 11.0, 13.0],
-                    2.0, 5.0, 1.0
+                    2.0,
+                    5.0,
+                    1.0,
                 ),
             ];
 
@@ -206,24 +217,31 @@ mod tests {
                 assert!(
                     (result.slope - expected_slope).abs() < 1e-1,
                     "{}: slope mismatch. expected: {}, got: {}",
-                    name, expected_slope, result.slope
+                    name,
+                    expected_slope,
+                    result.slope
                 );
                 assert!(
                     (result.intercept - expected_intercept).abs() < 1e-1,
                     "{}: intercept mismatch. expected: {}, got: {}",
-                    name, expected_intercept, result.intercept
+                    name,
+                    expected_intercept,
+                    result.intercept
                 );
                 if expected_r.is_nan() {
                     assert!(
                         result.r_value.is_nan(),
                         "{}: expected NaN r_value, got: {}",
-                        name, result.r_value
+                        name,
+                        result.r_value
                     );
                 } else {
                     assert!(
                         (result.r_value - expected_r).abs() < 1e-1,
                         "{}: r_value mismatch. expected: {}, got: {}",
-                        name, expected_r, result.r_value
+                        name,
+                        expected_r,
+                        result.r_value
                     );
                 }
             }
@@ -236,19 +254,22 @@ mod tests {
                     "identical_x_values",
                     vec![2.0, 2.0, 2.0],
                     vec![1.0, 2.0, 3.0],
-                    true, false
+                    true,
+                    false,
                 ),
                 (
-                    "identical_y_values", 
+                    "identical_y_values",
                     vec![1.0, 2.0, 3.0],
                     vec![5.0, 5.0, 5.0],
-                    false, true
+                    false,
+                    true,
                 ),
                 (
                     "two_points_only",
                     vec![1.0, 3.0],
                     vec![2.0, 6.0],
-                    false, false
+                    false,
+                    false,
                 ),
             ];
 
@@ -258,14 +279,16 @@ mod tests {
                     assert!(
                         result.slope.is_nan() || result.slope.is_infinite(),
                         "{}: expected NaN/infinite slope, got: {}",
-                        name, result.slope
+                        name,
+                        result.slope
                     );
                 }
                 if expect_zero_r {
                     assert!(
                         result.r_value.abs() < 1e-10 || result.r_value.is_nan(),
                         "{}: expected zero or NaN r_value, got: {}",
-                        name, result.r_value
+                        name,
+                        result.r_value
                     );
                 }
             }
@@ -309,6 +332,10 @@ mod tests {
         let intercept = y_mean - slope * x_mean;
         let r_value = ss_xy / (ss_xx.sqrt() * ss_yy.sqrt());
 
-        OlsResult { slope, intercept, r_value }
+        OlsResult {
+            slope,
+            intercept,
+            r_value,
+        }
     }
 }

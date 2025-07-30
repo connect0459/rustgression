@@ -52,16 +52,13 @@ docker compose up
 
 ```bash
 # Run tests
-docker compose exec rustgression-dev uv run pytest
+docker compose exec -w /workspace rustgression-dev uv run pytest
 
 # Run linting
-docker compose exec rustgression-dev uv run ruff check
+docker compose exec -w /workspace rustgression-dev uv run ruff check
 
 # Rebuild the package (after file changes)
-docker compose exec rustgression-dev uv run maturin develop
-
-# Enter bash shell
-docker compose exec rustgression-dev /bin/bash
+docker compose exec -w /workspace rustgression-dev uv run maturin develop
 ```
 
 ### Development Environment Management
@@ -78,17 +75,4 @@ docker compose up --build
 
 # Complete removal including volumes
 docker compose down -v
-```
-
-### Legacy Docker Commands (Deprecated)
-
-```bash
-# Build image
-docker build -t rustgression-dev .
-
-# Start container
-docker run -d --name rustgression-container rustgression-dev
-
-# Run commands from outside container
-docker exec rustgression-container uv run pytest
 ```
