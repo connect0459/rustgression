@@ -1,0 +1,102 @@
+name: Test and Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch: # 手動実行も可能にする
+
+jobs:
+  test-and-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # Linux環境のセットアップ（Ubuntu）
+      - name: Setup Ubuntu dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake
+
+      # Windows環境のセットアップ
+      - name: Setup Windows dependencies
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Windowsでは基本的なツールのみ必要
+          choco install cmake -y
+
+      # ビルドとインストール
+      - name: Build wheels and install
+        shell: bash
+        run: |
+          # 環境情報を表示
+          echo "Building environment info:"
+          python --version
+          rustc --version
+
+          # pyproject.tomlから依存関係をインストール
+          pip install -e .
+          
+          # 開発・テスト用依存関係を個別にインストール
+          pip install maturin pytest
+
+          # ホイールをビルド
+          maturin build --release
+
+          # ビルドされたホイールを確認
+          echo "Built wheels:"
+          ls -la target/wheels/ || echo "No wheels directory found"
+
+          # インストールされたモジュールを確認
+          echo "インストールされたパッケージ:"
+          pip list
+
+          # Pythonモジュールパスとモジュール構造を確認
+          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
+          python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
+
+      # パッケージのインポートテスト
+      - name: Test import
+        shell: bash
+        run: |
+          python scripts/test-import-operation.py
+
+      # テストの実行
+      - name: Run tests
+        shell: bash
+        run: |
+          # インポートテスト（失敗時はワークフローを失敗させる）
+          if ! python -c "import rustgression"; then
+            echo "Import failed: rustgression module not found."
+            exit 1
+          fi
+          
+          # テスト実行
+          python -m pytest
+
+      # ビルド成果物をアップロード
+      - name: Upload wheels as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: target/wheels/*.whl
+          retention-days: 7

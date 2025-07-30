@@ -1,17 +1,15 @@
-name: Build and Deploy
+name: Release to PyPI
 
 on:
   release:
     types: [published]
-  pull_request:
-    types: [opened, synchronize, reopened]
-  workflow_dispatch: # 手動実行も可能にする
 
 jobs:
-  build-and-deploy:
+  publish:
     runs-on: ${{ matrix.os }}
+    if: github.ref == 'refs/heads/main'
     strategy:
-      fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.11"]
@@ -25,9 +23,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # バージョン確認ステップ（リリース時のみ実行）
+      # バージョン確認ステップ
       - name: Check versions
-        if: github.event_name == 'release'
         shell: bash
         run: |
           # Gitタグからバージョンを取得（v0.0.1 -> 0.0.1）
@@ -70,81 +67,10 @@ jobs:
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          # Windowsでは基本的なツールのみ必要
           choco install cmake -y
 
-      # maturinを使用してホイールをビルド (GitHub Actionsのみ)
-      - name: Build wheels with maturin-action
-        uses: PyO3/maturin-action@v1
-        if: false # このステップはスキップ - 代わりに直接maturin developを使用
-        with:
-          target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-msvc' || 'x86_64' }}
-          args: --release --strip
-          manylinux: auto
-          container: off
-        env:
-          RUST_BACKTRACE: 1
-
-      # ビルドしてインストール (maturin developを使用)
-      - name: Build and install with maturin develop
-        shell: bash
-        run: |
-          # 環境情報を表示
-          echo "Building environment info:"
-          python --version
-          rustc --version
-
-          # 仮想環境を認識できるようにする
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Windowsでの処理
-            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
-          else
-            # Linux/Macでの処理
-            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
-          fi
-          echo "Setting VIRTUAL_ENV=$VIRTUAL_ENV"
-
-          # maturinをインストール
-          pip install maturin
-
-          # maturin developでビルド・インストール
-          VIRTUAL_ENV=$VIRTUAL_ENV maturin develop
-
-          # インストールされたモジュールを確認
-          echo "インストールされたパッケージ:"
-          pip list
-
-          # Pythonモジュールパスとモジュール構造を確認
-          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
-          python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
-
-      # パッケージのインポートテスト
-      - name: Test import
-        shell: bash
-        run: |
-          python scripts/test-import-operation.py
-
-      # テストの実行
-      - name: Run tests
-        shell: bash
-        run: |
-          # インポートできる場合だけテストを実行
-          python -c "import rustgression" && python -m pytest || {
-            echo "Skipping tests due to import failure"
-          }
-
-      # ビルド成果物をアップロード（PRとワークフロー手動実行時のみ）
-      - name: Upload wheels as artifacts
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: target/wheels/*.whl
-          retention-days: 7
-
-      # PyPIへの公開（リリース時のみ）
+      # PyPIへの公開
       - name: Publish to PyPI
-        if: github.event_name == 'release'
         shell: bash
         run: |
           echo "Building wheels for release..."
