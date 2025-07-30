@@ -47,27 +47,27 @@ class OlsRegressor:
     def __init__(self, x, y):
         # インスタンス化時に回帰分析を実行し、統計値を計算
         self._slope, self._intercept, self._r_value, self._p_value, self._stderr, self._intercept_stderr = self._calculate_regression(x, y)
-        
+
     def slope(self) -> float:
         """回帰直線の傾きを返す"""
         return self._slope
-        
+
     def intercept(self) -> float:
         """回帰直線の切片を返す"""
         return self._intercept
-        
+
     def r_value(self) -> float:
         """相関係数を返す"""
         return self._r_value
-        
+
     def p_value(self) -> float:
         """p値を返す"""
         return self._p_value
-        
+
     def stderr(self) -> float:
         """傾きの標準誤差を返す"""
         return self._stderr
-        
+
     def intercept_stderr(self) -> float:
         """切片の標準誤差を返す"""
         return self._intercept_stderr

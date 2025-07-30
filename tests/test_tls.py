@@ -71,12 +71,12 @@ class TestTlsRegressor:
         regressor = TlsRegressor(x, y)
 
         # Test with new property method API
-        assert abs(regressor.slope() - expected_slope) < 0.1, (
-            f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
-        )
-        assert abs(regressor.intercept() - expected_intercept) < 0.1, (
-            f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
-        )
+        assert (
+            abs(regressor.slope() - expected_slope) < 0.1
+        ), f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
+        assert (
+            abs(regressor.intercept() - expected_intercept) < 0.1
+        ), f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
 
     def test_boundary_cases(self):
         """Test boundary conditions."""

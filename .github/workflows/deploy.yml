@@ -164,29 +164,29 @@ jobs:
           if [ -n "$wheel_files" ]; then
             echo "Uploading wheel files to PyPI:"
             echo "$wheel_files"
-            
+
             # 環境変数を設定
             export TWINE_USERNAME=__token__
             export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-            
+
             # twineでアップロード
             twine upload $wheel_files
           else
             echo "No wheel files found. Building with PEP517 as fallback..."
             pip install build
             python -m build
-            
+
             # distディレクトリを確認
             ls -la dist/ || echo "No dist directory"
-            
+
             # distにファイルがあればアップロード
             if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
               echo "Uploading dist files to PyPI:"
               ls -la dist/
-              
+
               export TWINE_USERNAME=__token__
               export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
-              
+
               twine upload dist/*
             else
               echo "No distribution files found"

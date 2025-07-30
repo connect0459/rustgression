@@ -126,9 +126,9 @@ mod tests {
         fn valid_regression() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
-            
+
             let result = perform_tls(&x, &y);
-            
+
             assert!((result.slope - 2.0).abs() < 1e-10);
             assert!(result.intercept.abs() < 1e-10);
             assert!((result.r_value - 1.0).abs() < 1e-10);
@@ -138,7 +138,7 @@ mod tests {
         fn zero_division_protection() {
             let x = vec![1.0, 1.0, 1.0];
             let y = vec![2.0, 2.0, 2.0];
-            
+
             let result = perform_tls(&x, &y);
             assert!(result.slope.is_nan() || result.slope.is_infinite());
         }
@@ -150,25 +150,33 @@ mod tests {
                     "negative_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![10.0, 8.0, 6.0, 4.0, 2.0],
-                    -2.0, 12.0, -1.0
+                    -2.0,
+                    12.0,
+                    -1.0,
                 ),
                 (
                     "intercept_offset",
                     vec![0.0, 1.0, 2.0, 3.0, 4.0],
                     vec![5.0, 7.0, 9.0, 11.0, 13.0],
-                    2.0, 5.0, 1.0
+                    2.0,
+                    5.0,
+                    1.0,
                 ),
                 (
                     "noisy_positive_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![2.1, 3.9, 6.2, 7.8, 10.1],
-                    2.0, 0.06, 0.999
+                    2.0,
+                    0.06,
+                    0.999,
                 ),
                 (
                     "steep_slope",
                     vec![1.0, 2.0, 3.0],
                     vec![5.0, 10.0, 15.0],
-                    5.0, 0.0, 1.0
+                    5.0,
+                    0.0,
+                    1.0,
                 ),
             ];
 
@@ -177,17 +185,23 @@ mod tests {
                 assert!(
                     (result.slope - expected_slope).abs() < 1e-1,
                     "{}: slope mismatch. expected: {}, got: {}",
-                    name, expected_slope, result.slope
+                    name,
+                    expected_slope,
+                    result.slope
                 );
                 assert!(
                     (result.intercept - expected_intercept).abs() < 1e-1,
                     "{}: intercept mismatch. expected: {}, got: {}",
-                    name, expected_intercept, result.intercept
+                    name,
+                    expected_intercept,
+                    result.intercept
                 );
                 assert!(
                     (result.r_value - expected_r).abs() < 1e-1,
                     "{}: r_value mismatch. expected: {}, got: {}",
-                    name, expected_r, result.r_value
+                    name,
+                    expected_r,
+                    result.r_value
                 );
             }
         }
@@ -199,19 +213,22 @@ mod tests {
                     "vertical_line_case",
                     vec![2.0, 2.0, 2.0, 2.0],
                     vec![1.0, 2.0, 3.0, 4.0],
-                    true, false
+                    true,
+                    false,
                 ),
                 (
                     "horizontal_line_case",
                     vec![1.0, 2.0, 3.0, 4.0],
                     vec![5.0, 5.0, 5.0, 5.0],
-                    false, true
+                    false,
+                    true,
                 ),
                 (
                     "minimal_data_points",
                     vec![1.0, 2.0],
                     vec![3.0, 6.0],
-                    false, false
+                    false,
+                    false,
                 ),
             ];
 
@@ -219,16 +236,20 @@ mod tests {
                 let result = perform_tls(&x, &y);
                 if expect_extreme_slope {
                     assert!(
-                        result.slope.is_nan() || result.slope.is_infinite() || result.slope.abs() > 1000.0,
+                        result.slope.is_nan()
+                            || result.slope.is_infinite()
+                            || result.slope.abs() > 1000.0,
                         "{}: expected extreme slope, got: {}",
-                        name, result.slope
+                        name,
+                        result.slope
                     );
                 }
                 if expect_zero_r {
                     assert!(
                         result.r_value.abs() < 1e-10,
                         "{}: expected zero r_value, got: {}",
-                        name, result.r_value
+                        name,
+                        result.r_value
                     );
                 }
             }
@@ -242,7 +263,7 @@ mod tests {
         fn perfect_correlation() {
             let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let y = Array1::from_vec(vec![2.0, 4.0, 6.0]);
-            
+
             let r = compute_r_value(&x, &y);
             assert!((r - 1.0).abs() < 1e-10);
         }
@@ -283,6 +304,10 @@ mod tests {
         let y_array = Array1::from_vec(y.to_vec());
         let r_value = compute_r_value(&x_array, &y_array);
 
-        TlsResult { slope, intercept, r_value }
+        TlsResult {
+            slope,
+            intercept,
+            r_value,
+        }
     }
 }

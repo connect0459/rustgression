@@ -26,11 +26,11 @@ from rustgression import OlsRegressor, TlsRegressor
 
 def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
     """Generate sample data for regression example.
-    
+
     Args:
         size: Number of data points
         noise_std: Standard deviation of noise
-    
+
     Returns:
         Tuple of (x, y) arrays
     """
@@ -42,7 +42,7 @@ def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.nd
 def main():
     # Generate sample data
     x, y = generate_sample_data()
-    
+
     # Ordinary Least Squares (OLS) Regression
     print("=== Ordinary Least Squares (OLS) Results ===")
     ols_model = OlsRegressor(x, y)
@@ -52,7 +52,7 @@ def main():
     print(f"P-value: {ols_model.p_value():.4e}")
     print(f"Standard Error: {ols_model.stderr():.4f}")
     print(f"Intercept Standard Error: {ols_model.intercept_stderr():.4f}\n")
-    
+
     # Total Least Squares (TLS) Regression
     print("=== Total Least Squares (TLS) Results ===")
     tls_model = TlsRegressor(x, y)

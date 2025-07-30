@@ -31,7 +31,7 @@
 - src/api/user.js
 - docs/api-spec.md
 
-### 修正時 (2025-07-01)  
+### 修正時 (2025-07-01)
 
 - src/api/user.js (認証ロジック追加)
 - src/middleware/auth.js (新規)
