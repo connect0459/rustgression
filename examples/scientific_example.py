@@ -176,7 +176,6 @@ def plot_ols_comparison(
 
     # OlsRegressor
     ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
-    ols_params = ols_model.get_params()
 
     # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
@@ -207,7 +206,7 @@ def plot_ols_comparison(
         ols_y_plot,
         color="red",
         linewidth=2,
-        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.r_value:.3f})",
+        label=f"OlsRegressor (Slope={ols_model.slope():.3f}, r={ols_model.r_value():.3f})",
     )
 
     plt.xlabel("X")
@@ -254,7 +253,6 @@ def plot_tls_comparison(
 
     # TlsRegressor
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
-    tls_params = tls_model.get_params()
 
     # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
@@ -285,7 +283,7 @@ def plot_tls_comparison(
         tls_y_plot,
         color="red",
         linewidth=2,
-        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.r_value:.3f})",
+        label=f"TlsRegressor (Slope={tls_model.slope():.3f}, r={tls_model.r_value():.3f})",
     )
 
     plt.xlabel("X")
@@ -332,11 +330,9 @@ def plot_all_comparison(
 
     # OlsRegressor
     ols_model = OlsRegressor(data.x_noisy, data.y_noisy)
-    ols_params: OlsRegressionParams = ols_model.get_params()
 
     # TlsRegressor
     tls_model = TlsRegressor(data.x_noisy, data.y_noisy)
-    tls_params: TlsRegressionParams = tls_model.get_params()
 
     # Prepare data for plotting
     x_plot = np.linspace(min(data.x_noisy), max(data.x_noisy), 100)
@@ -368,14 +364,14 @@ def plot_all_comparison(
         ols_y_plot,
         color="orange",
         linewidth=2,
-        label=f"OlsRegressor (Slope={ols_params.slope:.3f}, r={ols_params.r_value:.3f})",
+        label=f"OlsRegressor (Slope={ols_model.slope():.3f}, r={ols_model.r_value():.3f})",
     )
     plt.plot(
         x_plot,
         tls_y_plot,
         color="red",
         linewidth=2,
-        label=f"TlsRegressor (Slope={tls_params.slope:.3f}, r={tls_params.r_value:.3f})",
+        label=f"TlsRegressor (Slope={tls_model.slope():.3f}, r={tls_model.r_value():.3f})",
     )
 
     plt.xlabel("X")
