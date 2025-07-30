@@ -57,7 +57,9 @@ class TestInputValidation:
 
     def test_mismatched_array_lengths(self):
         """Test mismatched array length validation."""
-        with pytest.raises(ValueError, match="The lengths of the input arrays do not match."):
+        with pytest.raises(
+            ValueError, match="The lengths of the input arrays do not match."
+        ):
             OlsRegressor(np.array([1, 2]), np.array([1]))
 
     def test_insufficient_data_points(self):
@@ -75,7 +77,7 @@ class TestInputValidation:
             ("single_point", np.array([1.0]), np.array([2.0]), ValueError),
             ("length_mismatch", np.array([1.0, 2.0]), np.array([1.0]), ValueError),
         ]
-        
+
         for _, x, y, expected_exception in test_cases:
             with pytest.raises(expected_exception):
                 regressor_class(x, y)

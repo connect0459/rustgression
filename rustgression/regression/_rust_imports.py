@@ -2,8 +2,8 @@
 Rust module imports for regression calculations.
 """
 
-import sys
 import importlib.util
+import sys
 
 # Rustモジュールのインポートを修正
 try:

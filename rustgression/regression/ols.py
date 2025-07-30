@@ -3,10 +3,11 @@ Ordinary Least Squares (OLS) regression implementation.
 """
 
 import warnings
+
 import numpy as np
 
-from .base import BaseRegressor, OlsRegressionParams
 from ._rust_imports import calculate_ols_regression
+from .base import BaseRegressor, OlsRegressionParams
 
 
 class OlsRegressor(BaseRegressor[OlsRegressionParams]):
@@ -53,57 +54,57 @@ class OlsRegressor(BaseRegressor[OlsRegressionParams]):
 
     def slope(self) -> float:
         """回帰直線の傾きを返す
-        
+
         Returns
         -------
         float
             回帰直線の傾き
         """
         return self._slope
-        
+
     def intercept(self) -> float:
         """回帰直線の切片を返す
-        
+
         Returns
         -------
         float
             回帰直線の切片
         """
         return self._intercept
-        
+
     def r_value(self) -> float:
         """相関係数を返す
-        
+
         Returns
         -------
         float
             相関係数
         """
         return self._r_value
-        
+
     def p_value(self) -> float:
         """p値を返す
-        
+
         Returns
         -------
         float
             p値
         """
         return self._p_value
-        
+
     def stderr(self) -> float:
         """傾きの標準誤差を返す
-        
+
         Returns
         -------
         float
             傾きの標準誤差
         """
         return self._stderr
-        
+
     def intercept_stderr(self) -> float:
         """切片の標準誤差を返す
-        
+
         Returns
         -------
         float
@@ -113,9 +114,9 @@ class OlsRegressor(BaseRegressor[OlsRegressionParams]):
 
     def get_params(self) -> OlsRegressionParams:
         """Retrieve regression parameters.
-        
+
         .. deprecated:: 0.2.0
-            Use property methods instead: slope(), intercept(), r_value(), 
+            Use property methods instead: slope(), intercept(), r_value(),
             p_value(), stderr(), intercept_stderr()
 
         Returns
@@ -129,7 +130,7 @@ class OlsRegressor(BaseRegressor[OlsRegressionParams]):
             "Use property methods instead: slope(), intercept(), r_value(), "
             "p_value(), stderr(), intercept_stderr()",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return OlsRegressionParams(
             slope=self._slope,

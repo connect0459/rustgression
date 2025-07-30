@@ -6,15 +6,15 @@ in Rust and exposed through a Python interface.
 """
 
 from .base import BaseRegressor, OlsRegressionParams, TlsRegressionParams
+from .factory import create_regressor
 from .ols import OlsRegressor
 from .tls import TlsRegressor
-from .factory import create_regressor
 
 __all__ = [
     "BaseRegressor",
     "OlsRegressionParams",
-    "TlsRegressionParams",
     "OlsRegressor",
+    "TlsRegressionParams",
     "TlsRegressor",
     "create_regressor",
 ]

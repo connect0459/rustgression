@@ -7,9 +7,7 @@ import numpy as np
 from scipy import stats
 
 from rustgression import (
-    OlsRegressionParams,
     OlsRegressor,
-    TlsRegressionParams,
     TlsRegressor,
 )
 

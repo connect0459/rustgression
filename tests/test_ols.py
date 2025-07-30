@@ -5,7 +5,7 @@ Tests for Ordinary Least Squares (OLS) regression.
 import numpy as np
 import pytest
 
-from rustgression import OlsRegressor, OlsRegressionParams
+from rustgression import OlsRegressionParams, OlsRegressor
 
 
 @pytest.fixture
@@ -37,7 +37,7 @@ class TestOlsRegressor:
         assert regressor.p_value() < 0.05
         assert regressor.stderr() > 0
         assert regressor.intercept_stderr() > 0
-        
+
         # Test legacy get_params() API (with deprecation warning)
         with pytest.warns(DeprecationWarning):
             params = regressor.get_params()
@@ -48,29 +48,38 @@ class TestOlsRegressor:
         """Test prediction functionality."""
         x, y = sample_data
         regressor = OlsRegressor(x, y)
-        
+
         y_pred = regressor.predict(x)
         assert y_pred.shape == y.shape
-        
+
         r2 = 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
         assert r2 > 0.95
 
-    @pytest.mark.parametrize("x_data,y_data,expected_slope,expected_intercept", [
-        ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0], 2.0, 0.0),
-        ([0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 7.0, 9.0, 11.0, 13.0], 2.0, 5.0),
-        ([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 8.0, 6.0, 4.0, 2.0], -2.0, 12.0),
-        ([1.0, 2.0, 3.0, 4.0, 5.0], [3.0, 3.0, 3.0, 3.0, 3.0], 0.0, 3.0),
-    ])
-    def test_edge_cases_table_driven(self, x_data, y_data, expected_slope, expected_intercept):
+    @pytest.mark.parametrize(
+        "x_data,y_data,expected_slope,expected_intercept",
+        [
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0], 2.0, 0.0),
+            ([0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 7.0, 9.0, 11.0, 13.0], 2.0, 5.0),
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 8.0, 6.0, 4.0, 2.0], -2.0, 12.0),
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [3.0, 3.0, 3.0, 3.0, 3.0], 0.0, 3.0),
+        ],
+    )
+    def test_edge_cases_table_driven(
+        self, x_data, y_data, expected_slope, expected_intercept
+    ):
         """Test various regression patterns."""
         x = np.array(x_data)
         y = np.array(y_data)
-        
+
         regressor = OlsRegressor(x, y)
-        
+
         # Test with new property method API
-        assert abs(regressor.slope() - expected_slope) < 0.1, f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
-        assert abs(regressor.intercept() - expected_intercept) < 0.1, f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
+        assert abs(regressor.slope() - expected_slope) < 0.1, (
+            f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
+        )
+        assert abs(regressor.intercept() - expected_intercept) < 0.1, (
+            f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
+        )
 
     def test_boundary_cases(self):
         """Test boundary conditions."""

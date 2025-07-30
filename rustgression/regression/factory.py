@@ -2,7 +2,8 @@
 Factory function for creating regression models.
 """
 
-from typing import Literal, Union
+from typing import Literal
+
 import numpy as np
 
 from .ols import OlsRegressor
@@ -11,7 +12,7 @@ from .tls import TlsRegressor
 
 def create_regressor(
     x: np.ndarray, y: np.ndarray, method: Literal["ols", "tls"] = "ols"
-) -> Union[OlsRegressor, TlsRegressor]:
+) -> OlsRegressor | TlsRegressor:
     """Factory function for creating a regression model.
 
     Parameters

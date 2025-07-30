@@ -41,9 +41,12 @@ Examples
 # パッケージのバージョン
 __version__ = "0.1.4"
 
-# Rustモジュールをまず直接インポート
+# Rustモジュールの可用性を確認（実際のインポートは_rust_imports.pyで行う）
 try:
-    from .rustgression import calculate_ols_regression, calculate_tls_regression
+    from .rustgression import calculate_ols_regression
+
+    # インポート成功時は何もしない（実際の使用は他のモジュールで行う）
+    del calculate_ols_regression
 except ImportError as e:
     import sys
 

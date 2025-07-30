@@ -3,10 +3,9 @@ Total Least Squares (TLS) regression implementation.
 """
 
 import warnings
-import numpy as np
 
-from .base import BaseRegressor, TlsRegressionParams
 from ._rust_imports import calculate_tls_regression
+from .base import BaseRegressor, TlsRegressionParams
 
 
 class TlsRegressor(BaseRegressor[TlsRegressionParams]):
@@ -28,27 +27,27 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
 
     def slope(self) -> float:
         """回帰直線の傾きを返す
-        
+
         Returns
         -------
         float
             回帰直線の傾き
         """
         return self._slope
-        
+
     def intercept(self) -> float:
         """回帰直線の切片を返す
-        
+
         Returns
         -------
         float
             回帰直線の切片
         """
         return self._intercept
-        
+
     def r_value(self) -> float:
         """相関係数を返す
-        
+
         Returns
         -------
         float
@@ -58,7 +57,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
 
     def get_params(self) -> TlsRegressionParams:
         """Retrieve regression parameters.
-        
+
         .. deprecated:: 0.2.0
             Use property methods instead: slope(), intercept(), r_value()
 
@@ -71,7 +70,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
             "get_params() is deprecated and will be removed in a future version. "
             "Use property methods instead: slope(), intercept(), r_value()",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return TlsRegressionParams(
             slope=self._slope, intercept=self._intercept, r_value=self._r_value

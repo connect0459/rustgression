@@ -37,18 +37,21 @@ class TestMethodComparison:
         assert abs(ols.intercept() - tls.intercept()) < 0.1
         assert abs(ols.r_value() - tls.r_value()) < 0.1
 
-    @pytest.mark.parametrize("x_data,y_data", [
-        ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0]),
-        ([0.0, 1.0, 2.0, 3.0, 4.0], [1.0, 3.0, 5.0, 7.0, 9.0]),
-    ])
+    @pytest.mark.parametrize(
+        "x_data,y_data",
+        [
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0]),
+            ([0.0, 1.0, 2.0, 3.0, 4.0], [1.0, 3.0, 5.0, 7.0, 9.0]),
+        ],
+    )
     def test_perfect_correlation_cases(self, x_data, y_data):
         """Test methods with perfect correlation data."""
         x = np.array(x_data)
         y = np.array(y_data)
-        
+
         ols = OlsRegressor(x, y)
         tls = TlsRegressor(x, y)
-        
+
         # For perfect correlation, both methods should yield identical results
         assert abs(ols.slope() - tls.slope()) < 1e-10
         assert abs(ols.intercept() - tls.intercept()) < 1e-10
