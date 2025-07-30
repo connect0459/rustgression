@@ -53,8 +53,11 @@ jobs:
           python --version
           rustc --version
 
-          # maturinをインストール
-          pip install maturin
+          # pyproject.tomlから依存関係をインストール
+          pip install -e .
+          
+          # 開発・テスト用依存関係を個別にインストール
+          pip install maturin pytest
 
           # ホイールをビルド
           maturin build --release
@@ -62,9 +65,6 @@ jobs:
           # ビルドされたホイールを確認
           echo "Built wheels:"
           ls -la target/wheels/ || echo "No wheels directory found"
-
-          # ビルドされたホイールをインストール（テスト用）
-          pip install target/wheels/*.whl
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
