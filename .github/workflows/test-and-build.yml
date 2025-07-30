@@ -44,8 +44,8 @@ jobs:
           # Windowsでは基本的なツールのみ必要
           choco install cmake -y
 
-      # ビルドしてインストール (maturin developを使用)
-      - name: Build and install with maturin develop
+      # ビルドとインストール
+      - name: Build wheels and install
         shell: bash
         run: |
           # 環境情報を表示
@@ -53,21 +53,18 @@ jobs:
           python --version
           rustc --version
 
-          # 仮想環境を認識できるようにする
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Windowsでの処理
-            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
-          else
-            # Linux/Macでの処理
-            export VIRTUAL_ENV=$(python -c "import sys; print(sys.prefix)")
-          fi
-          echo "Setting VIRTUAL_ENV=$VIRTUAL_ENV"
-
           # maturinをインストール
           pip install maturin
 
-          # maturin developでビルド・インストール
-          VIRTUAL_ENV=$VIRTUAL_ENV maturin develop
+          # ホイールをビルド
+          maturin build --release
+
+          # ビルドされたホイールを確認
+          echo "Built wheels:"
+          ls -la target/wheels/ || echo "No wheels directory found"
+
+          # 開発用インストール（テスト用）
+          maturin develop
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
@@ -87,10 +84,14 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          # インポートできる場合だけテストを実行
-          python -c "import rustgression" && python -m pytest || {
-            echo "Skipping tests due to import failure"
-          }
+          # インポートテスト（失敗時はワークフローを失敗させる）
+          if ! python -c "import rustgression"; then
+            echo "Import failed: rustgression module not found."
+            exit 1
+          fi
+          
+          # テスト実行
+          python -m pytest
 
       # ビルド成果物をアップロード
       - name: Upload wheels as artifacts
