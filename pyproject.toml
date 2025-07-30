@@ -1,6 +1,6 @@
 [project]
 name = "rustgression"
-version = "0.1.4"
+version = "0.2.0-alpha.1"
 description = "Fast OLS and TLS and regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
@@ -57,7 +57,7 @@ select = [
 
 # 無視するルール
 ignore = [
-  "E501", # line length violations
+  "E501",   # line length violations
   "RUF003", # allow "KATAKANA LETTER"
 ]
 
