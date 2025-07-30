@@ -63,8 +63,8 @@ jobs:
           echo "Built wheels:"
           ls -la target/wheels/ || echo "No wheels directory found"
 
-          # 開発用インストール（テスト用）
-          maturin develop
+          # ビルドされたホイールをインストール（テスト用）
+          pip install target/wheels/*.whl
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
