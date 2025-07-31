@@ -1,6 +1,13 @@
 # rustgression
 
+[![PyPI Downloads](https://static.pepy.tech/badge/rustgression)](https://pepy.tech/projects/rustgression)
+
 This project provides fast regression analysis (OLS, TLS) as a Python package.
+
+- WebSite: <https://pypi.org/project/rustgression/>
+- Documentation: <https://github.com/connect0459/rustgression/blob/main/README.md>
+- Source code: <https://github.com/connect0459/rustgression>
+- Report bugs or security vulnerabilities: <https://github.com/connect0459/rustgression/issues>
 
 ## Overview
 
@@ -63,6 +70,18 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+## Documentation
+
+For detailed documentation in your preferred language:
+
+- **🇺🇸 [English Documentation](docs/en/README.md)**
+- **🇯🇵 [日本語ドキュメント](docs/ja/README.md)**
+
+For developers and contributors:
+
+- **🔧 [Developer Documentation (English)](docs/en/development.md)**
+- **🔧 [開発者ドキュメント（日本語）](docs/ja/development.md)**
 
 ## Author
 
