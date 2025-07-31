@@ -36,11 +36,15 @@ sed -i.bak "s/^version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml
 echo "pyproject.toml を更新中..."
 sed -i.bak "s/^version = \".*\"/version = \"$PYTHON_VERSION\"/" pyproject.toml
 
-# 4. Cargo.lock を更新 (cargoコマンドでプロジェクトをチェック)
+# 4. tests/test_imports.py のバージョンテストを更新
+echo "tests/test_imports.py を更新中..."
+sed -i.bak "s/assert rustgression.__version__ == \".*\"/assert rustgression.__version__ == \"$PYTHON_VERSION\"/" tests/test_imports.py
+
+# 5. Cargo.lock を更新 (cargoコマンドでプロジェクトをチェック)
 echo "Cargo.lock を更新中..."
 cargo check --quiet
 
-# 5. uv.lock を更新 (uvコマンドでプロジェクトの依存関係を同期)
+# 6. uv.lock を更新 (uvコマンドでプロジェクトの依存関係を同期)
 echo "uv.lock を更新中..."
 if command -v uv >/dev/null 2>&1; then
     uv lock
@@ -49,7 +53,7 @@ else
 fi
 
 # バックアップファイルを削除
-rm -f rustgression/__init__.py.bak Cargo.toml.bak pyproject.toml.bak
+rm -f rustgression/__init__.py.bak Cargo.toml.bak pyproject.toml.bak tests/test_imports.py.bak
 
 echo "✅ バージョン更新が完了しました: $NEW_VERSION"
 echo ""
@@ -57,6 +61,7 @@ echo "更新されたファイル:"
 echo "- rustgression/__init__.py (Python形式: $PYTHON_VERSION)"
 echo "- Cargo.toml (Rust形式: $NEW_VERSION)"
 echo "- pyproject.toml (Python形式: $PYTHON_VERSION)"
+echo "- tests/test_imports.py (Python形式: $PYTHON_VERSION)"
 echo "- Cargo.lock"
 if command -v uv >/dev/null 2>&1; then
     echo "- uv.lock"
