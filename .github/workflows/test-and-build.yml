@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11"]
 
     steps:
@@ -37,11 +37,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake
 
+      # macOS環境のセットアップ
+      - name: Setup macOS dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake
+
       # Windows環境のセットアップ
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          # Windowsでは基本的なツールのみ必要
           choco install cmake -y
 
       # ビルドとインストール
@@ -55,7 +60,7 @@ jobs:
 
           # pyproject.tomlから依存関係をインストール
           pip install -e .
-          
+
           # 開発・テスト用依存関係を個別にインストール
           pip install maturin pytest
 
@@ -89,7 +94,7 @@ jobs:
             echo "Import failed: rustgression module not found."
             exit 1
           fi
-          
+
           # テスト実行
           python -m pytest
 
