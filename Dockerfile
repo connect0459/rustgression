@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
   gfortran \
   curl \
   build-essential \
+  pkg-config \
+  libssl-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Rustのインストール
