@@ -71,6 +71,18 @@ if __name__ == "__main__":
     main()
 ```
 
+## Documentation
+
+For detailed documentation in your preferred language:
+
+- **🇺🇸 [English Documentation](docs/en/README.md)**
+- **🇯🇵 [日本語ドキュメント](docs/ja/README.md)**
+
+For developers and contributors:
+
+- **🔧 [Developer Documentation (English)](docs/en/development.md)**
+- **🔧 [開発者ドキュメント（日本語）](docs/ja/development.md)**
+
 ## Author
 
 [connect0459](https://github.com/connect0459)
