@@ -26,32 +26,32 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         )
 
     def slope(self) -> float:
-        """回帰直線の傾きを返す
+        """Return the slope of the regression line
 
         Returns
         -------
         float
-            回帰直線の傾き
+            The slope of the regression line
         """
         return self._slope
 
     def intercept(self) -> float:
-        """回帰直線の切片を返す
+        """Return the intercept of the regression line
 
         Returns
         -------
         float
-            回帰直線の切片
+            The intercept of the regression line
         """
         return self._intercept
 
     def r_value(self) -> float:
-        """相関係数を返す
+        """Return the correlation coefficient
 
         Returns
         -------
         float
-            相関係数
+            The correlation coefficient
         """
         return self._r_value
 

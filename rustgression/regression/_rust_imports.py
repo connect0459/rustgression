@@ -5,17 +5,17 @@ Rust module imports for regression calculations.
 import importlib.util
 import sys
 
-# Rustモジュールのインポートを修正
+# Fix Rust module import
 try:
-    # 親モジュールからRust関数をインポート
+    # Import Rust functions from parent module
     from ..rustgression import calculate_ols_regression, calculate_tls_regression
 except ImportError:
     try:
-        # 別の方法でインポートを試みる
-        # rustgressionモジュールの存在を確認
+        # Try alternative import method
+        # Check existence of rustgression module
         spec = importlib.util.find_spec("rustgression.rustgression")
         if spec is not None:
-            # モジュールを動的にインポート
+            # Dynamically import module
             rust_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(rust_module)
             calculate_ols_regression = rust_module.calculate_ols_regression

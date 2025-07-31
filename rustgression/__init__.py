@@ -38,14 +38,14 @@ Examples
 >>> result = regressor.fit(X, y)
 """
 
-# パッケージのバージョン
+# Package version
 __version__ = "0.1.4"
 
-# Rustモジュールの可用性を確認（実際のインポートは_rust_imports.pyで行う）
+# Check availability of Rust module (actual import is done in _rust_imports.py)
 try:
     from .rustgression import calculate_ols_regression
 
-    # インポート成功時は何もしない（実際の使用は他のモジュールで行う）
+    # Do nothing on successful import (actual usage is done in other modules)
     del calculate_ols_regression
 except ImportError as e:
     import sys
@@ -53,7 +53,7 @@ except ImportError as e:
     print(f"Error importing Rust module: {e}", file=sys.stderr)
     print("Rust extension was not properly compiled or installed.", file=sys.stderr)
 
-# 次にPythonラッパーをインポート
+# Next, import Python wrapper
 try:
     from .regression import (
         OlsRegressionParams,
