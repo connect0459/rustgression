@@ -37,3 +37,6 @@ wheels/
 build_rs_cov.profraw
 cobertura.xml
 tarpaulin-report.html
+
+# バックアップファイル
+**/*.bak
