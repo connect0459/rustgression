@@ -96,6 +96,7 @@ Also document rollback procedures in case of issues, e.g., Revert.
 - [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/test-and-build.yml)
 - [ ] Coverage is maintained (target 80%+)
 - [ ] Design decisions documented in ADR (if applicable)
+- [ ] **Version Update** (for release PRs): Executed `./scripts/version-update.sh <new-version>` to update all version files consistently
 
 > 💡 **Important**: Since this is a private repository, this checklist ensures quality. Please verify all items before requesting review.
 

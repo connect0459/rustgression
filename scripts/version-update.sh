@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # バージョン更新スクリプト
-# 使用法: ./scripts/update-version.sh <new_version>
-# 例: ./scripts/update-version.sh 0.2.1
+# 使用法: ./scripts/version-update.sh <new_version>
+# 例: ./scripts/version-update.sh 0.2.1
 
 set -e
 
