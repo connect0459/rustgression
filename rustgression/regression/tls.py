@@ -60,6 +60,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
 
         .. deprecated:: 0.2.0
             Use property methods instead: slope(), intercept(), r_value()
+            This method will be removed in v1.0.0.
 
         Returns
         -------
@@ -67,7 +68,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
             A data class containing the regression parameters.
         """
         warnings.warn(
-            "get_params() is deprecated and will be removed in a future version. "
+            "get_params() is deprecated and will be removed in v1.0.0. "
             "Use property methods instead: slope(), intercept(), r_value()",
             DeprecationWarning,
             stacklevel=2,

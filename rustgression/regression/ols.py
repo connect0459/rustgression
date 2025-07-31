@@ -118,6 +118,7 @@ class OlsRegressor(BaseRegressor[OlsRegressionParams]):
         .. deprecated:: 0.2.0
             Use property methods instead: slope(), intercept(), r_value(),
             p_value(), stderr(), intercept_stderr()
+            This method will be removed in v1.0.0.
 
         Returns
         -------
@@ -126,7 +127,7 @@ class OlsRegressor(BaseRegressor[OlsRegressionParams]):
             slope, intercept, r_value, p_value, stderr, and intercept_stderr.
         """
         warnings.warn(
-            "get_params() is deprecated and will be removed in a future version. "
+            "get_params() is deprecated and will be removed in v1.0.0. "
             "Use property methods instead: slope(), intercept(), r_value(), "
             "p_value(), stderr(), intercept_stderr()",
             DeprecationWarning,
