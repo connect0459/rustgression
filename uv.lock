@@ -1109,11 +1109,15 @@ wheels = [
 
 [[package]]
 name = "rustgression"
-version = "0.2.2"
+version = "0.3.0"
 source = { editable = "." }
 dependencies = [
-    { name = "matplotlib" },
     { name = "numpy" },
+]
+
+[package.optional-dependencies]
+examples = [
+    { name = "matplotlib" },
     { name = "scipy" },
 ]
 
@@ -1129,10 +1133,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "matplotlib", specifier = ">=3.10.1" },
+    { name = "matplotlib", marker = "extra == 'examples'", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=1.20.0" },
-    { name = "scipy", specifier = ">=1.15.2" },
+    { name = "scipy", marker = "extra == 'examples'", specifier = ">=1.15.2" },
 ]
+provides-extras = ["examples"]
 
 [package.metadata.requires-dev]
 dev = [

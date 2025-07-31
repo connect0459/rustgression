@@ -1,6 +1,6 @@
 [project]
 name = "rustgression"
-version = "0.2.2"
+version = "0.3.0"
 description = "Fast OLS and TLS and regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
@@ -13,7 +13,10 @@ classifiers = [
   "Operating System :: OS Independent",
   "Typing :: Typed",
 ]
-dependencies = ["matplotlib>=3.10.1", "numpy>=1.20.0", "scipy>=1.15.2"]
+dependencies = ["numpy>=1.20.0"]
+
+[project.optional-dependencies]
+examples = ["matplotlib>=3.10.1", "scipy>=1.15.2"]
 
 [project.urls]
 "Homepage" = "https://github.com/connect0459/rustgression"
