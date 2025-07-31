@@ -7,7 +7,7 @@
 - **WebSite**: <https://pypi.org/project/rustgression/>
 - **Documentation**: <https://github.com/connect0459/rustgression/blob/main/README.md>
 - **Source code**: <https://github.com/connect0459/rustgression>
-- **Report bugs or security vulnerabilities**: <https://github.com/connect0459/rustgression/issues>
+- **Bug reports and security issues**: <https://github.com/connect0459/rustgression/issues>
 
 ## 概要
 
