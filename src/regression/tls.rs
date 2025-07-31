@@ -267,6 +267,96 @@ mod tests {
             let r = compute_r_value(&x, &y);
             assert!((r - 1.0).abs() < 1e-10);
         }
+
+        #[test]
+        fn compute_r_value_table_driven() {
+            let test_cases = vec![
+                (
+                    "zero_x_variance",
+                    vec![2.0, 2.0, 2.0],
+                    vec![1.0, 2.0, 3.0],
+                    0.0,
+                ),
+                (
+                    "zero_y_variance",
+                    vec![1.0, 2.0, 3.0],
+                    vec![5.0, 5.0, 5.0],
+                    0.0,
+                ),
+                (
+                    "negative_correlation",
+                    vec![1.0, 2.0, 3.0],
+                    vec![3.0, 2.0, 1.0],
+                    -1.0,
+                ),
+                (
+                    "weak_positive_correlation",
+                    vec![1.0, 2.0, 3.0, 4.0],
+                    vec![1.1, 2.1, 2.9, 4.2],
+                    0.9,
+                ),
+            ];
+
+            for (name, x_data, y_data, expected_sign) in test_cases {
+                let x = Array1::from_vec(x_data);
+                let y = Array1::from_vec(y_data);
+                let r = compute_r_value(&x, &y);
+
+                if expected_sign == 0.0 {
+                    assert_eq!(r, 0.0, "{}: expected zero correlation", name);
+                } else if expected_sign > 0.0 {
+                    assert!(r > 0.0, "{}: expected positive correlation, got {}", name, r);
+                } else {
+                    assert!(r < 0.0, "{}: expected negative correlation, got {}", name, r);
+                }
+            }
+        }
+    }
+
+    // Add direct tests to increase coverage of internal functions
+    mod internal_function_tests {
+        use super::*;
+
+        #[test]
+        fn test_perform_tls_directly() {
+            let x = vec![1.0, 2.0, 3.0, 4.0];
+            let y = vec![2.0, 4.0, 6.0, 8.0];
+            
+            let result = perform_tls(&x, &y);
+            assert!((result.slope - 2.0).abs() < 1e-10);
+            assert!(result.intercept.abs() < 1e-10);
+            assert!((result.r_value - 1.0).abs() < 1e-10);
+        }
+
+        #[test]
+        fn test_perform_tls_edge_cases() {
+            let test_cases = vec![
+                (
+                    "minimal_data",
+                    vec![1.0, 2.0],
+                    vec![2.0, 4.0],
+                ),
+                (
+                    "identical_points", 
+                    vec![3.0, 3.0, 3.0],
+                    vec![4.0, 4.0, 4.0],
+                ),
+                (
+                    "negative_slope",
+                    vec![1.0, 2.0, 3.0],
+                    vec![6.0, 4.0, 2.0],
+                ),
+            ];
+
+            for (_name, x, y) in test_cases {
+                let result = perform_tls(&x, &y);
+                // Test that the function completes without panicking
+                // Some results may be NaN or infinite, which is expected for edge cases
+                let _ = result.slope;
+                let _ = result.intercept; 
+                let _ = result.r_value;
+            }
+        }
     }
 
     struct TlsResult {

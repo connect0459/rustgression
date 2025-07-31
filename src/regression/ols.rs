@@ -303,6 +303,98 @@ mod tests {
             let p_val = calculate_p_value(2.0, 100.0);
             assert!(p_val > 0.0 && p_val < 1.0);
         }
+
+        #[test]
+        fn p_value_table_driven() {
+            let test_cases = vec![
+                ("small_degrees_of_freedom", 2.0, 5.0),
+                ("zero_t_value", 0.0, 10.0),
+                ("negative_t_value", -1.5, 15.0),
+                ("large_t_value", 5.0, 20.0),
+                ("minimal_df", 1.0, 3.0),
+            ];
+
+            for (name, t_value, df) in test_cases {
+                let p_val = calculate_p_value(t_value, df);
+                assert!(
+                    p_val >= 0.0 && p_val <= 2.0,
+                    "{}: p-value out of range: {}",
+                    name,
+                    p_val
+                );
+            }
+        }
+    }
+
+    mod normal_cdf {
+        use super::*;
+
+        #[test]
+        fn normal_cdf_table_driven() {
+            let test_cases = vec![
+                ("positive_value", 1.0),
+                ("negative_value", -1.0),
+                ("zero_value", 0.0),
+                ("large_positive", 3.0),
+                ("large_negative", -3.0),
+            ];
+
+            for (name, x) in test_cases {
+                let result = normal_cdf(x);
+                assert!(
+                    result.is_finite(),
+                    "{}: result should be finite, got {}",
+                    name,
+                    result
+                );
+            }
+        }
+    }
+
+    // Add direct tests to increase coverage of internal functions
+    mod internal_function_tests {
+        use super::*;
+
+        #[test] 
+        fn test_perform_ols_directly() {
+            let x = vec![1.0, 2.0, 3.0, 4.0];
+            let y = vec![2.0, 4.0, 6.0, 8.0];
+            
+            let result = perform_ols(&x, &y);
+            assert!((result.slope - 2.0).abs() < 1e-10);
+            assert!(result.intercept.abs() < 1e-10);
+            assert!((result.r_value - 1.0).abs() < 1e-10);
+        }
+
+        #[test]
+        fn test_perform_ols_edge_cases() {
+            let test_cases = vec![
+                (
+                    "single_point",
+                    vec![1.0],
+                    vec![2.0],
+                ),
+                (
+                    "zero_variance_x", 
+                    vec![2.0, 2.0, 2.0],
+                    vec![1.0, 2.0, 3.0],
+                ),
+                (
+                    "zero_variance_y",
+                    vec![1.0, 2.0, 3.0],
+                    vec![5.0, 5.0, 5.0],
+                ),
+            ];
+
+            for (_name, x, y) in test_cases {
+                let result = perform_ols(&x, &y);
+                // Test that the function completes without panicking
+                // Some results may be NaN or infinite, which is expected
+                let _ = result.slope;
+                let _ = result.intercept;
+                let _ = result.r_value;
+            }
+        }
     }
 
     struct OlsResult {
