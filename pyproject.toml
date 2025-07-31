@@ -1,6 +1,6 @@
 [project]
 name = "rustgression"
-version = "0.2.1"
+version = "0.2.2"
 description = "Fast OLS and TLS and regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
