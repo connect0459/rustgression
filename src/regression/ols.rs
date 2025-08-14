@@ -1,6 +1,6 @@
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
-use statrs::distribution::{StudentsT, ContinuousCDF};
+use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
 
 // Type alias to reduce complexity
@@ -144,12 +144,12 @@ fn kahan_sum(values: &[f64]) -> f64 {
     let mut c = 0.0; // 補正項
 
     for &value in values {
-        let y = value - c;  // 補正を適用
-        let t = sum + y;    // 新しい和
-        c = (t - sum) - y;  // 次回の補正項を計算
+        let y = value - c; // 補正を適用
+        let t = sum + y; // 新しい和
+        c = (t - sum) - y; // 次回の補正項を計算
         sum = t;
     }
-    
+
     sum
 }
 
@@ -362,15 +362,21 @@ mod tests {
             let small_values = vec![0.1; 10];
             let kahan_result = kahan_sum(&small_values);
             let expected = 1.0;
-            assert!((kahan_result - expected).abs() < 1e-14, "Kahan sum should be very accurate for small values");
-            
+            assert!(
+                (kahan_result - expected).abs() < 1e-14,
+                "Kahan sum should be very accurate for small values"
+            );
+
             // 通常の加算との精度比較
             let values = vec![1.0, 1e-15, 1e-15, 1e-15];
             let kahan_result = kahan_sum(&values);
             let naive_result: f64 = values.iter().sum();
-            
+
             // Kahan加算の方が精度が高いか、最低でも同等であることを確認
-            assert!(kahan_result >= naive_result - 1e-15, "Kahan sum should be at least as accurate");
+            assert!(
+                kahan_result >= naive_result - 1e-15,
+                "Kahan sum should be at least as accurate"
+            );
         }
 
         #[test]
@@ -378,12 +384,15 @@ mod tests {
             // 浮動小数点精度の限界をテスト
             let mut values = vec![1.0; 1000000];
             values.push(1e-10);
-            
+
             let kahan_result = kahan_sum(&values);
             let naive_result: f64 = values.iter().sum();
-            
+
             // Kahan加算の方が精度が高いことを確認
-            assert!(kahan_result >= naive_result, "Kahan sum should be at least as accurate as naive sum");
+            assert!(
+                kahan_result >= naive_result,
+                "Kahan sum should be at least as accurate as naive sum"
+            );
         }
 
         #[test]
@@ -398,11 +407,11 @@ mod tests {
     mod internal_function_tests {
         use super::*;
 
-        #[test] 
+        #[test]
         fn test_perform_ols_directly() {
             let x = vec![1.0, 2.0, 3.0, 4.0];
             let y = vec![2.0, 4.0, 6.0, 8.0];
-            
+
             let result = perform_ols(&x, &y);
             assert!((result.slope - 2.0).abs() < 1e-10);
             assert!(result.intercept.abs() < 1e-10);
@@ -412,21 +421,9 @@ mod tests {
         #[test]
         fn test_perform_ols_edge_cases() {
             let test_cases = vec![
-                (
-                    "single_point",
-                    vec![1.0],
-                    vec![2.0],
-                ),
-                (
-                    "zero_variance_x", 
-                    vec![2.0, 2.0, 2.0],
-                    vec![1.0, 2.0, 3.0],
-                ),
-                (
-                    "zero_variance_y",
-                    vec![1.0, 2.0, 3.0],
-                    vec![5.0, 5.0, 5.0],
-                ),
+                ("single_point", vec![1.0], vec![2.0]),
+                ("zero_variance_x", vec![2.0, 2.0, 2.0], vec![1.0, 2.0, 3.0]),
+                ("zero_variance_y", vec![1.0, 2.0, 3.0], vec![5.0, 5.0, 5.0]),
             ];
 
             for (_name, x, y) in test_cases {
