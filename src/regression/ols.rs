@@ -1,6 +1,8 @@
+use crate::regression::utils::{
+    calculate_p_value_exact, kahan_sum, safe_divide, validate_finite_array,
+};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
-use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
 
 // Type alias to reduce complexity
@@ -136,89 +138,6 @@ pub fn calculate_ols_regression<'py>(
         stderr,
         intercept_stderr,
     ))
-}
-
-// Function to calculate p-value from t-statistic (exact implementation using statrs)
-fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
-    // Calculate exact p-value from Student's t-distribution using statrs
-    match StudentsT::new(0.0, 1.0, df) {
-        Ok(t_dist) => {
-            // Double for two-sided test
-            2.0 * (1.0 - t_dist.cdf(t_value.abs()))
-        }
-        Err(_) => {
-            // Return NaN if distribution creation failed
-            f64::NAN
-        }
-    }
-}
-
-// IEEE 754 edge case detection and handling
-fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
-    for (i, &value) in array.iter().enumerate() {
-        if !value.is_finite() {
-            if value.is_nan() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "NaN detected in {} array at index {}",
-                    name, i
-                )));
-            } else if value.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Infinite value detected in {} array at index {}",
-                    name, i
-                )));
-            }
-        }
-        // Subnormal number detection
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            eprintln!(
-                "Warning: Subnormal number detected in {} array at index {}: {}",
-                name, i, value
-            );
-        }
-    }
-    Ok(())
-}
-
-fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64> {
-    if !numerator.is_finite() || !denominator.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Non-finite values in division ({}): {}/{}",
-            context, numerator, denominator
-        )));
-    }
-
-    if denominator.abs() < f64::EPSILON {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division by zero or near-zero value ({}): denominator = {}",
-            context, denominator
-        )));
-    }
-
-    let result = numerator / denominator;
-    if !result.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division resulted in non-finite value ({}): {}/{} = {}",
-            context, numerator, denominator, result
-        )));
-    }
-
-    Ok(result)
-}
-
-// Kahan summation algorithm - reduces floating-point accumulation errors
-fn kahan_sum(values: &[f64]) -> f64 {
-    let mut sum = 0.0;
-    let mut c = 0.0; // Compensation term
-
-    for &value in values {
-        let y = value - c; // Apply compensation
-        let t = sum + y; // New sum
-        c = (t - sum) - y; // Calculate next compensation term
-        sum = t;
-    }
-
-    sum
 }
 
 #[cfg(test)]

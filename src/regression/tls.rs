@@ -1,61 +1,9 @@
+use crate::regression::utils::{compute_r_value, kahan_sum, safe_divide, validate_finite_array};
 use nalgebra::{DMatrix, SVD};
 use ndarray::Array1;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
-
-// IEEE 754 edge case detection and handling (shared from OLS)
-fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
-    for (i, &value) in array.iter().enumerate() {
-        if !value.is_finite() {
-            if value.is_nan() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "NaN detected in {} array at index {}",
-                    name, i
-                )));
-            } else if value.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Infinite value detected in {} array at index {}",
-                    name, i
-                )));
-            }
-        }
-        // Subnormal number detection
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            eprintln!(
-                "Warning: Subnormal number detected in {} array at index {}: {}",
-                name, i, value
-            );
-        }
-    }
-    Ok(())
-}
-
-fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64> {
-    if !numerator.is_finite() || !denominator.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Non-finite values in division ({}): {}/{}",
-            context, numerator, denominator
-        )));
-    }
-
-    if denominator.abs() < f64::EPSILON {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division by zero or near-zero value ({}): denominator = {}",
-            context, denominator
-        )));
-    }
-
-    let result = numerator / denominator;
-    if !result.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division resulted in non-finite value ({}): {}/{} = {}",
-            context, numerator, denominator, result
-        )));
-    }
-
-    Ok(result)
-}
 
 /// Total Least Squares regression implemented in Rust.
 ///
@@ -194,49 +142,6 @@ pub fn calculate_tls_regression<'py>(
 
     // Return results to Python
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
-}
-
-// Kahan summation algorithm - reduces floating-point accumulation errors
-fn kahan_sum(values: &[f64]) -> f64 {
-    let mut sum = 0.0;
-    let mut c = 0.0; // Compensation term
-
-    for &value in values {
-        let y = value - c; // Apply compensation
-        let t = sum + y; // New sum
-        c = (t - sum) - y; // Calculate next compensation term
-        sum = t;
-    }
-
-    sum
-}
-
-// Helper function to calculate correlation coefficient (using Kahan summation)
-fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
-    let x_mean = x.mean().unwrap_or(0.0);
-    let y_mean = y.mean().unwrap_or(0.0);
-
-    let mut xy_terms = Vec::with_capacity(x.len());
-    let mut x2_terms = Vec::with_capacity(x.len());
-    let mut y2_terms = Vec::with_capacity(x.len());
-
-    for i in 0..x.len() {
-        let x_diff = x[i] - x_mean;
-        let y_diff = y[i] - y_mean;
-        xy_terms.push(x_diff * y_diff);
-        x2_terms.push(x_diff * x_diff);
-        y2_terms.push(y_diff * y_diff);
-    }
-
-    let sum_xy = kahan_sum(&xy_terms);
-    let sum_x2 = kahan_sum(&x2_terms);
-    let sum_y2 = kahan_sum(&y2_terms);
-
-    if sum_x2 == 0.0 || sum_y2 == 0.0 {
-        return 0.0;
-    }
-
-    sum_xy / (sum_x2.sqrt() * sum_y2.sqrt())
 }
 
 #[cfg(test)]
