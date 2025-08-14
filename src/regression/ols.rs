@@ -50,7 +50,45 @@ pub fn calculate_ols_regression<'py>(
     let x_mean = x_array.mean().unwrap();
     let y_mean = y_array.mean().unwrap();
 
-    // Calculate variance and covariance using Kahan summation for better precision
+    let (ss_xx, ss_xy, ss_yy) =
+        calculate_variance_covariance_terms(&x_array, &y_array, x_mean, y_mean);
+
+    // Calculate slope using safe division
+    let slope = safe_divide(ss_xy, ss_xx, "slope calculation")?;
+
+    // Calculate intercept
+    let intercept = y_mean - slope * x_mean;
+
+    let r_value = calculate_correlation_coefficient(ss_xx, ss_xy, ss_yy);
+
+    let ss_res = calculate_residual_sum_of_squares(&x_array, &y_array, slope, intercept);
+
+    let (stderr, p_value, intercept_stderr) =
+        calculate_standard_errors(n, ss_xx, ss_res, slope, x_mean);
+
+    // Calculate predicted values
+    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
+        x_array.mapv(|v| slope * v + intercept);
+
+    // Return results to Python
+    Ok((
+        y_pred.into_pyarray(py),
+        slope,
+        intercept,
+        r_value,
+        p_value,
+        stderr,
+        intercept_stderr,
+    ))
+}
+
+/// 分散・共分散項を計算（Kahan summation使用）
+fn calculate_variance_covariance_terms(
+    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    x_mean: f64,
+    y_mean: f64,
+) -> (f64, f64, f64) {
     let mut x_squared_terms = Vec::with_capacity(x_array.len());
     let mut xy_terms = Vec::with_capacity(x_array.len());
     let mut y_squared_terms = Vec::with_capacity(x_array.len());
@@ -68,14 +106,12 @@ pub fn calculate_ols_regression<'py>(
     let ss_xy = kahan_sum(&xy_terms);
     let ss_yy = kahan_sum(&y_squared_terms);
 
-    // Calculate slope using safe division
-    let slope = safe_divide(ss_xy, ss_xx, "slope calculation")?;
+    (ss_xx, ss_xy, ss_yy)
+}
 
-    // Calculate intercept
-    let intercept = y_mean - slope * x_mean;
-
-    // Calculate correlation coefficient using safe operations
-    let r_value = if ss_xx > 0.0 && ss_yy > 0.0 {
+/// 相関係数を安全な演算で計算
+fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 {
+    if ss_xx > 0.0 && ss_yy > 0.0 {
         let denominator = (ss_xx * ss_yy).sqrt();
         if denominator > f64::EPSILON {
             ss_xy / denominator
@@ -84,18 +120,33 @@ pub fn calculate_ols_regression<'py>(
         }
     } else {
         0.0
-    };
+    }
+}
 
-    // Calculate residual sum of squares using Kahan summation
+/// 残差平方和を計算（Kahan summation使用）
+fn calculate_residual_sum_of_squares(
+    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    slope: f64,
+    intercept: f64,
+) -> f64 {
     let mut residual_terms = Vec::with_capacity(x_array.len());
     for i in 0..x_array.len() {
         let y_pred = slope * x_array[i] + intercept;
         let diff = y_array[i] - y_pred;
         residual_terms.push(diff * diff);
     }
-    let ss_res = kahan_sum(&residual_terms);
+    kahan_sum(&residual_terms)
+}
 
-    // Calculate standard error using safe operations
+/// 標準誤差、p値、切片の標準誤差を計算
+fn calculate_standard_errors(
+    n: f64,
+    ss_xx: f64,
+    ss_res: f64,
+    slope: f64,
+    x_mean: f64,
+) -> (f64, f64, f64) {
     let stderr = if n > 2.0 && ss_xx > f64::EPSILON {
         let sd_res = (ss_res / (n - 2.0)).sqrt();
         if sd_res.is_finite() && ss_xx > 0.0 {
@@ -107,16 +158,13 @@ pub fn calculate_ols_regression<'py>(
         f64::NAN
     };
 
-    // Calculate t-statistic and p-value (two-tailed test)
     let p_value = if n > 2.0 && stderr != 0.0 {
         let t_stat = slope.abs() / stderr;
-        // Calculate p-value from Student's t-distribution (exact implementation)
         calculate_p_value_exact(t_stat, n - 2.0)
     } else {
         f64::NAN
     };
 
-    // Calculate standard error of the intercept
     let intercept_stderr = if n > 2.0 && ss_xx > 0.0 {
         let sd_res = (ss_res / (n - 2.0)).sqrt();
         sd_res * ((1.0 / n) + (x_mean * x_mean) / ss_xx).sqrt()
@@ -124,20 +172,7 @@ pub fn calculate_ols_regression<'py>(
         f64::NAN
     };
 
-    // Calculate predicted values
-    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x_array.mapv(|v| slope * v + intercept);
-
-    // Return results to Python
-    Ok((
-        y_pred.into_pyarray(py),
-        slope,
-        intercept,
-        r_value,
-        p_value,
-        stderr,
-        intercept_stderr,
-    ))
+    (stderr, p_value, intercept_stderr)
 }
 
 #[cfg(test)]

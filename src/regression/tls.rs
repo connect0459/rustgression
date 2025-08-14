@@ -43,96 +43,14 @@ pub fn calculate_tls_regression<'py>(
         ));
     }
 
-    // Data centering (subtracting mean)
-    let x_mean = x_array.mean().unwrap_or(0.0);
-    let y_mean = y_array.mean().unwrap_or(0.0);
+    let (data_matrix, x_mean, y_mean) = prepare_centered_data(&x_array, &y_array);
 
-    let x_centered = x_array.mapv(|v| v - x_mean);
-    let y_centered = y_array.mapv(|v| v - y_mean);
+    let (v, singular_values) = perform_svd_analysis(data_matrix)?;
 
-    // Convert data to nalgebra matrix
-    let mut data_matrix = DMatrix::zeros(x_centered.len(), 2);
-    for i in 0..x_centered.len() {
-        data_matrix[(i, 0)] = x_centered[i];
-        data_matrix[(i, 1)] = y_centered[i];
-    }
+    let v_col = find_optimal_singular_vector(&v, &singular_values);
 
-    // Perform SVD
-    let svd = SVD::new(data_matrix.clone(), true, true);
-
-    // Get right singular vector V (column corresponding to last singular value)
-    let v = if let Some(v) = svd.v_t {
-        v
-    } else {
-        return Err(pyo3::exceptions::PyRuntimeError::new_err(
-            "SVD computation failed to return V matrix",
-        ));
-    };
-
-    // Check singular values and numerical stability
-    let singular_values = svd.singular_values;
-
-    // Condition number check: ratio of max to min singular values
-    let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
-    let min_singular = singular_values.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-
-    let condition_number = if min_singular > 0.0 {
-        max_singular / min_singular
-    } else {
-        f64::INFINITY
-    };
-
-    // Warning if condition number is very large (but continue calculation)
-    if condition_number > 1e12 {
-        eprintln!(
-            "Warning: Matrix condition number is very large ({}), results may be unreliable",
-            condition_number
-        );
-    }
-
-    // Find minimum singular value index considering numerical stability
-    // Use threshold considering machine precision
-    let eps = f64::EPSILON * max_singular;
-    let min_singular_idx = (0..singular_values.len())
-        .enumerate()
-        .filter(|(_, val)| singular_values[*val] >= eps) // Exclude very small singular values
-        .min_by(|(_, a), (_, b)| {
-            singular_values[*a]
-                .partial_cmp(&singular_values[*b])
-                .unwrap_or(std::cmp::Ordering::Equal)
-        })
-        .map(|(idx, _)| idx)
-        .unwrap_or_else(|| {
-            // Use largest singular value if all are below threshold
-            (0..singular_values.len())
-                .max_by(|&a, &b| {
-                    singular_values[a]
-                        .partial_cmp(&singular_values[b])
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                })
-                .unwrap_or(0)
-        });
-
-    // Get right singular vector corresponding to minimum singular value
-    let v_col = v.row(min_singular_idx);
-
-    // Calculate slope and intercept (using safe division)
-    let mut slope = safe_divide(-v_col[0], v_col[1], "TLS slope calculation")?;
-
-    // Maintain SVD sign consistency by matching data correlation sign
-    // Calculate covariance to check data trend
-    let mut covariance = 0.0;
-    for i in 0..x_array.len() {
-        covariance += (x_array[i] - x_mean) * (y_array[i] - y_mean);
-    }
-    covariance /= (x_array.len() - 1) as f64;
-
-    // Flip sign if covariance is negative but slope is positive, or vice versa
-    if (covariance > 0.0 && slope < 0.0) || (covariance < 0.0 && slope > 0.0) {
-        slope = -slope;
-    }
-
-    let intercept = y_mean - slope * x_mean;
+    let (slope, intercept) =
+        calculate_slope_with_sign_correction(v_col, &x_array, &y_array, x_mean, y_mean)?;
 
     // Calculate correlation coefficient
     let r_value = compute_r_value(&x_array, &y_array);
@@ -142,6 +60,148 @@ pub fn calculate_tls_regression<'py>(
 
     // Return results to Python
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
+}
+
+/// データの中心化と行列作成
+fn prepare_centered_data(
+    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+) -> (DMatrix<f64>, f64, f64) {
+    let x_mean = x_array.mean().unwrap_or(0.0);
+    let y_mean = y_array.mean().unwrap_or(0.0);
+
+    let x_centered = x_array.mapv(|v| v - x_mean);
+    let y_centered = y_array.mapv(|v| v - y_mean);
+
+    let mut data_matrix = DMatrix::zeros(x_centered.len(), 2);
+    for i in 0..x_centered.len() {
+        data_matrix[(i, 0)] = x_centered[i];
+        data_matrix[(i, 1)] = y_centered[i];
+    }
+
+    (data_matrix, x_mean, y_mean)
+}
+
+/// SVD解析と数値的安定性のチェック
+fn perform_svd_analysis(
+    data_matrix: DMatrix<f64>,
+) -> PyResult<(
+    nalgebra::Matrix<
+        f64,
+        nalgebra::Dyn,
+        nalgebra::Dyn,
+        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Dyn>,
+    >,
+    nalgebra::Matrix<
+        f64,
+        nalgebra::Dyn,
+        nalgebra::Const<1>,
+        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Const<1>>,
+    >,
+)> {
+    let svd = SVD::new(data_matrix.clone(), true, true);
+
+    let v = if let Some(v) = svd.v_t {
+        v
+    } else {
+        return Err(pyo3::exceptions::PyRuntimeError::new_err(
+            "SVD computation failed to return V matrix",
+        ));
+    };
+
+    let singular_values = svd.singular_values;
+
+    let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
+    let min_singular = singular_values.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+
+    let condition_number = if min_singular > 0.0 {
+        max_singular / min_singular
+    } else {
+        f64::INFINITY
+    };
+
+    if condition_number > 1e12 {
+        eprintln!(
+            "Warning: Matrix condition number is very large ({}), results may be unreliable",
+            condition_number
+        );
+    }
+
+    Ok((v, singular_values))
+}
+
+/// 数値的安定性を考慮した最適特異ベクトルの探索
+fn find_optimal_singular_vector(
+    v: &nalgebra::Matrix<
+        f64,
+        nalgebra::Dyn,
+        nalgebra::Dyn,
+        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Dyn>,
+    >,
+    singular_values: &nalgebra::Matrix<
+        f64,
+        nalgebra::Dyn,
+        nalgebra::Const<1>,
+        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Const<1>>,
+    >,
+) -> nalgebra::Matrix<
+    f64,
+    nalgebra::Const<1>,
+    nalgebra::Dyn,
+    nalgebra::VecStorage<f64, nalgebra::Const<1>, nalgebra::Dyn>,
+> {
+    let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
+    let eps = f64::EPSILON * max_singular;
+
+    let min_singular_idx = (0..singular_values.len())
+        .enumerate()
+        .filter(|(_, val)| singular_values[*val] >= eps)
+        .min_by(|(_, a), (_, b)| {
+            singular_values[*a]
+                .partial_cmp(&singular_values[*b])
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .map(|(idx, _)| idx)
+        .unwrap_or_else(|| {
+            (0..singular_values.len())
+                .max_by(|&a, &b| {
+                    singular_values[a]
+                        .partial_cmp(&singular_values[b])
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .unwrap_or(0)
+        });
+
+    v.row(min_singular_idx).into()
+}
+
+/// 符号補正付きの傾きと切片計算
+fn calculate_slope_with_sign_correction(
+    v_col: nalgebra::Matrix<
+        f64,
+        nalgebra::Const<1>,
+        nalgebra::Dyn,
+        nalgebra::VecStorage<f64, nalgebra::Const<1>, nalgebra::Dyn>,
+    >,
+    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    x_mean: f64,
+    y_mean: f64,
+) -> PyResult<(f64, f64)> {
+    let mut slope = safe_divide(-v_col[0], v_col[1], "TLS slope calculation")?;
+
+    let mut covariance = 0.0;
+    for i in 0..x_array.len() {
+        covariance += (x_array[i] - x_mean) * (y_array[i] - y_mean);
+    }
+    covariance /= (x_array.len() - 1) as f64;
+
+    if (covariance > 0.0 && slope < 0.0) || (covariance < 0.0 && slope > 0.0) {
+        slope = -slope;
+    }
+
+    let intercept = y_mean - slope * x_mean;
+    Ok((slope, intercept))
 }
 
 #[cfg(test)]
