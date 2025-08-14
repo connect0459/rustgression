@@ -1,6 +1,6 @@
 [package]
 name = "rustgression"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 authors = ["connect0459 <connect0459@gmail.com>"]
 description = "Fast OLS and TLS regression using Rust backend"
