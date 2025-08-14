@@ -1,7 +1,7 @@
 [project]
 name = "rustgression"
 version = "0.3.0"
-description = "Fast OLS and TLS and regression using Rust backend"
+description = "Fast OLS and TLS regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.11"
