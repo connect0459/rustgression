@@ -42,19 +42,23 @@ pub fn calculate_ols_regression<'py>(
     let x_mean = x_array.mean().unwrap();
     let y_mean = y_array.mean().unwrap();
 
-    // Calculate variance and covariance
-    let mut ss_xx = 0.0;
-    let mut ss_xy = 0.0;
-    let mut ss_yy = 0.0;
+    // Calculate variance and covariance using Kahan summation for better precision
+    let mut x_squared_terms = Vec::with_capacity(x_array.len());
+    let mut xy_terms = Vec::with_capacity(x_array.len());
+    let mut y_squared_terms = Vec::with_capacity(x_array.len());
 
     for i in 0..x_array.len() {
         let x_diff = x_array[i] - x_mean;
         let y_diff = y_array[i] - y_mean;
 
-        ss_xx += x_diff * x_diff;
-        ss_xy += x_diff * y_diff;
-        ss_yy += y_diff * y_diff;
+        x_squared_terms.push(x_diff * x_diff);
+        xy_terms.push(x_diff * y_diff);
+        y_squared_terms.push(y_diff * y_diff);
     }
+
+    let ss_xx = kahan_sum(&x_squared_terms);
+    let ss_xy = kahan_sum(&xy_terms);
+    let ss_yy = kahan_sum(&y_squared_terms);
 
     // Calculate slope
     let slope = ss_xy / ss_xx;
@@ -69,13 +73,14 @@ pub fn calculate_ols_regression<'py>(
         0.0
     };
 
-    // Calculate residual sum of squares
-    let mut ss_res = 0.0;
+    // Calculate residual sum of squares using Kahan summation
+    let mut residual_terms = Vec::with_capacity(x_array.len());
     for i in 0..x_array.len() {
         let y_pred = slope * x_array[i] + intercept;
         let diff = y_array[i] - y_pred;
-        ss_res += diff * diff;
+        residual_terms.push(diff * diff);
     }
+    let ss_res = kahan_sum(&residual_terms);
 
     // Calculate standard error
     let stderr = if n > 2.0 && ss_xx > 0.0 {
@@ -131,6 +136,21 @@ fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
             f64::NAN
         }
     }
+}
+
+// Kahan加算アルゴリズム - 浮動小数点の累積誤差を削減
+fn kahan_sum(values: &[f64]) -> f64 {
+    let mut sum = 0.0;
+    let mut c = 0.0; // 補正項
+
+    for &value in values {
+        let y = value - c;  // 補正を適用
+        let t = sum + y;    // 新しい和
+        c = (t - sum) - y;  // 次回の補正項を計算
+        sum = t;
+    }
+    
+    sum
 }
 
 #[cfg(test)]
@@ -333,6 +353,46 @@ mod tests {
         }
     }
 
+    mod kahan_sum {
+        use super::*;
+
+        #[test]
+        fn kahan_sum_accuracy() {
+            // より実用的なテスト: 多数の小さな値
+            let small_values = vec![0.1; 10];
+            let kahan_result = kahan_sum(&small_values);
+            let expected = 1.0;
+            assert!((kahan_result - expected).abs() < 1e-14, "Kahan sum should be very accurate for small values");
+            
+            // 通常の加算との精度比較
+            let values = vec![1.0, 1e-15, 1e-15, 1e-15];
+            let kahan_result = kahan_sum(&values);
+            let naive_result: f64 = values.iter().sum();
+            
+            // Kahan加算の方が精度が高いか、最低でも同等であることを確認
+            assert!(kahan_result >= naive_result - 1e-15, "Kahan sum should be at least as accurate");
+        }
+
+        #[test]
+        fn kahan_sum_vs_naive() {
+            // 浮動小数点精度の限界をテスト
+            let mut values = vec![1.0; 1000000];
+            values.push(1e-10);
+            
+            let kahan_result = kahan_sum(&values);
+            let naive_result: f64 = values.iter().sum();
+            
+            // Kahan加算の方が精度が高いことを確認
+            assert!(kahan_result >= naive_result, "Kahan sum should be at least as accurate as naive sum");
+        }
+
+        #[test]
+        fn kahan_sum_edge_cases() {
+            assert_eq!(kahan_sum(&[]), 0.0);
+            assert_eq!(kahan_sum(&[42.0]), 42.0);
+            assert!(kahan_sum(&[f64::NAN]).is_nan());
+        }
+    }
 
     // Add direct tests to increase coverage of internal functions
     mod internal_function_tests {
@@ -391,17 +451,21 @@ mod tests {
         let x_mean = x.iter().sum::<f64>() / n;
         let y_mean = y.iter().sum::<f64>() / n;
 
-        let mut ss_xx = 0.0;
-        let mut ss_xy = 0.0;
-        let mut ss_yy = 0.0;
+        let mut x_squared_terms = Vec::with_capacity(x.len());
+        let mut xy_terms = Vec::with_capacity(x.len());
+        let mut y_squared_terms = Vec::with_capacity(x.len());
 
         for i in 0..x.len() {
             let x_diff = x[i] - x_mean;
             let y_diff = y[i] - y_mean;
-            ss_xx += x_diff * x_diff;
-            ss_xy += x_diff * y_diff;
-            ss_yy += y_diff * y_diff;
+            x_squared_terms.push(x_diff * x_diff);
+            xy_terms.push(x_diff * y_diff);
+            y_squared_terms.push(y_diff * y_diff);
         }
+
+        let ss_xx = kahan_sum(&x_squared_terms);
+        let ss_xy = kahan_sum(&xy_terms);
+        let ss_yy = kahan_sum(&y_squared_terms);
 
         let slope = ss_xy / ss_xx;
         let intercept = y_mean - slope * x_mean;

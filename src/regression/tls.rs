@@ -91,22 +91,41 @@ pub fn calculate_tls_regression<'py>(
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
 }
 
-// 相関係数を計算するヘルパー関数
+// Kahan加算アルゴリズム - 浮動小数点の累積誤差を削減
+fn kahan_sum(values: &[f64]) -> f64 {
+    let mut sum = 0.0;
+    let mut c = 0.0; // 補正項
+
+    for &value in values {
+        let y = value - c;  // 補正を適用
+        let t = sum + y;    // 新しい和
+        c = (t - sum) - y;  // 次回の補正項を計算
+        sum = t;
+    }
+    
+    sum
+}
+
+// 相関係数を計算するヘルパー関数（Kahan加算使用）
 fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
     let x_mean = x.mean().unwrap_or(0.0);
     let y_mean = y.mean().unwrap_or(0.0);
 
-    let mut sum_xy = 0.0;
-    let mut sum_x2 = 0.0;
-    let mut sum_y2 = 0.0;
+    let mut xy_terms = Vec::with_capacity(x.len());
+    let mut x2_terms = Vec::with_capacity(x.len());
+    let mut y2_terms = Vec::with_capacity(x.len());
 
     for i in 0..x.len() {
         let x_diff = x[i] - x_mean;
         let y_diff = y[i] - y_mean;
-        sum_xy += x_diff * y_diff;
-        sum_x2 += x_diff * x_diff;
-        sum_y2 += y_diff * y_diff;
+        xy_terms.push(x_diff * y_diff);
+        x2_terms.push(x_diff * x_diff);
+        y2_terms.push(y_diff * y_diff);
     }
+
+    let sum_xy = kahan_sum(&xy_terms);
+    let sum_x2 = kahan_sum(&x2_terms);
+    let sum_y2 = kahan_sum(&y2_terms);
 
     if sum_x2 == 0.0 || sum_y2 == 0.0 {
         return 0.0;
@@ -366,8 +385,8 @@ mod tests {
     }
 
     fn perform_tls(x: &[f64], y: &[f64]) -> TlsResult {
-        let x_mean = x.iter().sum::<f64>() / x.len() as f64;
-        let y_mean = y.iter().sum::<f64>() / y.len() as f64;
+        let x_mean = kahan_sum(x) / x.len() as f64;
+        let y_mean = kahan_sum(y) / y.len() as f64;
 
         let x_centered: Vec<f64> = x.iter().map(|v| v - x_mean).collect();
         let y_centered: Vec<f64> = y.iter().map(|v| v - y_mean).collect();
