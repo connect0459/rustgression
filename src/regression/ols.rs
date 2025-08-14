@@ -1,10 +1,13 @@
+use crate::regression::utils::{
+    calculate_p_value_exact, kahan_sum, safe_divide, validate_finite_array,
+};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
-use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
 
-// Type alias to reduce complexity
+// Type aliases to reduce complexity
 type OlsResult<'py> = (&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64);
+type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>;
 
 /// Rust implementation of Ordinary Least Squares regression (similar to stats.linregress).
 ///
@@ -26,10 +29,8 @@ pub fn calculate_ols_regression<'py>(
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<OlsResult<'py>> {
     // Convert numpy arrays to ndarray
-    let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x.as_array().to_owned();
-    let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        y.as_array().to_owned();
+    let x_array: Array1Ref = x.as_array().to_owned();
+    let y_array: Array1Ref = y.as_array().to_owned();
     let n: f64 = x_array.len() as f64;
 
     if n < 2.0 {
@@ -48,7 +49,44 @@ pub fn calculate_ols_regression<'py>(
     let x_mean = x_array.mean().unwrap();
     let y_mean = y_array.mean().unwrap();
 
-    // Calculate variance and covariance using Kahan summation for better precision
+    let (ss_xx, ss_xy, ss_yy) =
+        calculate_variance_covariance_terms(&x_array, &y_array, x_mean, y_mean);
+
+    // Calculate slope using safe division
+    let slope = safe_divide(ss_xy, ss_xx, "slope calculation")?;
+
+    // Calculate intercept
+    let intercept = y_mean - slope * x_mean;
+
+    let r_value = calculate_correlation_coefficient(ss_xx, ss_xy, ss_yy);
+
+    let ss_res = calculate_residual_sum_of_squares(&x_array, &y_array, slope, intercept);
+
+    let (stderr, p_value, intercept_stderr) =
+        calculate_standard_errors(n, ss_xx, ss_res, slope, x_mean);
+
+    // Calculate predicted values
+    let y_pred: Array1Ref = x_array.mapv(|v| slope * v + intercept);
+
+    // Return results to Python
+    Ok((
+        y_pred.into_pyarray(py),
+        slope,
+        intercept,
+        r_value,
+        p_value,
+        stderr,
+        intercept_stderr,
+    ))
+}
+
+/// Calculate variance and covariance terms using Kahan summation
+fn calculate_variance_covariance_terms(
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
+    x_mean: f64,
+    y_mean: f64,
+) -> (f64, f64, f64) {
     let mut x_squared_terms = Vec::with_capacity(x_array.len());
     let mut xy_terms = Vec::with_capacity(x_array.len());
     let mut y_squared_terms = Vec::with_capacity(x_array.len());
@@ -66,14 +104,12 @@ pub fn calculate_ols_regression<'py>(
     let ss_xy = kahan_sum(&xy_terms);
     let ss_yy = kahan_sum(&y_squared_terms);
 
-    // Calculate slope using safe division
-    let slope = safe_divide(ss_xy, ss_xx, "slope calculation")?;
+    (ss_xx, ss_xy, ss_yy)
+}
 
-    // Calculate intercept
-    let intercept = y_mean - slope * x_mean;
-
-    // Calculate correlation coefficient using safe operations
-    let r_value = if ss_xx > 0.0 && ss_yy > 0.0 {
+/// Calculate correlation coefficient using safe operations
+fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 {
+    if ss_xx > 0.0 && ss_yy > 0.0 {
         let denominator = (ss_xx * ss_yy).sqrt();
         if denominator > f64::EPSILON {
             ss_xy / denominator
@@ -82,18 +118,33 @@ pub fn calculate_ols_regression<'py>(
         }
     } else {
         0.0
-    };
+    }
+}
 
-    // Calculate residual sum of squares using Kahan summation
+/// Calculate residual sum of squares using Kahan summation
+fn calculate_residual_sum_of_squares(
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
+    slope: f64,
+    intercept: f64,
+) -> f64 {
     let mut residual_terms = Vec::with_capacity(x_array.len());
     for i in 0..x_array.len() {
         let y_pred = slope * x_array[i] + intercept;
         let diff = y_array[i] - y_pred;
         residual_terms.push(diff * diff);
     }
-    let ss_res = kahan_sum(&residual_terms);
+    kahan_sum(&residual_terms)
+}
 
-    // Calculate standard error using safe operations
+/// Calculate standard error, p-value, and intercept standard error
+fn calculate_standard_errors(
+    n: f64,
+    ss_xx: f64,
+    ss_res: f64,
+    slope: f64,
+    x_mean: f64,
+) -> (f64, f64, f64) {
     let stderr = if n > 2.0 && ss_xx > f64::EPSILON {
         let sd_res = (ss_res / (n - 2.0)).sqrt();
         if sd_res.is_finite() && ss_xx > 0.0 {
@@ -105,16 +156,13 @@ pub fn calculate_ols_regression<'py>(
         f64::NAN
     };
 
-    // Calculate t-statistic and p-value (two-tailed test)
     let p_value = if n > 2.0 && stderr != 0.0 {
         let t_stat = slope.abs() / stderr;
-        // Calculate p-value from Student's t-distribution (exact implementation)
         calculate_p_value_exact(t_stat, n - 2.0)
     } else {
         f64::NAN
     };
 
-    // Calculate standard error of the intercept
     let intercept_stderr = if n > 2.0 && ss_xx > 0.0 {
         let sd_res = (ss_res / (n - 2.0)).sqrt();
         sd_res * ((1.0 / n) + (x_mean * x_mean) / ss_xx).sqrt()
@@ -122,103 +170,7 @@ pub fn calculate_ols_regression<'py>(
         f64::NAN
     };
 
-    // Calculate predicted values
-    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x_array.mapv(|v| slope * v + intercept);
-
-    // Return results to Python
-    Ok((
-        y_pred.into_pyarray(py),
-        slope,
-        intercept,
-        r_value,
-        p_value,
-        stderr,
-        intercept_stderr,
-    ))
-}
-
-// Function to calculate p-value from t-statistic (exact implementation using statrs)
-fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
-    // Calculate exact p-value from Student's t-distribution using statrs
-    match StudentsT::new(0.0, 1.0, df) {
-        Ok(t_dist) => {
-            // Double for two-sided test
-            2.0 * (1.0 - t_dist.cdf(t_value.abs()))
-        }
-        Err(_) => {
-            // Return NaN if distribution creation failed
-            f64::NAN
-        }
-    }
-}
-
-// IEEE 754 edge case detection and handling
-fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
-    for (i, &value) in array.iter().enumerate() {
-        if !value.is_finite() {
-            if value.is_nan() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "NaN detected in {} array at index {}",
-                    name, i
-                )));
-            } else if value.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Infinite value detected in {} array at index {}",
-                    name, i
-                )));
-            }
-        }
-        // Subnormal number detection
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            eprintln!(
-                "Warning: Subnormal number detected in {} array at index {}: {}",
-                name, i, value
-            );
-        }
-    }
-    Ok(())
-}
-
-fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64> {
-    if !numerator.is_finite() || !denominator.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Non-finite values in division ({}): {}/{}",
-            context, numerator, denominator
-        )));
-    }
-
-    if denominator.abs() < f64::EPSILON {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division by zero or near-zero value ({}): denominator = {}",
-            context, denominator
-        )));
-    }
-
-    let result = numerator / denominator;
-    if !result.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division resulted in non-finite value ({}): {}/{} = {}",
-            context, numerator, denominator, result
-        )));
-    }
-
-    Ok(result)
-}
-
-// Kahan summation algorithm - reduces floating-point accumulation errors
-fn kahan_sum(values: &[f64]) -> f64 {
-    let mut sum = 0.0;
-    let mut c = 0.0; // Compensation term
-
-    for &value in values {
-        let y = value - c; // Apply compensation
-        let t = sum + y; // New sum
-        c = (t - sum) - y; // Calculate next compensation term
-        sum = t;
-    }
-
-    sum
+    (stderr, p_value, intercept_stderr)
 }
 
 #[cfg(test)]
