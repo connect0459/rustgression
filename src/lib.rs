@@ -32,4 +32,3 @@ fn rustgression(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(regression::calculate_tls_regression, m)?)?;
     Ok(())
 }
-
