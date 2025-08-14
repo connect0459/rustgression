@@ -62,7 +62,7 @@ pub fn calculate_tls_regression<'py>(
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
 }
 
-/// データの中心化と行列作成
+/// Data centering and matrix preparation
 fn prepare_centered_data(
     x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
     y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
@@ -82,7 +82,7 @@ fn prepare_centered_data(
     (data_matrix, x_mean, y_mean)
 }
 
-/// SVD解析と数値的安定性のチェック
+/// SVD analysis and numerical stability check
 fn perform_svd_analysis(
     data_matrix: DMatrix<f64>,
 ) -> PyResult<(
@@ -130,7 +130,7 @@ fn perform_svd_analysis(
     Ok((v, singular_values))
 }
 
-/// 数値的安定性を考慮した最適特異ベクトルの探索
+/// Find optimal singular vector considering numerical stability
 fn find_optimal_singular_vector(
     v: &nalgebra::Matrix<
         f64,
@@ -175,7 +175,7 @@ fn find_optimal_singular_vector(
     v.row(min_singular_idx).into()
 }
 
-/// 符号補正付きの傾きと切片計算
+/// Calculate slope and intercept with sign correction
 fn calculate_slope_with_sign_correction(
     v_col: nalgebra::Matrix<
         f64,

@@ -6,14 +6,14 @@ use std::f64;
 /// Parameters
 /// ----------
 /// array : &[f64]
-///     配列の参照
+///     Array reference
 /// name : &str
-///     エラーメッセージ用の配列名
+///     Array name for error messages
 ///
 /// Returns
 /// -------
 /// PyResult<()>
-///     正常な場合はOk(())、問題がある場合はエラー
+///     Ok(()) on success, error if problems found
 pub fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
     for (i, &value) in array.iter().enumerate() {
         if !value.is_finite() {
@@ -40,21 +40,21 @@ pub fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
     Ok(())
 }
 
-/// 安全な除算（ゼロ除算と非有限値チェック付き）
+/// Safe division with zero division and non-finite value checks
 ///
 /// Parameters
 /// ----------
 /// numerator : f64
-///     分子
+///     Numerator
 /// denominator : f64
-///     分母
+///     Denominator
 /// context : &str
-///     エラーメッセージ用のコンテキスト
+///     Context for error messages
 ///
 /// Returns
 /// -------
 /// PyResult<f64>
-///     除算結果、エラーの場合はエラーを返す
+///     Division result, or error if problems occur
 pub fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64> {
     if !numerator.is_finite() || !denominator.is_finite() {
         return Err(pyo3::exceptions::PyValueError::new_err(format!(

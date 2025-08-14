@@ -1,14 +1,14 @@
-/// Kahan summation algorithm - 浮動小数点数の累積誤差を軽減
+/// Kahan summation algorithm - reduces floating-point accumulation errors
 ///
 /// Parameters
 /// ----------
 /// values : &[f64]
-///     合計したい値の配列
+///     Array of values to sum
 ///
 /// Returns
 /// -------
 /// f64
-///     高精度で計算された合計値
+///     High-precision computed sum
 pub fn kahan_sum(values: &[f64]) -> f64 {
     let mut sum = 0.0;
     let mut c = 0.0; // Compensation term

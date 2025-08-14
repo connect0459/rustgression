@@ -3,19 +3,19 @@ use ndarray::Array1;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
 
-/// 相関係数を計算（Kahan summationを使用）
+/// Calculate correlation coefficient using Kahan summation
 ///
 /// Parameters
 /// ----------
 /// x : &Array1<f64>
-///     x軸のデータ
+///     Data for the x-axis
 /// y : &Array1<f64>
-///     y軸のデータ
+///     Data for the y-axis
 ///
 /// Returns
 /// -------
 /// f64
-///     相関係数（-1.0から1.0の範囲）
+///     Correlation coefficient (-1.0 to 1.0 range)
 pub fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
     let x_mean = x.mean().unwrap_or(0.0);
     let y_mean = y.mean().unwrap_or(0.0);
@@ -43,19 +43,19 @@ pub fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
     sum_xy / (sum_x2.sqrt() * sum_y2.sqrt())
 }
 
-/// t統計量からp値を計算（Student's t分布を使用した正確な実装）
+/// Calculate p-value from t-statistic using Student's t-distribution (exact implementation)
 ///
 /// Parameters
 /// ----------
 /// t_value : f64
-///     t統計量
+///     t-statistic
 /// df : f64
-///     自由度
+///     Degrees of freedom
 ///
 /// Returns
 /// -------
 /// f64
-///     両側検定のp値
+///     Two-tailed test p-value
 pub fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
     // Calculate exact p-value from Student's t-distribution using statrs
     match StudentsT::new(0.0, 1.0, df) {

@@ -82,7 +82,7 @@ pub fn calculate_ols_regression<'py>(
     ))
 }
 
-/// 分散・共分散項を計算（Kahan summation使用）
+/// Calculate variance and covariance terms using Kahan summation
 fn calculate_variance_covariance_terms(
     x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
     y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
@@ -109,7 +109,7 @@ fn calculate_variance_covariance_terms(
     (ss_xx, ss_xy, ss_yy)
 }
 
-/// 相関係数を安全な演算で計算
+/// Calculate correlation coefficient using safe operations
 fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 {
     if ss_xx > 0.0 && ss_yy > 0.0 {
         let denominator = (ss_xx * ss_yy).sqrt();
@@ -123,7 +123,7 @@ fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 
     }
 }
 
-/// 残差平方和を計算（Kahan summation使用）
+/// Calculate residual sum of squares using Kahan summation
 fn calculate_residual_sum_of_squares(
     x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
     y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
@@ -139,7 +139,7 @@ fn calculate_residual_sum_of_squares(
     kahan_sum(&residual_terms)
 }
 
-/// 標準誤差、p値、切片の標準誤差を計算
+/// Calculate standard error, p-value, and intercept standard error
 fn calculate_standard_errors(
     n: f64,
     ss_xx: f64,
