@@ -1,5 +1,6 @@
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
+use statrs::distribution::{StudentsT, ContinuousCDF};
 use std::f64;
 
 // Type alias to reduce complexity
@@ -87,8 +88,8 @@ pub fn calculate_ols_regression<'py>(
     // Calculate t-statistic and p-value (two-tailed test)
     let p_value = if n > 2.0 && stderr != 0.0 {
         let t_stat = slope.abs() / stderr;
-        // Calculate p-value from Student's t-distribution (approximation)
-        calculate_p_value(t_stat, n - 2.0)
+        // Calculate p-value from Student's t-distribution (exact implementation)
+        calculate_p_value_exact(t_stat, n - 2.0)
     } else {
         f64::NAN
     };
@@ -117,33 +118,18 @@ pub fn calculate_ols_regression<'py>(
     ))
 }
 
-// Function to calculate p-value from t-statistic (simple implementation)
-fn calculate_p_value(t_value: f64, df: f64) -> f64 {
-    // Use normal distribution approximation for large degrees of freedom
-    if df > 30.0 {
-        let x = t_value / (df.sqrt());
-        2.0 * (1.0 - normal_cdf(x.abs()))
-    } else {
-        // Use simple approximation for small degrees of freedom
-        let x = df / (df + t_value * t_value);
-        // Incomplete p-value due to beta function approximation
-        let p = 1.0 - x.powf(df / 2.0);
-        2.0 * p
-    }
-}
-
-// CDF of the standard normal distribution
-// Low accuracy due to simple implementation
-fn normal_cdf(x: f64) -> f64 {
-    // Approximation of the error function
-    let t = 1.0 / (1.0 + 0.2316419 * x);
-    let d = 0.3989423 * (-x * x / 2.0).exp();
-    let prob =
-        d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-    if x > 0.0 {
-        1.0 - prob
-    } else {
-        prob
+// Function to calculate p-value from t-statistic (exact implementation using statrs)
+fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
+    // statrsを使用してStudent's t分布から正確なp値を計算
+    match StudentsT::new(0.0, 1.0, df) {
+        Ok(t_dist) => {
+            // 両側検定なので2倍する
+            2.0 * (1.0 - t_dist.cdf(t_value.abs()))
+        }
+        Err(_) => {
+            // 分布の作成に失敗した場合はNaNを返す
+            f64::NAN
+        }
     }
 }
 
@@ -295,12 +281,12 @@ mod tests {
         }
     }
 
-    mod calculate_p_value {
+    mod calculate_p_value_exact {
         use super::*;
 
         #[test]
         fn large_degrees_of_freedom() {
-            let p_val = calculate_p_value(2.0, 100.0);
+            let p_val = calculate_p_value_exact(2.0, 100.0);
             assert!(p_val > 0.0 && p_val < 1.0);
         }
 
@@ -315,7 +301,7 @@ mod tests {
             ];
 
             for (name, t_value, df) in test_cases {
-                let p_val = calculate_p_value(t_value, df);
+                let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
                     p_val >= 0.0 && p_val <= 2.0,
                     "{}: p-value out of range: {}",
@@ -324,32 +310,29 @@ mod tests {
                 );
             }
         }
-    }
-
-    mod normal_cdf {
-        use super::*;
 
         #[test]
-        fn normal_cdf_table_driven() {
+        fn accuracy_comparison() {
+            // 既知のt値とp値の組み合わせでテスト
             let test_cases = vec![
-                ("positive_value", 1.0),
-                ("negative_value", -1.0),
-                ("zero_value", 0.0),
-                ("large_positive", 3.0),
-                ("large_negative", -3.0),
+                (0.0, 10.0, 1.0),     // t=0 => p=1
+                (1.96, 1000.0, 0.05), // 大きなdfでt=1.96 ≈ p=0.05
             ];
 
-            for (name, x) in test_cases {
-                let result = normal_cdf(x);
+            for (t_value, df, expected_p) in test_cases {
+                let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    result.is_finite(),
-                    "{}: result should be finite, got {}",
-                    name,
-                    result
+                    (p_val - expected_p).abs() < 0.1,
+                    "t={}, df={}: expected p≈{}, got {}",
+                    t_value,
+                    df,
+                    expected_p,
+                    p_val
                 );
             }
         }
     }
+
 
     // Add direct tests to increase coverage of internal functions
     mod internal_function_tests {
