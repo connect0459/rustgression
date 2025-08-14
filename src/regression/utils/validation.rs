@@ -1,8 +1,70 @@
 use pyo3::prelude::*;
 use std::f64;
 
-#[cfg(test)]
-type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
+/// Internal implementation for finite array validation
+fn validate_finite_array_impl<E, F>(array: &[f64], name: &str, error_fn: F) -> Result<(), E>
+where
+    F: Fn(String) -> E,
+{
+    for (i, &value) in array.iter().enumerate() {
+        if !value.is_finite() {
+            if value.is_nan() {
+                return Err(error_fn(format!(
+                    "NaN detected in {} array at index {}",
+                    name, i
+                )));
+            } else if value.is_infinite() {
+                return Err(error_fn(format!(
+                    "Infinite value detected in {} array at index {}",
+                    name, i
+                )));
+            }
+        }
+        // Subnormal number detection
+        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
+            eprintln!(
+                "Warning: Subnormal number detected in {} array at index {}: {}",
+                name, i, value
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Internal implementation for safe division
+fn safe_divide_impl<E, F>(
+    numerator: f64,
+    denominator: f64,
+    context: &str,
+    error_fn: F,
+) -> Result<f64, E>
+where
+    F: Fn(String) -> E,
+{
+    if !numerator.is_finite() || !denominator.is_finite() {
+        return Err(error_fn(format!(
+            "Non-finite values in division ({}): {}/{}",
+            context, numerator, denominator
+        )));
+    }
+
+    if denominator.abs() < f64::EPSILON {
+        return Err(error_fn(format!(
+            "Division by zero or near-zero value ({}): denominator = {}",
+            context, denominator
+        )));
+    }
+
+    let result = numerator / denominator;
+    if !result.is_finite() {
+        return Err(error_fn(format!(
+            "Division resulted in non-finite value ({}): {}/{} = {}",
+            context, numerator, denominator, result
+        )));
+    }
+
+    Ok(result)
+}
 
 /// IEEE 754 edge case detection and handling
 ///
@@ -18,29 +80,9 @@ type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
 /// PyResult<()>
 ///     Ok(()) on success, error if problems found
 pub fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
-    for (i, &value) in array.iter().enumerate() {
-        if !value.is_finite() {
-            if value.is_nan() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "NaN detected in {} array at index {}",
-                    name, i
-                )));
-            } else if value.is_infinite() {
-                return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Infinite value detected in {} array at index {}",
-                    name, i
-                )));
-            }
-        }
-        // Subnormal number detection
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            eprintln!(
-                "Warning: Subnormal number detected in {} array at index {}: {}",
-                name, i, value
-            );
-        }
-    }
-    Ok(())
+    validate_finite_array_impl(array, name, |msg| {
+        pyo3::exceptions::PyValueError::new_err(msg)
+    })
 }
 
 /// Safe division with zero division and non-finite value checks
@@ -59,86 +101,24 @@ pub fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
 /// PyResult<f64>
 ///     Division result, or error if problems occur
 pub fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64> {
-    if !numerator.is_finite() || !denominator.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Non-finite values in division ({}): {}/{}",
-            context, numerator, denominator
-        )));
-    }
-
-    if denominator.abs() < f64::EPSILON {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division by zero or near-zero value ({}): denominator = {}",
-            context, denominator
-        )));
-    }
-
-    let result = numerator / denominator;
-    if !result.is_finite() {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Division resulted in non-finite value ({}): {}/{} = {}",
-            context, numerator, denominator, result
-        )));
-    }
-
-    Ok(result)
+    safe_divide_impl(numerator, denominator, context, |msg| {
+        pyo3::exceptions::PyValueError::new_err(msg)
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
+
     // Test-specific versions of functions that don't depend on PyO3
     fn validate_finite_array_test(array: &[f64], name: &str) -> TestResult<()> {
-        for (i, &value) in array.iter().enumerate() {
-            if !value.is_finite() {
-                if value.is_nan() {
-                    return Err(format!("NaN detected in {} array at index {}", name, i).into());
-                } else if value.is_infinite() {
-                    return Err(format!(
-                        "Infinite value detected in {} array at index {}",
-                        name, i
-                    )
-                    .into());
-                }
-            }
-            if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-                eprintln!(
-                    "Warning: Subnormal number detected in {} array at index {}: {}",
-                    name, i, value
-                );
-            }
-        }
-        Ok(())
+        validate_finite_array_impl(array, name, |msg| msg.into())
     }
 
     fn safe_divide_test(numerator: f64, denominator: f64, context: &str) -> TestResult<f64> {
-        if !numerator.is_finite() || !denominator.is_finite() {
-            return Err(format!(
-                "Non-finite values in division ({}): {}/{}",
-                context, numerator, denominator
-            )
-            .into());
-        }
-
-        if denominator.abs() < f64::EPSILON {
-            return Err(format!(
-                "Division by zero or near-zero value ({}): denominator = {}",
-                context, denominator
-            )
-            .into());
-        }
-
-        let result = numerator / denominator;
-        if !result.is_finite() {
-            return Err(format!(
-                "Division resulted in non-finite value ({}): {}/{} = {}",
-                context, numerator, denominator, result
-            )
-            .into());
-        }
-
-        Ok(result)
+        safe_divide_impl(numerator, denominator, context, |msg| msg.into())
     }
 
     mod validate_finite_array {

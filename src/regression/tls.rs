@@ -5,6 +5,27 @@ use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
 
+// Type aliases to reduce complexity
+type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>;
+type VMatrix = nalgebra::Matrix<
+    f64,
+    nalgebra::Dyn,
+    nalgebra::Dyn,
+    nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Dyn>,
+>;
+type SingularValues = nalgebra::Matrix<
+    f64,
+    nalgebra::Dyn,
+    nalgebra::Const<1>,
+    nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Const<1>>,
+>;
+
+/// SVD analysis result structure
+struct SvdAnalysisResult {
+    v_matrix: VMatrix,
+    singular_values: SingularValues,
+}
+
 /// Total Least Squares regression implemented in Rust.
 ///
 /// Parameters
@@ -25,10 +46,8 @@ pub fn calculate_tls_regression<'py>(
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64)> {
     // Convert NumPy arrays to ndarray
-    let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x.as_array().to_owned();
-    let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        y.as_array().to_owned();
+    let x_array: Array1Ref = x.as_array().to_owned();
+    let y_array: Array1Ref = y.as_array().to_owned();
 
     // IEEE 754 edge case validation
     let x_slice = x_array.as_slice().unwrap();
@@ -45,9 +64,9 @@ pub fn calculate_tls_regression<'py>(
 
     let (data_matrix, x_mean, y_mean) = prepare_centered_data(&x_array, &y_array);
 
-    let (v, singular_values) = perform_svd_analysis(data_matrix)?;
+    let svd_result = perform_svd_analysis(data_matrix)?;
 
-    let v_col = find_optimal_singular_vector(&v, &singular_values);
+    let v_col = find_optimal_singular_vector(&svd_result.v_matrix, &svd_result.singular_values);
 
     let (slope, intercept) =
         calculate_slope_with_sign_correction(v_col, &x_array, &y_array, x_mean, y_mean)?;
@@ -63,10 +82,7 @@ pub fn calculate_tls_regression<'py>(
 }
 
 /// Data centering and matrix preparation
-fn prepare_centered_data(
-    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
-    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
-) -> (DMatrix<f64>, f64, f64) {
+fn prepare_centered_data(x_array: &Array1Ref, y_array: &Array1Ref) -> (DMatrix<f64>, f64, f64) {
     let x_mean = x_array.mean().unwrap_or(0.0);
     let y_mean = y_array.mean().unwrap_or(0.0);
 
@@ -83,22 +99,7 @@ fn prepare_centered_data(
 }
 
 /// SVD analysis and numerical stability check
-fn perform_svd_analysis(
-    data_matrix: DMatrix<f64>,
-) -> PyResult<(
-    nalgebra::Matrix<
-        f64,
-        nalgebra::Dyn,
-        nalgebra::Dyn,
-        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Dyn>,
-    >,
-    nalgebra::Matrix<
-        f64,
-        nalgebra::Dyn,
-        nalgebra::Const<1>,
-        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Const<1>>,
-    >,
-)> {
+fn perform_svd_analysis(data_matrix: DMatrix<f64>) -> PyResult<SvdAnalysisResult> {
     let svd = SVD::new(data_matrix.clone(), true, true);
 
     let v = if let Some(v) = svd.v_t {
@@ -127,23 +128,16 @@ fn perform_svd_analysis(
         );
     }
 
-    Ok((v, singular_values))
+    Ok(SvdAnalysisResult {
+        v_matrix: v,
+        singular_values,
+    })
 }
 
 /// Find optimal singular vector considering numerical stability
 fn find_optimal_singular_vector(
-    v: &nalgebra::Matrix<
-        f64,
-        nalgebra::Dyn,
-        nalgebra::Dyn,
-        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Dyn>,
-    >,
-    singular_values: &nalgebra::Matrix<
-        f64,
-        nalgebra::Dyn,
-        nalgebra::Const<1>,
-        nalgebra::VecStorage<f64, nalgebra::Dyn, nalgebra::Const<1>>,
-    >,
+    v: &VMatrix,
+    singular_values: &SingularValues,
 ) -> nalgebra::Matrix<
     f64,
     nalgebra::Const<1>,
@@ -183,8 +177,8 @@ fn calculate_slope_with_sign_correction(
         nalgebra::Dyn,
         nalgebra::VecStorage<f64, nalgebra::Const<1>, nalgebra::Dyn>,
     >,
-    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
-    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
     x_mean: f64,
     y_mean: f64,
 ) -> PyResult<(f64, f64)> {

@@ -5,8 +5,9 @@ use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
 
-// Type alias to reduce complexity
+// Type aliases to reduce complexity
 type OlsResult<'py> = (&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64);
+type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>;
 
 /// Rust implementation of Ordinary Least Squares regression (similar to stats.linregress).
 ///
@@ -28,10 +29,8 @@ pub fn calculate_ols_regression<'py>(
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<OlsResult<'py>> {
     // Convert numpy arrays to ndarray
-    let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x.as_array().to_owned();
-    let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        y.as_array().to_owned();
+    let x_array: Array1Ref = x.as_array().to_owned();
+    let y_array: Array1Ref = y.as_array().to_owned();
     let n: f64 = x_array.len() as f64;
 
     if n < 2.0 {
@@ -67,8 +66,7 @@ pub fn calculate_ols_regression<'py>(
         calculate_standard_errors(n, ss_xx, ss_res, slope, x_mean);
 
     // Calculate predicted values
-    let y_pred: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-        x_array.mapv(|v| slope * v + intercept);
+    let y_pred: Array1Ref = x_array.mapv(|v| slope * v + intercept);
 
     // Return results to Python
     Ok((
@@ -84,8 +82,8 @@ pub fn calculate_ols_regression<'py>(
 
 /// Calculate variance and covariance terms using Kahan summation
 fn calculate_variance_covariance_terms(
-    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
-    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
     x_mean: f64,
     y_mean: f64,
 ) -> (f64, f64, f64) {
@@ -125,8 +123,8 @@ fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 
 
 /// Calculate residual sum of squares using Kahan summation
 fn calculate_residual_sum_of_squares(
-    x_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
-    y_array: &ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>,
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
     slope: f64,
     intercept: f64,
 ) -> f64 {
