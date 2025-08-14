@@ -4,7 +4,7 @@ use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
 
-// IEEE 754エッジケース検出とハンドリング（OLSから共有）
+// IEEE 754 edge case detection and handling (shared from OLS)
 fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
     for (i, &value) in array.iter().enumerate() {
         if !value.is_finite() {
@@ -20,7 +20,7 @@ fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
                 )));
             }
         }
-        // 非正規化数（subnormal）の検出
+        // Subnormal number detection
         if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
             eprintln!(
                 "Warning: Subnormal number detected in {} array at index {}: {}",
@@ -76,43 +76,43 @@ pub fn calculate_tls_regression<'py>(
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64)> {
-    // NumPy配列をndarrayに変換
+    // Convert NumPy arrays to ndarray
     let x_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
         x.as_array().to_owned();
     let y_array: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
         y.as_array().to_owned();
 
-    // IEEE 754エッジケース検証
+    // IEEE 754 edge case validation
     let x_slice = x_array.as_slice().unwrap();
     let y_slice = y_array.as_slice().unwrap();
     validate_finite_array(x_slice, "x")?;
     validate_finite_array(y_slice, "y")?;
 
-    // 最小データ数チェック
+    // Minimum data point check
     if x_array.len() < 2 {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "At least 2 data points are required for TLS regression",
         ));
     }
 
-    // データの中心化（平均の減算）
+    // Data centering (subtracting mean)
     let x_mean = x_array.mean().unwrap_or(0.0);
     let y_mean = y_array.mean().unwrap_or(0.0);
 
     let x_centered = x_array.mapv(|v| v - x_mean);
     let y_centered = y_array.mapv(|v| v - y_mean);
 
-    // データをnalgebra行列に変換
+    // Convert data to nalgebra matrix
     let mut data_matrix = DMatrix::zeros(x_centered.len(), 2);
     for i in 0..x_centered.len() {
         data_matrix[(i, 0)] = x_centered[i];
         data_matrix[(i, 1)] = y_centered[i];
     }
 
-    // SVDを実行
+    // Perform SVD
     let svd = SVD::new(data_matrix.clone(), true, true);
 
-    // 右特異ベクトルVの取得（最後の特異値に対応する列）
+    // Get right singular vector V (column corresponding to last singular value)
     let v = if let Some(v) = svd.v_t {
         v
     } else {
@@ -121,10 +121,10 @@ pub fn calculate_tls_regression<'py>(
         ));
     };
 
-    // 特異値の確認と数値的安定性チェック
+    // Check singular values and numerical stability
     let singular_values = svd.singular_values;
 
-    // 条件数チェック：最大特異値/最小特異値の比
+    // Condition number check: ratio of max to min singular values
     let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
     let min_singular = singular_values.iter().fold(f64::INFINITY, |a, &b| a.min(b));
 
@@ -134,7 +134,7 @@ pub fn calculate_tls_regression<'py>(
         f64::INFINITY
     };
 
-    // 条件数が非常に大きい場合は警告（ただし計算続行）
+    // Warning if condition number is very large (but continue calculation)
     if condition_number > 1e12 {
         eprintln!(
             "Warning: Matrix condition number is very large ({}), results may be unreliable",
@@ -142,12 +142,12 @@ pub fn calculate_tls_regression<'py>(
         );
     }
 
-    // 最小特異値のインデックスを数値的安定性を考慮して見つける
-    // 機械精度を考慮した閾値を使用
+    // Find minimum singular value index considering numerical stability
+    // Use threshold considering machine precision
     let eps = f64::EPSILON * max_singular;
     let min_singular_idx = (0..singular_values.len())
         .enumerate()
-        .filter(|(_, val)| singular_values[*val] >= eps) // 非常に小さい特異値は除外
+        .filter(|(_, val)| singular_values[*val] >= eps) // Exclude very small singular values
         .min_by(|(_, a), (_, b)| {
             singular_values[*a]
                 .partial_cmp(&singular_values[*b])
@@ -155,7 +155,7 @@ pub fn calculate_tls_regression<'py>(
         })
         .map(|(idx, _)| idx)
         .unwrap_or_else(|| {
-            // 全ての特異値が閾値以下の場合は最大の特異値を使用
+            // Use largest singular value if all are below threshold
             (0..singular_values.len())
                 .max_by(|&a, &b| {
                     singular_values[a]
@@ -165,53 +165,53 @@ pub fn calculate_tls_regression<'py>(
                 .unwrap_or(0)
         });
 
-    // 最小特異値に対応する右特異ベクトルを取得
+    // Get right singular vector corresponding to minimum singular value
     let v_col = v.row(min_singular_idx);
 
-    // 傾きと切片の計算（安全な除算を使用）
+    // Calculate slope and intercept (using safe division)
     let mut slope = safe_divide(-v_col[0], v_col[1], "TLS slope calculation")?;
 
-    // SVDの符号の一貫性を保つため、データの相関と符号を合わせる
-    // 共分散を計算してデータの傾向を確認
+    // Maintain SVD sign consistency by matching data correlation sign
+    // Calculate covariance to check data trend
     let mut covariance = 0.0;
     for i in 0..x_array.len() {
         covariance += (x_array[i] - x_mean) * (y_array[i] - y_mean);
     }
     covariance /= (x_array.len() - 1) as f64;
 
-    // 共分散が負で傾きが正の場合、または共分散が正で傾きが負の場合は符号を反転
+    // Flip sign if covariance is negative but slope is positive, or vice versa
     if (covariance > 0.0 && slope < 0.0) || (covariance < 0.0 && slope > 0.0) {
         slope = -slope;
     }
 
     let intercept = y_mean - slope * x_mean;
 
-    // 相関係数の計算
+    // Calculate correlation coefficient
     let r_value = compute_r_value(&x_array, &y_array);
 
-    // 予測値の計算
+    // Calculate predicted values
     let y_pred = x_array.mapv(|v| slope * v + intercept);
 
-    // 結果をPythonに返す
+    // Return results to Python
     Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
 }
 
-// Kahan加算アルゴリズム - 浮動小数点の累積誤差を削減
+// Kahan summation algorithm - reduces floating-point accumulation errors
 fn kahan_sum(values: &[f64]) -> f64 {
     let mut sum = 0.0;
-    let mut c = 0.0; // 補正項
+    let mut c = 0.0; // Compensation term
 
     for &value in values {
-        let y = value - c; // 補正を適用
-        let t = sum + y; // 新しい和
-        c = (t - sum) - y; // 次回の補正項を計算
+        let y = value - c; // Apply compensation
+        let t = sum + y; // New sum
+        c = (t - sum) - y; // Calculate next compensation term
         sum = t;
     }
 
     sum
 }
 
-// 相関係数を計算するヘルパー関数（Kahan加算使用）
+// Helper function to calculate correlation coefficient (using Kahan summation)
 fn compute_r_value(x: &Array1<f64>, y: &Array1<f64>) -> f64 {
     let x_mean = x.mean().unwrap_or(0.0);
     let y_mean = y.mean().unwrap_or(0.0);
@@ -253,7 +253,7 @@ mod tests {
 
             let result = perform_tls(&x, &y);
 
-            // 符号修正により、期待される結果に戻る
+            // Sign correction returns expected results
             assert!(result.slope.is_finite(), "Slope should be finite");
             assert!(
                 result.slope > 0.0,
@@ -314,7 +314,7 @@ mod tests {
             for (name, x, y, expected_slope, expected_intercept, expected_r) in test_cases {
                 let result = perform_tls(&x, &y);
 
-                // 符号修正により、データの相関方向と一致する符号になる
+                // Sign correction results in slope matching data correlation direction
                 let expected_slope_f64 = expected_slope as f64;
                 let slope_sign_correct = (expected_slope_f64 > 0.0) == (result.slope > 0.0);
                 assert!(
@@ -324,7 +324,7 @@ mod tests {
                     expected_slope_f64.signum(),
                     result.slope
                 );
-                // 切片と相関係数はより柔軟に検証
+                // More flexible validation for intercept and correlation coefficient
                 assert!(
                     result.intercept.is_finite() || result.intercept.is_nan(),
                     "{}: intercept should be finite or NaN, got: {}",
@@ -332,7 +332,7 @@ mod tests {
                     result.intercept
                 );
 
-                // 相関係数は符号と範囲をチェック
+                // Check sign and range for correlation coefficient
                 let expected_r_f64 = expected_r as f64;
                 if expected_r_f64.is_nan() {
                     assert!(
@@ -381,7 +381,7 @@ mod tests {
             for (name, x, y, expect_extreme_slope, expect_zero_r) in test_cases {
                 let result = perform_tls(&x, &y);
                 if expect_extreme_slope {
-                    // SVD安定性改善により、極値ケースでも安定した結果が得られる可能性
+                    // SVD stability improvements may provide stable results even for extreme cases
                     assert!(
                         result.slope.is_finite()
                             || result.slope.is_nan()
@@ -408,12 +408,12 @@ mod tests {
 
         #[test]
         fn svd_numerical_stability() {
-            // 条件数が大きい行列でのSVD安定性テスト
-            let x = vec![1.0, 1.0000001, 1.0000002]; // ほぼ同じ値
+            // SVD stability test with large condition number matrix
+            let x = vec![1.0, 1.0000001, 1.0000002]; // Nearly identical values
             let y = vec![1.0, 2.0, 3.0];
 
             let result = perform_tls(&x, &y);
-            // 数値的に不安定でも計算が完了することを確認
+            // Verify computation completes even when numerically unstable
             assert!(
                 result.slope.is_finite() || result.slope.is_infinite() || result.slope.is_nan()
             );
@@ -441,7 +441,7 @@ mod tests {
 
             for (name, x, y) in test_cases {
                 let result = perform_tls(&x, &y);
-                // 結果が有限値、無限値、またはNaNのいずれかであることを確認
+                // Verify result is finite, infinite, or NaN
                 assert!(
                     result.slope.is_finite() || result.slope.is_infinite() || result.slope.is_nan(),
                     "{}: slope should be finite, infinite, or NaN, got {}",
@@ -453,19 +453,19 @@ mod tests {
 
         #[test]
         fn sign_consistency() {
-            // 符号の一貫性テスト
+            // Sign consistency test
             let test_cases = vec![
                 (
                     "positive_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![2.0, 4.0, 6.0, 8.0, 10.0],
-                    true, // 正の相関を期待
+                    true, // Expect positive correlation
                 ),
                 (
                     "negative_correlation",
                     vec![1.0, 2.0, 3.0, 4.0, 5.0],
                     vec![10.0, 8.0, 6.0, 4.0, 2.0],
-                    false, // 負の相関を期待
+                    false, // Expect negative correlation
                 ),
             ];
 
@@ -492,13 +492,13 @@ mod tests {
 
         #[test]
         fn condition_number_handling() {
-            // 条件数の計算が適切に動作することを確認
+            // Verify condition number calculation works properly
             let x = vec![1.0, 2.0, 3.0];
-            let y = vec![1.0, 2.0, 3.0]; // 完全に線形関係
+            let y = vec![1.0, 2.0, 3.0]; // Perfect linear relationship
 
             let result = perform_tls(&x, &y);
-            // TLSでは完全に線形な関係でも特異な結果になることがある
-            // 重要なのは計算が完了し、結果が数値的に有効であることを確認
+            // TLS can produce unusual results even with perfect linear relationships
+            // Important to verify computation completes and results are numerically valid
             assert!(
                 result.slope.is_finite() || result.slope.is_infinite() || result.slope.is_nan(),
                 "Slope should be a valid floating point number, got {}",
@@ -512,10 +512,10 @@ mod tests {
 
         #[test]
         fn test_nan_input_handling() {
-            // NaN入力はSVDライブラリでパニックするため、
-            // 実際の関数では入力検証で事前に検出される
-            // このテストは入力検証の重要性を示すためのもの
-            let x = vec![1.0, 2.0, 3.0]; // 正常なデータで代替
+            // NaN input causes SVD library to panic,
+            // so actual function detects it beforehand with input validation
+            // This test shows the importance of input validation
+            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
             let y = vec![2.0, 4.0, 6.0];
 
             let result = perform_tls(&x, &y);
@@ -524,9 +524,9 @@ mod tests {
 
         #[test]
         fn test_infinite_input_handling() {
-            // 無限大入力もSVDライブラリでパニックするため、
-            // 実際の関数では入力検証で事前に検出される
-            let x = vec![1.0, 2.0, 3.0]; // 正常なデータで代替
+            // Infinite input also causes SVD library to panic,
+            // so actual function detects it beforehand with input validation
+            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
             let y = vec![2.0, 4.0, 6.0];
 
             let result = perform_tls(&x, &y);
@@ -535,12 +535,12 @@ mod tests {
 
         #[test]
         fn test_subnormal_numbers_tls() {
-            // 非正規化数のテスト
+            // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
-            let y = vec![1e-320, 2e-320, 3e-320]; // 非常に小さい値
+            let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
 
             let result = perform_tls(&x, &y);
-            // 計算が完了することを確認
+            // Verify calculation completes
             assert!(
                 result.slope.is_finite() || result.slope.is_nan() || result.slope.is_infinite()
             );
@@ -548,12 +548,12 @@ mod tests {
 
         #[test]
         fn test_extreme_values_tls() {
-            // 極値のテスト
+            // Extreme value test
             let x = vec![1e-50, 2e-50, 3e-50];
             let y = vec![1e50, 2e50, 3e50];
 
             let result = perform_tls(&x, &y);
-            // 極値でも適切に処理されることを確認
+            // Verify proper handling even with extreme values
             assert!(
                 result.slope.is_finite() || result.slope.is_infinite() || result.slope.is_nan()
             );
@@ -561,12 +561,12 @@ mod tests {
 
         #[test]
         fn test_numerical_stability_edge_cases() {
-            // 数値的に困難なケース
+            // Numerically challenging case
             let x = vec![1.0, 1.0 + f64::EPSILON, 1.0 + 2.0 * f64::EPSILON];
             let y = vec![1e10, 1e10 + 1.0, 1e10 + 2.0];
 
             let result = perform_tls(&x, &y);
-            // 数値的に困難でも計算完了を確認
+            // Verify computation completes even when numerically challenging
             assert!(
                 result.slope.is_finite() || result.slope.is_infinite() || result.slope.is_nan()
             );
@@ -651,7 +651,7 @@ mod tests {
 
             let result = perform_tls(&x, &y);
 
-            // 符号修正により、期待される結果に戻る
+            // Sign correction returns expected results
             assert!(result.slope.is_finite(), "Slope should be finite");
             assert!(
                 result.slope > 0.0,
@@ -705,7 +705,7 @@ mod tests {
         let v = svd.v_t.unwrap();
         let singular_values = svd.singular_values;
 
-        // 数値的安定性を考慮した最小特異値インデックスの選択
+        // Select minimum singular value index considering numerical stability
         let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
         let eps = f64::EPSILON * max_singular;
 
@@ -723,14 +723,14 @@ mod tests {
         let v_col = v.row(min_singular_idx);
         let mut slope = -v_col[0] / v_col[1];
 
-        // SVDの符号の一貫性を保つため、データの相関と符号を合わせる
+        // Maintain SVD sign consistency by matching data correlation sign
         let mut covariance = 0.0;
         for i in 0..x.len() {
             covariance += (x[i] - x_mean) * (y[i] - y_mean);
         }
         covariance /= (x.len() - 1) as f64;
 
-        // 共分散が負で傾きが正の場合、または共分散が正で傾きが負の場合は符号を反転
+        // Flip sign if covariance is negative but slope is positive, or vice versa
         if (covariance > 0.0 && slope < 0.0) || (covariance < 0.0 && slope > 0.0) {
             slope = -slope;
         }

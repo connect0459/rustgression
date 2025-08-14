@@ -38,7 +38,7 @@ pub fn calculate_ols_regression<'py>(
         ));
     }
 
-    // IEEE 754エッジケース検証
+    // IEEE 754 edge case validation
     let x_slice = x_array.as_slice().unwrap();
     let y_slice = y_array.as_slice().unwrap();
     validate_finite_array(x_slice, "x")?;
@@ -140,20 +140,20 @@ pub fn calculate_ols_regression<'py>(
 
 // Function to calculate p-value from t-statistic (exact implementation using statrs)
 fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
-    // statrsを使用してStudent's t分布から正確なp値を計算
+    // Calculate exact p-value from Student's t-distribution using statrs
     match StudentsT::new(0.0, 1.0, df) {
         Ok(t_dist) => {
-            // 両側検定なので2倍する
+            // Double for two-sided test
             2.0 * (1.0 - t_dist.cdf(t_value.abs()))
         }
         Err(_) => {
-            // 分布の作成に失敗した場合はNaNを返す
+            // Return NaN if distribution creation failed
             f64::NAN
         }
     }
 }
 
-// IEEE 754エッジケース検出とハンドリング
+// IEEE 754 edge case detection and handling
 fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
     for (i, &value) in array.iter().enumerate() {
         if !value.is_finite() {
@@ -169,7 +169,7 @@ fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
                 )));
             }
         }
-        // 非正規化数（subnormal）の検出
+        // Subnormal number detection
         if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
             eprintln!(
                 "Warning: Subnormal number detected in {} array at index {}: {}",
@@ -206,15 +206,15 @@ fn safe_divide(numerator: f64, denominator: f64, context: &str) -> PyResult<f64>
     Ok(result)
 }
 
-// Kahan加算アルゴリズム - 浮動小数点の累積誤差を削減
+// Kahan summation algorithm - reduces floating-point accumulation errors
 fn kahan_sum(values: &[f64]) -> f64 {
     let mut sum = 0.0;
-    let mut c = 0.0; // 補正項
+    let mut c = 0.0; // Compensation term
 
     for &value in values {
-        let y = value - c; // 補正を適用
-        let t = sum + y; // 新しい和
-        c = (t - sum) - y; // 次回の補正項を計算
+        let y = value - c; // Apply compensation
+        let t = sum + y; // New sum
+        c = (t - sum) - y; // Calculate next compensation term
         sum = t;
     }
 
@@ -401,10 +401,10 @@ mod tests {
 
         #[test]
         fn accuracy_comparison() {
-            // 既知のt値とp値の組み合わせでテスト
+            // Test with known t-value and p-value combinations
             let test_cases = vec![
                 (0.0, 10.0, 1.0),     // t=0 => p=1
-                (1.96, 1000.0, 0.05), // 大きなdfでt=1.96 ≈ p=0.05
+                (1.96, 1000.0, 0.05), // Large df with t=1.96 ≈ p=0.05
             ];
 
             for (t_value, df, expected_p) in test_cases {
@@ -426,7 +426,7 @@ mod tests {
 
         #[test]
         fn kahan_sum_accuracy() {
-            // より実用的なテスト: 多数の小さな値
+            // More practical test: many small values
             let small_values = vec![0.1; 10];
             let kahan_result = kahan_sum(&small_values);
             let expected = 1.0;
@@ -435,12 +435,12 @@ mod tests {
                 "Kahan sum should be very accurate for small values"
             );
 
-            // 通常の加算との精度比較
+            // Precision comparison with regular addition
             let values = vec![1.0, 1e-15, 1e-15, 1e-15];
             let kahan_result = kahan_sum(&values);
             let naive_result: f64 = values.iter().sum();
 
-            // Kahan加算の方が精度が高いか、最低でも同等であることを確認
+            // Verify Kahan summation is more accurate or at least equivalent
             assert!(
                 kahan_result >= naive_result - 1e-15,
                 "Kahan sum should be at least as accurate"
@@ -449,14 +449,14 @@ mod tests {
 
         #[test]
         fn kahan_sum_vs_naive() {
-            // 浮動小数点精度の限界をテスト
+            // Test floating-point precision limits
             let mut values = vec![1.0; 1000000];
             values.push(1e-10);
 
             let kahan_result = kahan_sum(&values);
             let naive_result: f64 = values.iter().sum();
 
-            // Kahan加算の方が精度が高いことを確認
+            // Verify Kahan summation is more accurate
             assert!(
                 kahan_result >= naive_result,
                 "Kahan sum should be at least as accurate as naive sum"
@@ -480,8 +480,8 @@ mod tests {
             let y = vec![2.0, 4.0, 6.0];
 
             let result = perform_ols(&x, &y);
-            // NaN入力は適切に検出されるべき（テスト用関数では検証なし）
-            // 実際の関数ではエラーになる
+            // NaN input should be properly detected (no validation in test function)
+            // Actual function will error
             assert!(result.slope.is_nan() || result.slope.is_finite());
         }
 
@@ -491,7 +491,7 @@ mod tests {
             let y = vec![2.0, 4.0, 6.0];
 
             let result = perform_ols(&x, &y);
-            // 無限大入力の処理確認
+            // Verify infinite input handling
             assert!(
                 result.slope.is_nan() || result.slope.is_finite() || result.slope.is_infinite()
             );
@@ -499,34 +499,34 @@ mod tests {
 
         #[test]
         fn test_subnormal_numbers() {
-            // 非正規化数のテスト
+            // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
-            let y = vec![1e-320, 2e-320, 3e-320]; // 非常に小さい値
+            let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
 
             let result = perform_ols(&x, &y);
-            // 計算が完了することを確認
+            // Verify calculation completes
             assert!(result.slope.is_finite() || result.slope.is_nan());
         }
 
         #[test]
         fn test_extreme_values() {
-            // 極値のテスト
+            // Extreme value test
             let x = vec![1e-100, 2e-100, 3e-100];
             let y = vec![1e100, 2e100, 3e100];
 
             let result = perform_ols(&x, &y);
-            // 極値でも適切に処理されることを確認
+            // Verify proper handling even with extreme values
             assert!(result.slope.is_finite() || result.slope.is_infinite());
         }
 
         #[test]
         fn test_zero_division_cases() {
-            // 分散が0のケース
-            let x = vec![1.0, 1.0, 1.0]; // 分散0
+            // Case with zero variance
+            let x = vec![1.0, 1.0, 1.0]; // Zero variance
             let y = vec![2.0, 4.0, 6.0];
 
             let result = perform_ols(&x, &y);
-            // 0除算は適切に処理される
+            // Division by zero is properly handled
             assert!(result.slope.is_nan() || result.slope.is_infinite());
         }
     }
