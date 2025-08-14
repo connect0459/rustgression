@@ -76,3 +76,44 @@ docker compose up --build
 # ボリュームも含めて完全に削除
 docker compose down -v
 ```
+
+## バージョン管理
+
+### バージョンアップ手順
+
+プロジェクトのバージョンを統一的に管理するため、`scripts/version-update.sh` スクリプトを使用します。
+
+```bash
+# 通常のバージョンアップ（例: 0.2.0 → 0.2.1）
+docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.2.1
+
+# アルファ版リリース
+docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-alpha.1
+
+# ベータ版リリース  
+docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-beta.1
+```
+
+このスクリプトは以下のファイルを自動更新します：
+
+- `Cargo.toml` - Rustパッケージバージョン
+- `pyproject.toml` - Pythonパッケージバージョン
+- `rustgression/__init__.py` - パッケージ内バージョン定数
+- `Cargo.lock` - 依存関係ロックファイル
+
+### バージョンの確認
+
+全ファイルのバージョン整合性を確認：
+
+```bash
+docker compose exec -w /workspace rustgression-dev ./scripts/version-check.sh 0.2.1
+```
+
+### 注意事項
+
+- バージョン更新後は必ずテストを実行してください
+- リリース前にバージョンの整合性を確認してください
+- セマンティックバージョニング（SemVer）に従ってください
+  - MAJOR: 互換性のない変更
+  - MINOR: 後方互換性のある機能追加
+  - PATCH: 後方互換性のあるバグ修正
