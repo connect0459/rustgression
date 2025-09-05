@@ -13,13 +13,13 @@ __version__: str
 
 def create_regressor(
     x: NDArray[np.floating],
-    y: NDArray[np.floating], 
-    method: Literal["ols", "tls"] = "ols"
+    y: NDArray[np.floating],
+    method: Literal["ols", "tls"] = "ols",
 ) -> OlsRegressor | TlsRegressor: ...
 
 __all__ = [
     "OlsRegressionParams",
-    "OlsRegressor", 
+    "OlsRegressor",
     "TlsRegressionParams",
     "TlsRegressor",
     "create_regressor",

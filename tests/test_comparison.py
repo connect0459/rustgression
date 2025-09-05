@@ -56,6 +56,6 @@ class TestMethodComparison:
         # but slope and intercept may differ due to TLS algorithm characteristics
         assert abs(abs(tls.r_value()) - 1.0) < 1e-10
         assert abs(abs(ols.r_value()) - 1.0) < 1e-10
-        
+
         # Both methods should agree on the sign of correlation
         assert (ols.slope() > 0) == (tls.slope() > 0)

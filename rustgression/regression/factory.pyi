@@ -10,6 +10,6 @@ from .tls import TlsRegressor
 
 def create_regressor(
     x: NDArray[np.floating],
-    y: NDArray[np.floating], 
-    method: Literal["ols", "tls"] = "ols"
+    y: NDArray[np.floating],
+    method: Literal["ols", "tls"] = "ols",
 ) -> OlsRegressor | TlsRegressor: ...
