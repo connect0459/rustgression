@@ -23,6 +23,7 @@ type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize
 /// tuple
 ///     A tuple containing (predicted values, slope, intercept, r_value, p_value, stderr, intercept_stderr).
 #[pyfunction]
+#[allow(unsafe_op_in_unsafe_fn)]
 pub fn calculate_ols_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
@@ -343,7 +344,7 @@ mod tests {
             for (name, t_value, df) in test_cases {
                 let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    p_val >= 0.0 && p_val <= 2.0,
+                    (0.0..=2.0).contains(&p_val),
                     "{}: p-value out of range: {}",
                     name,
                     p_val
