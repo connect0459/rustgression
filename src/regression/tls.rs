@@ -1,5 +1,8 @@
+#![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
+#[allow(unused_imports)] // kahan_sum and Array1 are used in tests
 use crate::regression::utils::{compute_r_value, kahan_sum, safe_divide, validate_finite_array};
 use nalgebra::{DMatrix, SVD};
+#[allow(unused_imports)]
 use ndarray::Array1;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
@@ -270,11 +273,11 @@ mod tests {
                 ),
             ];
 
-            for (name, x, y, expected_slope, expected_intercept, expected_r) in test_cases {
+            for (name, x, y, expected_slope, _expected_intercept, expected_r) in test_cases {
                 let result = perform_tls(&x, &y);
 
                 // Sign correction results in slope matching data correlation direction
-                let expected_slope_f64 = expected_slope as f64;
+                let expected_slope_f64: f64 = expected_slope;
                 let slope_sign_correct = (expected_slope_f64 > 0.0) == (result.slope > 0.0);
                 assert!(
                     slope_sign_correct || result.slope.is_nan(),
@@ -292,7 +295,7 @@ mod tests {
                 );
 
                 // Check sign and range for correlation coefficient
-                let expected_r_f64 = expected_r as f64;
+                let expected_r_f64: f64 = expected_r;
                 if expected_r_f64.is_nan() {
                     assert!(
                         result.r_value.is_nan(),
@@ -302,7 +305,7 @@ mod tests {
                     );
                 } else {
                     assert!(
-                        result.r_value >= -1.0 && result.r_value <= 1.0,
+                        (-1.0..=1.0).contains(&result.r_value),
                         "{}: r_value out of valid range [-1,1], got: {}",
                         name,
                         result.r_value

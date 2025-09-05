@@ -99,7 +99,7 @@ mod tests {
             let y = Array1::from_vec(vec![1.0, 3.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);
             // This data actually has some correlation, so just check it's in valid range
-            assert!(result >= -1.0 && result <= 1.0);
+            assert!((-1.0..=1.0).contains(&result));
         }
 
         #[test]
@@ -140,7 +140,7 @@ mod tests {
             let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
             let y = Array1::from_vec(vec![2.1, 3.9, 6.2, 7.8, 10.1]);
             let result = compute_r_value(&x, &y);
-            assert!(result >= -1.0 && result <= 1.0);
+            assert!((-1.0..=1.0).contains(&result));
         }
 
         #[test]
@@ -216,7 +216,7 @@ mod tests {
             for (t_value, df) in test_cases {
                 let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    p_val >= 0.0 && p_val <= 2.0,
+                    (0.0..=2.0).contains(&p_val),
                     "p-value out of range: {}",
                     p_val
                 );
@@ -228,7 +228,7 @@ mod tests {
             // Test with very small or invalid degrees of freedom
             let p_val = calculate_p_value_exact(1.0, 0.1);
             // Should return NaN for invalid df
-            assert!(p_val.is_nan() || (p_val >= 0.0 && p_val <= 2.0));
+            assert!(p_val.is_nan() || (0.0..=2.0).contains(&p_val));
         }
 
         #[test]

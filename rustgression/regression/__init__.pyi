@@ -12,12 +12,12 @@ from .tls import TlsRegressor
 def create_regressor(
     x: NDArray[np.floating],
     y: NDArray[np.floating],
-    method: Literal["ols", "tls"] = "ols"
+    method: Literal["ols", "tls"] = "ols",
 ) -> OlsRegressor | TlsRegressor: ...
 
 __all__ = [
     "BaseRegressor",
-    "OlsRegressionParams", 
+    "OlsRegressionParams",
     "OlsRegressor",
     "TlsRegressionParams",
     "TlsRegressor",

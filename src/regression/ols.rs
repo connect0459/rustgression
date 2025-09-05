@@ -1,3 +1,5 @@
+#![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
+
 use crate::regression::utils::{
     calculate_p_value_exact, kahan_sum, safe_divide, validate_finite_array,
 };
@@ -343,7 +345,7 @@ mod tests {
             for (name, t_value, df) in test_cases {
                 let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    p_val >= 0.0 && p_val <= 2.0,
+                    (0.0..=2.0).contains(&p_val),
                     "{}: p-value out of range: {}",
                     name,
                     p_val
