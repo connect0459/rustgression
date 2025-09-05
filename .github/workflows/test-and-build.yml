@@ -34,20 +34,35 @@ jobs:
       - name: Setup Ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake
+          if command -v cmake &> /dev/null; then
+            echo "cmake is already installed"
+            cmake --version
+          else
+            sudo apt-get update
+            sudo apt-get install -y cmake
+          fi
 
       # macOS環境のセットアップ
       - name: Setup macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
-          brew install cmake
+          if command -v cmake &> /dev/null; then
+            echo "cmake is already installed"
+            cmake --version
+          else
+            brew install cmake
+          fi
 
       # Windows環境のセットアップ
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          choco install cmake -y
+          if (Get-Command cmake -ErrorAction SilentlyContinue) {
+            Write-Output "cmake is already installed"
+            cmake --version
+          } else {
+            choco install cmake -y
+          }
 
       # ビルドとインストール
       - name: Build wheels and install
