@@ -1,3 +1,5 @@
+#![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
+
 use crate::regression::utils::{
     calculate_p_value_exact, kahan_sum, safe_divide, validate_finite_array,
 };
@@ -23,7 +25,6 @@ type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize
 /// tuple
 ///     A tuple containing (predicted values, slope, intercept, r_value, p_value, stderr, intercept_stderr).
 #[pyfunction]
-#[allow(unsafe_op_in_unsafe_fn)]
 pub fn calculate_ols_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,

@@ -1,3 +1,4 @@
+#![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 #[allow(unused_imports)] // kahan_sum and Array1 are used in tests
 use crate::regression::utils::{compute_r_value, kahan_sum, safe_divide, validate_finite_array};
 use nalgebra::{DMatrix, SVD};
@@ -42,7 +43,6 @@ struct SvdAnalysisResult {
 /// tuple
 ///     A tuple containing (predicted values, slope, intercept, r_value).
 #[pyfunction]
-#[allow(unsafe_op_in_unsafe_fn)]
 pub fn calculate_tls_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
