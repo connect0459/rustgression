@@ -104,7 +104,7 @@ class TestModuleInitialization:
         import rustgression
 
         assert hasattr(rustgression, "__version__")
-        assert rustgression.__version__ == "0.3.1"
+        assert rustgression.__version__ == "0.4.0"
 
     def test_package_all_attribute(self):
         """Test __all__ attribute contains expected items."""
