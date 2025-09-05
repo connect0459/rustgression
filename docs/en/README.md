@@ -82,7 +82,7 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 - Methods
 
 - `slope() -> float`: Returns the slope of the regression line
-- `intercept() -> float`: Returns the y-intercept of the regression line  
+- `intercept() -> float`: Returns the y-intercept of the regression line
 - `r_value() -> float`: Returns the correlation coefficient
 
 ## Examples

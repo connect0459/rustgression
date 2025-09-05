@@ -90,7 +90,7 @@ docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0
 # Alpha release
 docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-alpha.1
 
-# Beta release  
+# Beta release
 docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-beta.1
 ```
 
