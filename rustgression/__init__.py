@@ -39,7 +39,7 @@ Examples
 """
 
 # Package version
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 # Check availability of Rust module (actual import is done in _rust_imports.py)
 try:
