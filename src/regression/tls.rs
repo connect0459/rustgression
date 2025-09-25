@@ -2,14 +2,13 @@
 #[allow(unused_imports)] // kahan_sum and Array1 are used in tests
 use crate::regression::utils::{compute_r_value, kahan_sum, safe_divide, validate_finite_array};
 use nalgebra::{DMatrix, SVD};
-#[allow(unused_imports)]
-use ndarray::Array1;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
 
 // Type aliases to reduce complexity
-type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>;
+type Array1Ref =
+    numpy::ndarray::ArrayBase<numpy::ndarray::OwnedRepr<f64>, numpy::ndarray::Dim<[usize; 1]>>;
 type VMatrix = nalgebra::Matrix<
     f64,
     nalgebra::Dyn,
@@ -47,7 +46,7 @@ pub fn calculate_tls_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
-) -> PyResult<(&'py PyArray1<f64>, f64, f64, f64)> {
+) -> PyResult<(Bound<'py, PyArray1<f64>>, f64, f64, f64)> {
     // Convert NumPy arrays to ndarray
     let x_array: Array1Ref = x.as_array().to_owned();
     let y_array: Array1Ref = y.as_array().to_owned();
@@ -540,8 +539,8 @@ mod tests {
 
         #[test]
         fn perfect_correlation() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
-            let y = Array1::from_vec(vec![2.0, 4.0, 6.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![2.0, 4.0, 6.0]);
 
             let r = compute_r_value(&x, &y);
             assert!((r - 1.0).abs() < 1e-10);
@@ -577,8 +576,8 @@ mod tests {
             ];
 
             for (name, x_data, y_data, expected_sign) in test_cases {
-                let x = Array1::from_vec(x_data);
-                let y = Array1::from_vec(y_data);
+                let x = numpy::ndarray::Array1::from_vec(x_data);
+                let y = numpy::ndarray::Array1::from_vec(y_data);
                 let r = compute_r_value(&x, &y);
 
                 if expected_sign == 0.0 {
@@ -699,8 +698,8 @@ mod tests {
 
         let intercept = y_mean - slope * x_mean;
 
-        let x_array = Array1::from_vec(x.to_vec());
-        let y_array = Array1::from_vec(y.to_vec());
+        let x_array = numpy::ndarray::Array1::from_vec(x.to_vec());
+        let y_array = numpy::ndarray::Array1::from_vec(y.to_vec());
         let r_value = compute_r_value(&x_array, &y_array);
 
         TlsResult {

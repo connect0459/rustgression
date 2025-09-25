@@ -27,7 +27,7 @@ mod regression;
 /// PyResult<()>
 ///     A result indicating success or failure of the module initialization.
 #[pymodule]
-fn rustgression(_py: Python, m: &PyModule) -> PyResult<()> {
+fn rustgression(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(regression::calculate_ols_regression, m)?)?;
     m.add_function(wrap_pyfunction!(regression::calculate_tls_regression, m)?)?;
     Ok(())

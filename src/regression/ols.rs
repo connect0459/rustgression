@@ -8,8 +8,9 @@ use pyo3::prelude::*;
 use std::f64;
 
 // Type aliases to reduce complexity
-type OlsResult<'py> = (&'py PyArray1<f64>, f64, f64, f64, f64, f64, f64);
-type Array1Ref = ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>>;
+type OlsResult<'py> = (Bound<'py, PyArray1<f64>>, f64, f64, f64, f64, f64, f64);
+type Array1Ref =
+    numpy::ndarray::ArrayBase<numpy::ndarray::OwnedRepr<f64>, numpy::ndarray::Dim<[usize; 1]>>;
 
 /// Rust implementation of Ordinary Least Squares regression (similar to stats.linregress).
 ///
