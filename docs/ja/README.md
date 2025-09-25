@@ -12,7 +12,7 @@
 ## 概要
 
 `rustgression`は、RustでPythonパッケージとして実装された高性能な回帰分析ツールを提供します。
-以下の機能が含まれています：
+以下の機能が含まれています。
 
 - **最小二乗法（OLS）**: 従来の最小二乗法。y方向のみの誤差を最小化します。
 - **全最小二乗法（TLS）**: 直交回帰。両方の変数（x軸とy軸）の誤差を考慮します。
@@ -21,15 +21,11 @@
 
 ## インストール
 
-PyPIからインストール:
-
 ```bash
 pip install rustgression
 ```
 
 ## クイックスタート
-
-簡単な例から始めましょう：
 
 ```python
 import numpy as np
@@ -87,14 +83,14 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 
 ## 使用例
 
-より詳細な例については、以下をご覧ください：
+より詳細な例については、以下をご覧ください。
 
 - [シンプルな例](../../examples/simple_example.py)
 - [科学的な例](../../examples/scientific_example.py)
 
 ## パフォーマンス
 
-`rustgression`は最適なパフォーマンスのためにRustで実装されています。以下を提供します：
+`rustgression`は最適なパフォーマンスのためにRustで実装されています。以下を提供します。
 
 - 大規模データセットの高速計算
 - メモリ効率的なアルゴリズム

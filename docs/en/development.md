@@ -8,7 +8,7 @@ The following dependencies are required to run Rust:
 - BLAS and LAPACK development libraries
 - Fortran compiler
 
-For Debian-based OS, install using the following commands:
+For Debian-based OS, install using the following commands.
 
 ```bash
 sudo apt-get update
@@ -17,7 +17,7 @@ sudo apt-get install cmake libblas-dev liblapack-dev gfortran
 
 ## Setting Up Python Environment
 
-Place `pyproject.toml` in the project root and install with the following command:
+Place `pyproject.toml` in the project root and install with the following command.
 
 ```bash
 uv sync
@@ -25,7 +25,7 @@ uv sync
 
 ## Testing the Created Package
 
-Use `maturin` to perform a clean build from Rust. Install the necessary dependencies and build with the following commands:
+Use `maturin` to perform a clean build from Rust. Install the necessary dependencies and build with the following commands.
 
 ```bash
 # Confirm installation of necessary tools
@@ -94,7 +94,7 @@ docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0
 docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-beta.1
 ```
 
-This script automatically updates the following files:
+This script automatically updates the following files.
 
 - `Cargo.toml` - Rust package version
 - `pyproject.toml` - Python package version
@@ -103,7 +103,7 @@ This script automatically updates the following files:
 
 ### Version Verification
 
-Check version consistency across all files:
+Check version consistency across all files.
 
 ```bash
 docker compose exec -w /workspace rustgression-dev ./scripts/version-check.sh 0.2.1
