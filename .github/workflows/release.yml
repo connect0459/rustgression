@@ -26,7 +26,7 @@ jobs:
       - name: Check version consistency
         shell: bash
         run: |
-          # リリースタグからバージョンを取得（v0.0.1 -> 0.0.1）
+          # Extract version from release tag (v0.0.1 -> 0.0.1)
           VERSION=${GITHUB_REF#refs/tags/v}
           ./scripts/version-check.sh "$VERSION"
 
