@@ -12,8 +12,8 @@ name = "rustgression"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.19", features = ["extension-module"] }
-numpy = "0.19"
+pyo3 = { version = "0.26", features = ["extension-module"] }
+numpy = "0.26"
 ndarray = "0.15"
 nalgebra = "0.34"
 statrs = "0.18"
