@@ -15,6 +15,7 @@ classifiers = [
 ]
 dependencies = ["numpy>=1.20.0"]
 
+# `uv sync --extra examples`でインストールされる依存関係
 [project.optional-dependencies]
 examples = ["matplotlib>=3.10.1", "scipy>=1.15.2"]
 

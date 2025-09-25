@@ -1,5 +1,5 @@
 use crate::regression::utils::math::kahan_sum;
-use ndarray::Array1;
+use numpy::ndarray::Array1;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
 
@@ -79,24 +79,24 @@ mod tests {
 
         #[test]
         fn test_perfect_positive_correlation() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
-            let y = Array1::from_vec(vec![2.0, 4.0, 6.0, 8.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![2.0, 4.0, 6.0, 8.0]);
             let result = compute_r_value(&x, &y);
             assert!((result - 1.0).abs() < 1e-10);
         }
 
         #[test]
         fn test_perfect_negative_correlation() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
-            let y = Array1::from_vec(vec![8.0, 6.0, 4.0, 2.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![8.0, 6.0, 4.0, 2.0]);
             let result = compute_r_value(&x, &y);
             assert!((result + 1.0).abs() < 1e-10);
         }
 
         #[test]
         fn test_no_correlation() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
-            let y = Array1::from_vec(vec![1.0, 3.0, 2.0, 4.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![1.0, 3.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);
             // This data actually has some correlation, so just check it's in valid range
             assert!((-1.0..=1.0).contains(&result));
@@ -104,32 +104,32 @@ mod tests {
 
         #[test]
         fn test_zero_variance_x() {
-            let x = Array1::from_vec(vec![2.0, 2.0, 2.0]);
-            let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![2.0, 2.0, 2.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let result = compute_r_value(&x, &y);
             assert_eq!(result, 0.0);
         }
 
         #[test]
         fn test_zero_variance_y() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
-            let y = Array1::from_vec(vec![5.0, 5.0, 5.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![5.0, 5.0, 5.0]);
             let result = compute_r_value(&x, &y);
             assert_eq!(result, 0.0);
         }
 
         #[test]
         fn test_single_point() {
-            let x = Array1::from_vec(vec![1.0]);
-            let y = Array1::from_vec(vec![2.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![2.0]);
             let result = compute_r_value(&x, &y);
             assert_eq!(result, 0.0); // Single point has no variance
         }
 
         #[test]
         fn test_two_identical_points() {
-            let x = Array1::from_vec(vec![1.0, 1.0]);
-            let y = Array1::from_vec(vec![2.0, 2.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 1.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![2.0, 2.0]);
             let result = compute_r_value(&x, &y);
             assert_eq!(result, 0.0);
         }
@@ -137,24 +137,24 @@ mod tests {
         #[test]
         fn test_correlation_range() {
             // Test that correlation is always in [-1, 1]
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
-            let y = Array1::from_vec(vec![2.1, 3.9, 6.2, 7.8, 10.1]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![2.1, 3.9, 6.2, 7.8, 10.1]);
             let result = compute_r_value(&x, &y);
             assert!((-1.0..=1.0).contains(&result));
         }
 
         #[test]
         fn test_weak_correlation() {
-            let x = Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
-            let y = Array1::from_vec(vec![1.1, 2.1, 2.9, 4.2]);
+            let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![1.1, 2.1, 2.9, 4.2]);
             let result = compute_r_value(&x, &y);
             assert!(result > 0.9); // Should be strongly positive
         }
 
         #[test]
         fn test_negative_values() {
-            let x = Array1::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0]);
-            let y = Array1::from_vec(vec![-4.0, -2.0, 0.0, 2.0, 4.0]);
+            let x = numpy::ndarray::Array1::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0]);
+            let y = numpy::ndarray::Array1::from_vec(vec![-4.0, -2.0, 0.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);
             assert!((result - 1.0).abs() < 1e-10);
         }
