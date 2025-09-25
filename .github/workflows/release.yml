@@ -7,10 +7,28 @@ on:
 run-name: Release to PyPI ${{ github.event.release.tag_name }}
 
 jobs:
-  # Step 1: 全プラットフォームでビルド
-  build:
-    runs-on: ${{ matrix.os }}
+  # Step 1: Version consistency check
+  version-check:
+    runs-on: ubuntu-latest
     if: github.event.release.target_commitish == 'main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version consistency
+        shell: bash
+        run: |
+          # Extract version from release tag (v0.0.1 -> 0.0.1)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./scripts/version-check.sh "$VERSION"
+
+  # Step 2: Build wheels for all platforms
+  build:
+    needs: version-check
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -21,14 +39,6 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v4
         with:
           fetch-depth: 0
-
-      # バージョン確認ステップ
-      - name: Check version consistency
-        shell: bash
-        run: |
-          # Extract version from release tag (v0.0.1 -> 0.0.1)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          ./scripts/version-check.sh "$VERSION"
 
       - name: Set up Python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
@@ -95,9 +105,9 @@ jobs:
           path: target/wheels/*.whl
           retention-days: 1
 
-  # Step 2: 全てのビルドが成功した後に一括パブリッシュ
+  # Step 3: Publish all wheels to PyPI after successful builds
   publish:
-    needs: build
+    needs: [version-check, build]
     runs-on: ubuntu-latest
     permissions:
       contents: read
