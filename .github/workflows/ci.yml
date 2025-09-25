@@ -68,7 +68,7 @@ jobs:
         run: |
           # 環境情報を表示
           echo "Building environment info:"
-          python --version
+          uv run python --version
           rustc --version
 
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
@@ -86,24 +86,24 @@ jobs:
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
-          pip list
+          uv pip list
 
           # Pythonモジュールパスとモジュール構造を確認
-          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
-          python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
+          uv run python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
+          uv run python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
 
       # パッケージのインポートテスト
       - name: Test import
         shell: bash
         run: |
-          python scripts/test-import-operation.py
+          uv run python scripts/test-import-operation.py
 
       # テストの実行
       - name: Run tests
         shell: bash
         run: |
           # インポートテスト（失敗時はワークフローを失敗させる）
-          if ! python -c "import rustgression"; then
+          if ! uv run python -c "import rustgression"; then
             echo "Import failed: rustgression module not found."
             exit 1
           fi
