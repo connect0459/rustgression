@@ -3,8 +3,6 @@ name: Bug Report
 about: Report a bug here
 ---
 
-# Bug Report
-
 ## Bug Summary (Required)
 
 ## Relevant Page/Location (Required)

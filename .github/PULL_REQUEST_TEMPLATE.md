@@ -1,5 +1,3 @@
-# Pull Request
-
 ※Remove unnecessary sections to make review easier
 
 ## Related URLs

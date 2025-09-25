@@ -3,8 +3,6 @@ name: Feature Request
 about: Request for development or feature enhancement
 ---
 
-# Feature Request
-
 ※Please do not include personal information
 
 ## Overview
