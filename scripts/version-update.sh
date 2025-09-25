@@ -6,8 +6,32 @@
 
 set -e
 
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Color functions
+error() {
+    echo -e "${RED}$1${NC}"
+}
+
+warning() {
+    echo -e "${YELLOW}$1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+info() {
+    echo -e "${BLUE}$1${NC}"
+}
+
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <new_version>"
+    error "Usage: $0 <new_version>"
     echo "Example: $0 0.2.1"
     exit 1
 fi
@@ -65,7 +89,7 @@ compare_versions() {
 
 # Check version format (semver format, supports prerelease)
 if ! [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
-    echo "Error: Version must be in semver format"
+    error "Error: Version must be in semver format"
     echo "Examples: 1.0.0, 1.0.0-alpha.1, 1.0.0-beta.2, 1.0.0-rc.1"
     exit 1
 fi
@@ -74,13 +98,13 @@ fi
 CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
 if [ -n "$CURRENT_CARGO_VERSION" ]; then
     if ! compare_versions "$NEW_VERSION" "$CURRENT_CARGO_VERSION"; then
-        echo "WARNING: Version downgrade detected!"
-        echo "  Current version: $CURRENT_CARGO_VERSION"
-        echo "  New version:     $NEW_VERSION"
+        warning "WARNING: Version downgrade detected!"
+        warning "  Current version: $CURRENT_CARGO_VERSION"
+        warning "  New version:     $NEW_VERSION"
         echo ""
         read -p "Do you want to continue with the downgrade? (y/N): " confirm
         if [[ ! $confirm =~ ^[Yy]$ ]]; then
-            echo "Version update cancelled."
+            info "Version update cancelled."
             exit 1
         fi
     fi
@@ -114,13 +138,13 @@ echo "Updating uv.lock..."
 if command -v uv >/dev/null 2>&1; then
     uv lock
 else
-    echo "Warning: uv command not found. Skipping uv.lock update."
+    warning "Warning: uv command not found. Skipping uv.lock update."
 fi
 
 # Remove backup files
 rm -f rustgression/__init__.py.bak tests/test_imports.py.bak Cargo.toml.bak pyproject.toml.bak
 
-echo "SUCCESS: Version update completed: $NEW_VERSION"
+success "SUCCESS: Version update completed: $NEW_VERSION"
 echo ""
 echo "Updated files:"
 echo "- rustgression/__init__.py (Python format: $PYTHON_VERSION)"
@@ -132,7 +156,7 @@ if command -v uv >/dev/null 2>&1; then
     echo "- uv.lock"
 fi
 echo ""
-echo "Next steps:"
-echo "1. Review changes: git diff"
-echo "2. Run tests: cargo test && python -m pytest"
-echo "3. Commit changes: git add . && git commit -m \"chore: bump version to $NEW_VERSION\""
+info "Next steps:"
+info "1. Review changes: git diff"
+info "2. Run tests: cargo test && python -m pytest"
+info "3. Commit changes: git add . && git commit -m \"chore: bump version to $NEW_VERSION\""

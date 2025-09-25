@@ -6,9 +6,33 @@
 
 set -e
 
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Color functions
+error() {
+    echo -e "${RED}$1${NC}"
+}
+
+warning() {
+    echo -e "${YELLOW}$1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+info() {
+    echo -e "${BLUE}$1${NC}"
+}
+
 # Specify version as argument
 if [ $# -ne 1 ]; then
-    echo "Error: Version not specified"
+    error "Error: Version not specified"
     echo "Usage: $0 <version>"
     echo "Example: $0 0.2.2"
     exit 1
@@ -102,64 +126,64 @@ ERRORS=0
 CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
 if [ -n "$CURRENT_CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CURRENT_CARGO_VERSION" ]; then
     if ! compare_versions "$ARG_VERSION" "$CURRENT_CARGO_VERSION"; then
-        echo "WARNING: Potential version downgrade detected!"
-        echo "  Current Cargo.toml version: $CURRENT_CARGO_VERSION"
-        echo "  Expected version:           $ARG_VERSION"
+        warning "WARNING: Potential version downgrade detected!"
+        warning "  Current Cargo.toml version: $CURRENT_CARGO_VERSION"
+        warning "  Expected version:           $ARG_VERSION"
         echo ""
     fi
 fi
 
 if [ "$ARG_VERSION" != "$INIT_VERSION" ]; then
-    echo "[FAIL] rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
+    error "[FAIL] rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] rustgression/__init__.py"
+    success "[PASS] rustgression/__init__.py"
 fi
 
 if [ "$ARG_VERSION" != "$TEST_VERSION" ]; then
-    echo "[FAIL] tests/test_imports.py test version mismatch: expected=$ARG_VERSION, actual=$TEST_VERSION"
+    error "[FAIL] tests/test_imports.py test version mismatch: expected=$ARG_VERSION, actual=$TEST_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] tests/test_imports.py"
+    success "[PASS] tests/test_imports.py"
 fi
 
 if [ "$ARG_VERSION" != "$CARGO_VERSION" ]; then
-    echo "[FAIL] Cargo.toml version mismatch: expected=$ARG_VERSION, actual=$CARGO_VERSION"
+    error "[FAIL] Cargo.toml version mismatch: expected=$ARG_VERSION, actual=$CARGO_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] Cargo.toml"
+    success "[PASS] Cargo.toml"
 fi
 
 if [ "$ARG_VERSION" != "$PYPROJECT_VERSION" ]; then
-    echo "[FAIL] pyproject.toml version mismatch: expected=$ARG_VERSION, actual=$PYPROJECT_VERSION"
+    error "[FAIL] pyproject.toml version mismatch: expected=$ARG_VERSION, actual=$PYPROJECT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] pyproject.toml"
+    success "[PASS] pyproject.toml"
 fi
 
 if [ "$ARG_VERSION" != "$CARGO_LOCK_VERSION" ]; then
-    echo "[FAIL] Cargo.lock version mismatch: expected=$ARG_VERSION, actual=$CARGO_LOCK_VERSION"
+    error "[FAIL] Cargo.lock version mismatch: expected=$ARG_VERSION, actual=$CARGO_LOCK_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] Cargo.lock"
+    success "[PASS] Cargo.lock"
 fi
 
 if [ "$ARG_VERSION" != "$UV_LOCK_VERSION" ]; then
-    echo "[FAIL] uv.lock version mismatch: expected=$ARG_VERSION, actual=$UV_LOCK_VERSION"
+    error "[FAIL] uv.lock version mismatch: expected=$ARG_VERSION, actual=$UV_LOCK_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    echo "[PASS] uv.lock"
+    success "[PASS] uv.lock"
 fi
 
 echo ""
 
 if [ $ERRORS -eq 0 ]; then
-    echo "SUCCESS: All versions match: $ARG_VERSION"
+    success "SUCCESS: All versions match: $ARG_VERSION"
     exit 0
 else
-    echo "ERROR: Found $ERRORS version inconsistencies"
+    error "ERROR: Found $ERRORS version inconsistencies"
     echo ""
-    echo "To fix:"
-    echo "  ./scripts/version-update.sh $ARG_VERSION"
+    info "To fix:"
+    info "  ./scripts/version-update.sh $ARG_VERSION"
     exit 1
 fi
