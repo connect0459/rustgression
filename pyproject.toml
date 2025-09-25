@@ -33,6 +33,9 @@ build-backend = "maturin"
 python-source = "."
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
+exclude = [
+    { path = "LICENSE", format = "wheel" }
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
