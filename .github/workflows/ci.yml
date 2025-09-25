@@ -1,4 +1,4 @@
-name: Test and Build
+name: CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # 手動実行も可能にする
 
 jobs:
-  test-and-build:
+  run:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
