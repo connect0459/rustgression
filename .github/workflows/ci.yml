@@ -74,9 +74,6 @@ jobs:
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
           uv sync
 
-          # プロジェクトをeditable modeでインストール
-          uv pip install -e .
-
           # ホイールをビルド
           uv run maturin build --release
 
