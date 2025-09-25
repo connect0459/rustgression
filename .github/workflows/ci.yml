@@ -5,6 +5,8 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch: # 手動実行も可能にする
 
+run-name: CI on ${{ github.head_ref || github.ref_name }}
+
 jobs:
   run:
     runs-on: ${{ matrix.os }}
