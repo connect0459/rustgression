@@ -12,7 +12,7 @@ This project provides fast regression analysis (OLS, TLS) as a Python package.
 ## Overview
 
 `rustgression` provides high-performance regression analysis tools implemented in Rust as a Python package.
-It includes the following features:
+It includes the following features.
 
 - **Ordinary Least Squares (OLS)**: Traditional least squares method. Minimizes errors only in the y-direction.
 - **Total Least Squares (TLS)**: Orthogonal regression. Considers errors in both variables (x-axis and y-axis).
@@ -21,15 +21,11 @@ This package targets Python version `3.11` and above.
 
 ## Installation
 
-Install from PyPI:
-
 ```bash
 pip install rustgression
 ```
 
 ## Quick Start
-
-Here's a simple example to get you started:
 
 ```python
 import numpy as np
@@ -87,14 +83,14 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 
 ## Examples
 
-For more detailed examples, check out:
+For more detailed examples, check out.
 
 - [Simple Example](../../examples/simple_example.py)
 - [Scientific Example](../../examples/scientific_example.py)
 
 ## Performance
 
-`rustgression` is implemented in Rust for optimal performance. It provides:
+`rustgression` is implemented in Rust for optimal performance. It provides.
 
 - Fast computation for large datasets
 - Memory-efficient algorithms
