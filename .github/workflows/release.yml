@@ -26,7 +26,9 @@ jobs:
       - name: Check version consistency
         shell: bash
         run: |
-          ./scripts/version-check.sh
+          # リリースタグからバージョンを取得（v0.0.1 -> 0.0.1）
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./scripts/version-check.sh "$VERSION"
 
       - name: Set up Python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
