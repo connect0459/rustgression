@@ -33,6 +33,7 @@ build-backend = "maturin"
 python-source = "."
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
+auditwheel = "repair"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
