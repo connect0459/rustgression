@@ -4,7 +4,7 @@ version = "0.4.1"
 description = "Fast OLS and TLS regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
-license = { file = "LICENSE" }
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -96,9 +96,11 @@ managed = true
 [dependency-groups]
 dev = [
   "maturin>=1.8.2",
+  "packaging>=25.0",
   "pre-commit>=4.0.1",
   "pytest>=8.3.4",
   "pytest-cov>=6.0.0",
   "ruff>=0.6.8",
+  "setuptools>=80.9.0",
   "twine>=5.1.1",
 ]
