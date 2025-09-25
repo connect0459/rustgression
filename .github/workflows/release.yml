@@ -87,8 +87,8 @@ jobs:
         run: |
           echo "Building wheels for ${{ matrix.os }}..."
 
-          # pyproject.tomlから開発依存関係を同期
-          uv sync --group dev
+          # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
+          uv sync
 
           # ホイールを明示的にビルド
           uv run maturin build --release
@@ -136,7 +136,7 @@ jobs:
       - name: Publish to PyPI
         run: |
           # pyproject.tomlから依存関係を同期（twineとpackagingを含む）
-          uv sync --group dev
+          uv sync
 
           # 環境変数を設定
           export TWINE_USERNAME=__token__
