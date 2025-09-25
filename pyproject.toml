@@ -90,7 +90,9 @@ convention = "numpy"
 
 [tool.uv]
 managed = true
-dev-dependencies = [
+
+[dependency-groups]
+dev = [
   "maturin>=1.8.2",
   "pre-commit>=4.0.1",
   "pytest>=8.3.4",
