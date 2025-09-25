@@ -21,10 +21,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
-        with:
-          python-version-file: '.python-version'
+      - name: Install uv
+        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@02be93da58aa71fb456aa9c43b301149248829d8 # v1.15.1
@@ -73,14 +71,14 @@ jobs:
           python --version
           rustc --version
 
-          # pyproject.tomlから依存関係をインストール
-          pip install -e .
+          # pyproject.tomlから依存関係を同期（開発依存関係を含む）
+          uv sync --group dev
 
-          # 開発・テスト用依存関係を個別にインストール
-          pip install maturin pytest
+          # プロジェクトをeditable modeでインストール
+          uv pip install -e .
 
           # ホイールをビルド
-          maturin build --release
+          uv run maturin build --release
 
           # ビルドされたホイールを確認
           echo "Built wheels:"
@@ -111,4 +109,4 @@ jobs:
           fi
 
           # テスト実行
-          python -m pytest
+          uv run pytest
