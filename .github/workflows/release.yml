@@ -4,6 +4,8 @@ on:
   release:
     types: [published]
 
+run-name: Release to PyPI ${{ github.event.release.tag_name }}
+
 jobs:
   # Step 1: 全プラットフォームでビルド
   build:
