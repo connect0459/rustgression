@@ -48,8 +48,8 @@ compare_versions() {
     # Extract version parts (major.minor.patch) and prerelease
     local v1_base=$(echo "$v1" | cut -d'-' -f1)
     local v2_base=$(echo "$v2" | cut -d'-' -f1)
-    local v1_pre=$(echo "$v1" | cut -d'-' -f2- | sed 's/^'$v1_base'$//')
-    local v2_pre=$(echo "$v2" | cut -d'-' -f2- | sed 's/^'$v2_base'$//')
+    local v1_pre=$(echo "$v1" | cut -d'-' -f2- | sed "s/^$v1_base\$//")
+    local v2_pre=$(echo "$v2" | cut -d'-' -f2- | sed "s/^$v2_base\$//")
 
     # Split version parts
     IFS='.' read -r v1_major v1_minor v1_patch <<< "$v1_base"
