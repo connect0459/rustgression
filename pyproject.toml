@@ -4,8 +4,7 @@ version = "0.4.1"
 description = "Fast OLS and TLS regression using Rust backend"
 authors = [{ name = "connect0459", email = "connect0459@gmail.com" }]
 readme = "README.md"
-license = "MIT"
-license-files = []
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -33,9 +32,7 @@ build-backend = "maturin"
 python-source = "."
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
-exclude = [
-    { path = "LICENSE", format = "wheel" }
-]
+exclude = [{ path = "LICENSE", format = "wheel" }]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
