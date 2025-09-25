@@ -25,9 +25,8 @@ jobs:
           python-version-file: '.python-version'
 
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # stable
-        with:
-          toolchain: stable
+        uses: actions-rust-lang/setup-rust-toolchain@02be93da58aa71fb456aa9c43b301149248829d8 # v1.15.1
+        # rust-toolchain.tomlを自動的に読み込んでツールチェーンをセットアップ
 
       # Linux環境のセットアップ（Ubuntu）
       - name: Setup Ubuntu dependencies
