@@ -4,8 +4,6 @@ on:
   release:
     types: [published]
 
-run-name: Release to PyPI from ${{ github.head_ref || github.ref_name }}
-
 jobs:
   # Step 1: 全プラットフォームでビルド
   build:
