@@ -21,10 +21,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
-        with:
-          python-version-file: '.python-version'
+      - name: Install uv
+        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@02be93da58aa71fb456aa9c43b301149248829d8 # v1.15.1
@@ -70,17 +68,14 @@ jobs:
         run: |
           # 環境情報を表示
           echo "Building environment info:"
-          python --version
+          uv run python --version
           rustc --version
 
-          # pyproject.tomlから依存関係をインストール
-          pip install -e .
-
-          # 開発・テスト用依存関係を個別にインストール
-          pip install maturin pytest
+          # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
+          uv sync
 
           # ホイールをビルド
-          maturin build --release
+          uv run maturin build --release
 
           # ビルドされたホイールを確認
           echo "Built wheels:"
@@ -88,27 +83,27 @@ jobs:
 
           # インストールされたモジュールを確認
           echo "インストールされたパッケージ:"
-          pip list
+          uv pip list
 
           # Pythonモジュールパスとモジュール構造を確認
-          python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
-          python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
+          uv run python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
+          uv run python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
 
       # パッケージのインポートテスト
       - name: Test import
         shell: bash
         run: |
-          python scripts/test-import-operation.py
+          uv run python scripts/test-import-operation.py
 
       # テストの実行
       - name: Run tests
         shell: bash
         run: |
           # インポートテスト（失敗時はワークフローを失敗させる）
-          if ! python -c "import rustgression"; then
+          if ! uv run python -c "import rustgression"; then
             echo "Import failed: rustgression module not found."
             exit 1
           fi
 
           # テスト実行
-          python -m pytest
+          uv run pytest
