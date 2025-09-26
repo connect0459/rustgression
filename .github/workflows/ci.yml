@@ -74,6 +74,9 @@ jobs:
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
           uv sync
 
+          # `uv sync`で生成されたwheelsをクリーンアップ
+          rm -rf target/wheels/ || echo "No wheels directory to clean"
+
           # ホイールをビルド（PyPI互換性を確保）
           uv run maturin build --release --compatibility pypi
 
