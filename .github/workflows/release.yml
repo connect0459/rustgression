@@ -90,8 +90,8 @@ jobs:
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
           uv sync
 
-          # ホイールを明示的にビルド
-          uv run maturin build --release
+          # ホイールを明示的にビルド（PyPI互換性を確保）
+          uv run maturin build --release --compatibility pypi
 
           # ビルドされたホイールの場所を確認
           echo "Built wheels:"

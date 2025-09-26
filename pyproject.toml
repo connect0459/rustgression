@@ -33,6 +33,8 @@ build-backend = "maturin"
 python-source = "."
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
+# Ensures PyPI compatibility by repairing wheels for the linux_x86_64 platform tag issue.
+auditwheel = "repair"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
