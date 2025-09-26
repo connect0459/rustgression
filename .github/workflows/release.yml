@@ -90,6 +90,10 @@ jobs:
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
           uv sync
 
+          # 事前に生成されたwheelsをクリーンアップ
+          # ref: <https://github.com/connect0459/rustgression/pull/44>
+          rm -rf target/wheels/ || echo "No wheels directory to clean"
+
           # ホイールを明示的にビルド（PyPI互換性を確保）
           uv run maturin build --release --compatibility pypi
 
