@@ -58,7 +58,7 @@ class TestInputValidation:
     def test_mismatched_array_lengths(self):
         """Test mismatched array length validation."""
         with pytest.raises(
-            ValueError, match="The lengths of the input arrays do not match."
+            ValueError, match=r"The lengths of the input arrays do not match\."
         ):
             OlsRegressor(np.array([1, 2]), np.array([1]))
 
