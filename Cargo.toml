@@ -18,4 +18,4 @@ nalgebra = "0.34"
 statrs = "0.18"
 
 [dev-dependencies]
-cargo-tarpaulin = "0.33"
+cargo-tarpaulin = "0.34"
