@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
 
@@ -72,7 +72,7 @@ jobs:
           rustc --version
 
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
-          uv sync
+          uv sync --frozen
 
       # Lint and format checks
       - name: Run lint and format checks
