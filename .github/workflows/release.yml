@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
 
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
 
@@ -88,7 +88,7 @@ jobs:
           echo "Building wheels for ${{ matrix.os }}..."
 
           # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
-          uv sync
+          uv sync --frozen
 
           # 事前に生成されたwheelsをクリーンアップ
           # ref: <https://github.com/connect0459/rustgression/pull/44>
@@ -119,13 +119,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
       - name: Install uv
         uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244 # v7.1.4
 
       - name: Download all wheel artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v4
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           pattern: wheels-*
           path: dist/
@@ -140,7 +140,7 @@ jobs:
       - name: Publish to PyPI
         run: |
           # pyproject.tomlから依存関係を同期（twineとpackagingを含む）
-          uv sync
+          uv sync --frozen
 
           # 環境変数を設定
           export TWINE_USERNAME=__token__
