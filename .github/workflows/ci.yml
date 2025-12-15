@@ -21,16 +21,36 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 変更されたファイルを検出（関連ファイルに変更がない場合は後続ステップをスキップ）
+      - name: Detect changed files
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            code:
+              - '.github/workflows/ci.yml'
+              - 'rustgression/**'
+              - 'scripts/**'
+              - 'src/**'
+              - 'tests/**'
+              - 'Cargo.lock'
+              - 'Cargo.toml'
+              - 'pyproject.toml'
+              - 'rust-toolchain.toml'
+              - 'uv.lock'
+
       - name: Install uv
+        if: steps.filter.outputs.code == 'true'
         uses: astral-sh/setup-uv@ed21f2f24f8dd64503750218de024bcf64c7250a # v7.1.5
 
       - name: Set up Rust
+        if: steps.filter.outputs.code == 'true'
         uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         # rust-toolchain.tomlを自動的に読み込んでツールチェーンをセットアップ
 
       # Linux環境のセットアップ（Ubuntu）
       - name: Setup Ubuntu dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: steps.filter.outputs.code == 'true' && matrix.os == 'ubuntu-latest'
         run: |
           if command -v cmake &> /dev/null; then
             echo "cmake is already installed"
@@ -42,7 +62,7 @@ jobs:
 
       # macOS環境のセットアップ
       - name: Setup macOS dependencies
-        if: matrix.os == 'macos-latest'
+        if: steps.filter.outputs.code == 'true' && matrix.os == 'macos-latest'
         run: |
           if command -v cmake &> /dev/null; then
             echo "cmake is already installed"
@@ -53,7 +73,7 @@ jobs:
 
       # Windows環境のセットアップ
       - name: Setup Windows dependencies
-        if: matrix.os == 'windows-latest'
+        if: steps.filter.outputs.code == 'true' && matrix.os == 'windows-latest'
         run: |
           if (Get-Command cmake -ErrorAction SilentlyContinue) {
             Write-Output "cmake is already installed"
@@ -64,6 +84,7 @@ jobs:
 
       # 依存関係の同期
       - name: Install dependencies
+        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           # 環境情報を表示
@@ -76,6 +97,7 @@ jobs:
 
       # Lint and format checks
       - name: Run lint and format checks
+        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           echo "Running lint and format checks..."
@@ -96,6 +118,7 @@ jobs:
 
       # ビルドとインストール
       - name: Build wheels and install
+        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           # 事前に生成されたwheelsをクリーンアップ
@@ -119,12 +142,14 @@ jobs:
 
       # パッケージのインポートテスト
       - name: Test import
+        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           uv run python scripts/test-import-operation.py
 
       # テストの実行
       - name: Run tests
+        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           # インポートテスト（失敗時はワークフローを失敗させる）
@@ -135,3 +160,12 @@ jobs:
 
           # テスト実行
           uv run pytest
+
+      # 変更がない場合の成功メッセージ
+      - name: Skip CI checks (no relevant changes)
+        if: steps.filter.outputs.code != 'true'
+        shell: bash
+        run: |
+          echo "No changes detected in code-related files."
+          echo "Skipping build, lint, and test steps."
+          echo "CI passed successfully."

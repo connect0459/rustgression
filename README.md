@@ -21,8 +21,16 @@ This package targets Python version `3.11` and above.
 
 ## Installation
 
+Using pip:
+
 ```bash
 pip install rustgression
+```
+
+Using uv:
+
+```bash
+uv add rustgression
 ```
 
 ## Usage
