@@ -14,6 +14,19 @@ docker compose exec -w /workspace rustgression-dev uv run pytest
 docker compose exec -w /workspace rustgression-dev cargo test
 ```
 
+### Rust Coverage
+
+```bash
+# Install cargo-llvm-cov (first time only)
+docker compose exec -w /workspace rustgression-dev cargo install cargo-llvm-cov
+
+# Generate coverage report (HTML)
+docker compose exec -w /workspace rustgression-dev cargo llvm-cov --html
+
+# Generate coverage report (lcov format)
+docker compose exec -w /workspace rustgression-dev cargo llvm-cov --lcov --output-path lcov.info
+```
+
 ## Project Information
 
 This is a Rust-Python hybrid project that implements fast Total Least Squares (TLS) regression using a Rust backend with Python bindings.
