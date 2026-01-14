@@ -26,7 +26,7 @@ examples = ["matplotlib>=3.10.1", "scipy>=1.15.2"]
 "Bug Tracker" = "https://github.com/connect0459/rustgression/issues"
 
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = ["maturin<2.0,>=1.0"]
 build-backend = "maturin"
 
 [tool.maturin]
@@ -96,12 +96,12 @@ managed = true
 
 [dependency-groups]
 dev = [
-  "maturin==1.10.2",
+  "maturin==1.11.5",
   "packaging==25.0",
   "pre-commit==4.5.1",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "ruff==0.14.10",
+  "ruff==0.14.11",
   "setuptools==80.9.0",
   "twine==6.2.0",
 ]
