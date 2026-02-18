@@ -101,7 +101,7 @@ dev = [
   "pre-commit==4.5.1",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "ruff==0.14.14",
-  "setuptools==80.10.2",
+  "ruff==0.15.0",
+  "setuptools==81.0.0",
   "twine==6.2.0",
 ]
