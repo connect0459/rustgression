@@ -96,12 +96,12 @@ managed = true
 
 [dependency-groups]
 dev = [
-  "maturin==1.11.5",
+  "maturin==1.12.3",
   "packaging==26.0",
   "pre-commit==4.5.1",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "ruff==0.15.0",
-  "setuptools==81.0.0",
+  "ruff==0.15.2",
+  "setuptools==82.0.0",
   "twine==6.2.0",
 ]
