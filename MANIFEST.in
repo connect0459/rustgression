@@ -1,5 +1,8 @@
 include README.md
 include LICENSE
 include pyproject.toml
+include Cargo.toml
+include Cargo.lock
+include rust-toolchain.toml
 recursive-include rustgression *.py *.pyi
 recursive-include src *.rs
