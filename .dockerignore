@@ -53,10 +53,10 @@ Dockerfile*
 compose*.yml
 .dockerignore
 
-# CI/CD
+# CI/CD files
 .github/
 
-# Logs
+# Log files
 *.log
 
 # Temporary files
