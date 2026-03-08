@@ -1,132 +1,132 @@
-# ADR-012: GitHub テンプレートとドキュメント構造の標準化
+# ADR-012: Standardization of GitHub Templates and Documentation Structure
 
-## ステータス
+## Status
 
 - [x] Proposed
 - [x] Accepted
 - [ ] Deprecated
 
-## コンテキスト
+## Context
 
-rustgressionプロジェクトにおいて、コントリビューションの品質向上とドキュメントの国際化対応が必要となった。現在の状況は以下の通り：
+The rustgression project required improvements to contribution quality and internationalization of documentation. The situation was as follows:
 
-### 現在の問題点
+### Current Problems
 
-1. **Issue/PRテンプレートの不在**: 標準化されたフォーマットがないため、コントリビューションの質にばらつきが生じている
-2. **ドキュメントの国際化不足**: 開発者向けドキュメントのみ英語・日本語対応しているが、一般ユーザー向けドキュメントが不整備
-3. **プロジェクト情報の可視性不足**: PyPIダウンロード数などのプロジェクト統計情報が表示されていない
-4. **コントリビューションガイドラインの不明確さ**: 新規コントリビューターが参照すべき情報が散在している
+1. **Absence of Issue/PR templates**: Without a standardized format, contribution quality was inconsistent.
+2. **Insufficient documentation internationalization**: Only developer-facing documentation had English/Japanese support; user-facing documentation was incomplete.
+3. **Lack of project visibility**: Project statistics such as PyPI download counts were not displayed.
+4. **Unclear contribution guidelines**: Information that new contributors needed to reference was scattered.
 
-## 決定事項
+## Decision
 
-GitHub テンプレートとドキュメント構造を標準化し、プロジェクトの可視性とコントリビューション品質を向上させる。
+Standardize GitHub templates and documentation structure to improve project visibility and contribution quality.
 
-### 1. GitHub テンプレートの導入
+### 1. Introduce GitHub Templates
 
-#### Issue テンプレート
+#### Issue Templates
 
-- `BUG_REPORT.md`: バグ報告用テンプレート
-- `DEVELOP_REQUEST.md`: 機能開発・改善要求用テンプレート（後に`FEATURE_REQUEST.md`に名称変更）
+- `BUG_REPORT.md`: Template for bug reports
+- `DEVELOP_REQUEST.md`: Template for feature development and improvement requests (later renamed to `FEATURE_REQUEST.md`)
 
-#### Pull Request テンプレート
+#### Pull Request Template
 
-- `PULL_REQUEST_TEMPLATE.md`: 包括的なPRレビュー用テンプレート
-  - 関連URL、概要、リリース情報
-  - 対象デバイス・環境、テスト項目
-  - 品質チェックリスト、作業時間の記録
+- `PULL_REQUEST_TEMPLATE.md`: Comprehensive PR review template
+  - Related URLs, summary, release information
+  - Target devices/environments, test items
+  - Quality checklist, work time tracking
 
-### 2. ドキュメント多言語化構造
+### 2. Multilingual Documentation Structure
 
 ```txt
 docs/
 ├── adrs/           # Architecture Decision Records
-├── en/             # 英語ドキュメント
-│   ├── README.md   # 英語版ユーザーガイド
-│   └── development.md  # 英語版開発者ガイド
-└── ja/             # 日本語ドキュメント
-    ├── README.md   # 日本語版ユーザーガイド
-    └── development.md  # 日本語版開発者ガイド
+├── en/             # English documentation
+│   ├── README.md   # English user guide
+│   └── development.md  # English developer guide
+└── ja/             # Japanese documentation
+    ├── README.md   # Japanese user guide
+    └── development.md  # Japanese developer guide
 ```
 
-### 3. プロジェクト可視性の向上
+### 3. Improve Project Visibility
 
-- pepy.techバッジの追加によるPyPIダウンロード統計の表示
-- 重要なプロジェクトURLの整理と追加
+- Add pepy.tech badge to display PyPI download statistics
+- Organize and add important project URLs
 
-### 4. ドキュメント設計原則
+### 4. Documentation Design Principles
 
-#### ユーザー向けドキュメント (`docs/en/README.md`, `docs/ja/README.md`)
+#### User-facing documentation (`docs/en/README.md`, `docs/ja/README.md`)
 
-- インストール方法
-- 基本的な使用例
-- APIリファレンス概要
-- 開発者ドキュメントへの明確なリンク
+- Installation instructions
+- Basic usage examples
+- API reference overview
+- Clear links to developer documentation
 
-#### 開発者向けドキュメント (既存の `development.md`)
+#### Developer-facing documentation (existing `development.md`)
 
-- 開発環境構築
-- コントリビューションガイドライン
-- アーキテクチャ詳細
+- Development environment setup
+- Contribution guidelines
+- Architecture details
 
-## 結果
+## Consequences
 
-### 期待される効果
+### Expected Benefits
 
-1. **コントリビューション品質の向上**
-   - 標準化されたテンプレートによる一貫したIssue/PR作成
-   - レビュープロセスの効率化
+1. **Improved contribution quality**
+   - Consistent Issue/PR creation through standardized templates
+   - More efficient review process
 
-2. **プロジェクト可視性の向上**
-   - pepy バッジによるダウンロード統計の表示
-   - プロジェクト採用状況の可視化
+2. **Improved project visibility**
+   - Download statistics displayed via pepy badge
+   - Visualization of project adoption
 
-3. **国際化対応の強化**
-   - 英語・日本語両方でのドキュメント提供
-   - グローバルユーザーへのアクセシビリティ向上
+3. **Strengthened internationalization**
+   - Documentation provided in both English and Japanese
+   - Improved accessibility for global users
 
-4. **新規ユーザー・コントリビューターの参入障壁低下**
-   - 明確なドキュメント構造
-   - 段階的学習パスの提供（ユーザー → 開発者）
+4. **Lower barrier for new users and contributors**
+   - Clear documentation structure
+   - Gradual learning path (user → developer)
 
-### 実装詳細
+### Implementation Details
 
-#### テンプレート言語
+#### Template Language
 
-- 英語で統一（国際的なOSSプロジェクトとしての標準に準拠）
-- 日本語コメントは削除し、英語に翻訳
+- Unified in English (following the standard for international OSS projects)
+- Japanese comments removed and translated to English
 
-#### 品質保証
+#### Quality Assurance
 
-- PRテンプレートに品質チェックリストを含める
-- CI/CD ワークフローとの連携
+- Include quality checklist in PR template
+- Integration with CI/CD workflows
 
-#### 段階的移行
+#### Gradual Migration
 
-- 既存ドキュメントとの互換性維持
-- 新規ドキュメントへの適切なリンク設置
+- Maintain compatibility with existing documentation
+- Add appropriate links to new documentation
 
-## 参考資料
+## References
 
 - [GitHub Issue Templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates)
 - [pepy - PyPI download statistics](https://pepy.tech/)
 - [Open Source Guide - Best Practices for Maintainers](https://opensource.guide/best-practices/)
 
-## 関連ファイルのパス
+## Related File Paths
 
-### 初期実装時 (2025-07-31)
+### Initial implementation (2025-07-31)
 
-#### GitHub テンプレート
+#### GitHub Templates
 
-- `.github/ISSUE_TEMPLATE/BUG_REPORT.md` (新規)
-- `.github/ISSUE_TEMPLATE/DEVELOP_REQUEST.md` (新規、後にFEATURE_REQUESTに変更)
-- `.github/PULL_REQUEST_TEMPLATE.md` (新規)
+- `.github/ISSUE_TEMPLATE/BUG_REPORT.md` (new)
+- `.github/ISSUE_TEMPLATE/DEVELOP_REQUEST.md` (new, later renamed to FEATURE_REQUEST)
+- `.github/PULL_REQUEST_TEMPLATE.md` (new)
 
-#### ドキュメント構造
+#### Documentation Structure
 
-- `docs/en/README.md` (新規)
-- `docs/ja/README.md` (新規)
-- `README.md` (pepy バッジとURL追加)
+- `docs/en/README.md` (new)
+- `docs/ja/README.md` (new)
+- `README.md` (add pepy badge and URLs)
 
 #### ADR
 
-- `docs/adrs/adr-012-github-templates-and-documentation-structure.md` (新規)
+- `docs/adrs/adr-012-github-templates-and-documentation-structure.md` (new)

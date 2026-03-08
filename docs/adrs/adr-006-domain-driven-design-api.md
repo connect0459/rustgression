@@ -1,35 +1,35 @@
-# ADR-006: 回帰分析APIのドメイン駆動設計への移行
+# ADR-006: Migration of Regression Analysis API to Domain-Driven Design
 
-## ステータス
+## Status
 
 - [x] Proposed
 - [ ] Accepted
 - [ ] Deprecated
 
-## コンテキスト
+## Context
 
-現在のrustgressionライブラリは、データクラス（`OlsRegressionParams`、`TlsRegressionParams`）を使用したgetter/setterパターンを採用している。このアプローチは以下の問題を抱えている：
+The current rustgression library uses a getter/setter pattern with data classes (`OlsRegressionParams`, `TlsRegressionParams`). This approach has the following problems:
 
-### 現在の問題点
+### Current Problems
 
-1. **Tell Don't Ask原則の違反**: オブジェクトの状態を問い合わせて、その結果に基づいて処理を行うパターンが多用されている
-2. **Getterの使用**: `get_xxx()`のような実装パターンが存在することによって、オブジェクトの破壊を引き起こすsetterが将来的に実装される恐れがある。これを防止するために、ライブラリ設計をgetter/setterパターンからドメインオブジェクトの振る舞いとして実装するパターンに統一する。
+1. **Violation of the Tell Don't Ask principle**: The codebase heavily relies on querying object state and then performing operations based on the result.
+2. **Use of getters**: The existence of `get_xxx()`-style methods risks introducing setters in the future, which would break object encapsulation. To prevent this, the library design should be unified around behaviour-oriented domain objects rather than the getter/setter pattern.
 
-### 現在のAPI例
+### Current API Example
 
 ```python
-# 現在のアプローチ - クライアント側でドメイン知識が必要
+# Current approach — requires domain knowledge on the client side
 regressor = OlsRegressor(x, y)
 params = regressor.get_params()
 ```
 
-## 決定事項
+## Decision
 
-回帰分析APIをドメイン駆動設計（DDD）の原則に基づいて再設計し、振る舞い中心のAPIに移行する。
+Redesign the regression analysis API based on Domain-Driven Design (DDD) principles, migrating to a behaviour-centric API.
 
-### 1. プロパティメソッドパターンの導入
+### 1. Introduce Property Method Pattern
 
-データクラスのgetter/setterパターンを振る舞いとしてのプロパティメソッドに置き換える：
+Replace the getter/setter pattern on data classes with property methods as behaviour:
 
 - `slope() -> float`
 - `intercept() -> float`
@@ -38,123 +38,123 @@ params = regressor.get_params()
 - `stderr() -> float`
 - `intercept_stderr() -> float`
 
-### 2. 単一責任原則に基づく設計
+### 2. Design Based on Single Responsibility Principle
 
-Regressorクラス自体が統計値をプロパティメソッドとして提供するよう変更：
+Change the Regressor class itself to expose statistical values as property methods:
 
 ```python
 class OlsRegressor:
     def __init__(self, x, y):
-        # インスタンス化時に回帰分析を実行し、統計値を計算
+        # Run regression and compute statistics at instantiation time
         self._slope, self._intercept, self._r_value, self._p_value, self._stderr, self._intercept_stderr = self._calculate_regression(x, y)
 
     def slope(self) -> float:
-        """回帰直線の傾きを返す"""
+        """Return the slope of the regression line."""
         return self._slope
 
     def intercept(self) -> float:
-        """回帰直線の切片を返す"""
+        """Return the y-intercept of the regression line."""
         return self._intercept
 
     def r_value(self) -> float:
-        """相関係数を返す"""
+        """Return the correlation coefficient."""
         return self._r_value
 
     def p_value(self) -> float:
-        """p値を返す"""
+        """Return the p-value for the slope."""
         return self._p_value
 
     def stderr(self) -> float:
-        """傾きの標準誤差を返す"""
+        """Return the standard error of the slope."""
         return self._stderr
 
     def intercept_stderr(self) -> float:
-        """切片の標準誤差を返す"""
+        """Return the standard error of the intercept."""
         return self._intercept_stderr
 ```
 
-### 3. 後方互換性の維持
+### 3. Maintain Backward Compatibility
 
-既存のAPIとの互換性を保つため：
+To preserve compatibility with the existing API:
 
-- 既存のデータクラス（`OlsRegressionParams`、`TlsRegressionParams`）は残存
-- `get_params()`メソッドは非推奨として維持
-- 段階的移行をサポート
+- Existing data classes (`OlsRegressionParams`, `TlsRegressionParams`) are retained
+- `get_params()` method is kept as deprecated
+- Supports gradual migration
 
-### 4. 実装戦略
+### 4. Implementation Strategy
 
-#### Phase 1: 基盤整備
+#### Phase 1: Foundation
 
-- `OlsRegressor`, `TlsRegressor`クラスでのプロパティメソッド実装
-- インスタンス化時の統計値計算処理の追加
+- Implement property methods on `OlsRegressor` and `TlsRegressor` classes
+- Add statistical value computation at instantiation time
 
-#### Phase 2: 互換性対応
+#### Phase 2: Compatibility
 
-- 既存`get_params()`メソッドの非推奨化
-- 段階的移行のためのドキュメント更新
+- Deprecate the existing `get_params()` method
+- Update documentation to support gradual migration
 
-#### Phase 3: テスト・ドキュメント更新
+#### Phase 3: Tests and Documentation
 
-- 新APIのテスト追加
-- 使用例とドキュメントの更新
-- 移行ガイドの作成
+- Add tests for the new API
+- Update usage examples and documentation
+- Create migration guide
 
-## 結果
+## Consequences
 
-### 期待される効果
+### Expected Benefits
 
-1. **単一責任原則の適用**: Regressorクラスが統計値の計算と提供を一元的に担当
-2. **振る舞い中心の設計**: プロパティメソッドにより振る舞いとしてデータアクセスを提供
-3. **API の一貫性向上**: 統計値へのアクセス方法が統一される
-4. **パフォーマンス向上**: インスタンス化時に一度だけ計算を実行
-5. **既存機能の維持**: 現在提供している全ての統計値（slope, intercept, r_value, p_value, stderr, intercept_stderr）を継続提供
+1. **Application of Single Responsibility Principle**: The Regressor class solely owns the computation and provision of statistical values.
+2. **Behaviour-centric design**: Property methods provide data access as behaviour.
+3. **Improved API consistency**: Unified access pattern for all statistical values.
+4. **Performance improvement**: Computation is performed only once at instantiation.
+5. **Preservation of existing functionality**: All currently provided statistical values (slope, intercept, r_value, p_value, stderr, intercept_stderr) continue to be available.
 
-### 新しいAPI例
+### New API Example
 
 ```python
-# 新しいアプローチ - Regressorクラスから直接プロパティメソッドでアクセス
-regressor = OlsRegressor(x, y)  # インスタンス化時に統計値を計算
+# New approach — access property methods directly from the Regressor class
+regressor = OlsRegressor(x, y)  # statistics computed at instantiation
 
-# 振る舞いとしての統計値アクセス
-print(f"傾き: {regressor.slope():.3f}")
-print(f"切片: {regressor.intercept():.3f}")
-print(f"相関係数: {regressor.r_value():.3f}")
-print(f"p値: {regressor.p_value():.6f}")
-print(f"傾きの標準誤差: {regressor.stderr():.3f}")
-print(f"切片の標準誤差: {regressor.intercept_stderr():.3f}")
+# Statistical values accessed as behaviour
+print(f"Slope: {regressor.slope():.3f}")
+print(f"Intercept: {regressor.intercept():.3f}")
+print(f"Correlation coefficient: {regressor.r_value():.3f}")
+print(f"p-value: {regressor.p_value():.6f}")
+print(f"Standard error of slope: {regressor.stderr():.3f}")
+print(f"Standard error of intercept: {regressor.intercept_stderr():.3f}")
 ```
 
 ### Breaking Changes
 
-- 新しいプロパティメソッドAPIの導入
-- Regressorクラスへの直接的なプロパティメソッド追加
-- `get_params()`メソッドの非推奨化（段階的移行）
+- Introduction of new property method API
+- Direct property method addition to Regressor classes
+- Deprecation of `get_params()` method (gradual migration)
 
-### 影響範囲
+### Impact Scope
 
-- 既存のクライアントコード: 互換性維持により影響最小限
-- テストコード: 新APIのテスト追加が必要
-- ドキュメント: 新APIの説明と移行ガイドが必要
+- Existing client code: minimal impact due to backward compatibility
+- Test code: new API tests need to be added
+- Documentation: new API description and migration guide needed
 
-## 参考資料
+## References
 
 - [Domain-Driven Design: Tackling Complexity in the Heart of Software](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
 - [Tell Don't Ask Principle](https://martinfowler.com/bliki/TellDontAsk.html)
 - [Anemic Domain Model Anti-pattern](https://martinfowler.com/bliki/AnemicDomainModel.html)
 - [Python Enum Documentation](https://docs.python.org/3/library/enum.html)
 
-## 関連ファイルのパス
+## Related File Paths
 
-### 初期実装時 (2025-07-30)
+### Initial implementation (2025-07-30)
 
-更新予定
+To be updated
 
 - `rustgression/regression/base_regressor.py`
 - `rustgression/regression/ols_regressor.py`
 - `rustgression/regression/tls_regressor.py`
-- `rustgression/__init__.py` (新しいクラスのエクスポート)
-- `tests/test_regressor.py` (新APIのテスト追加)
-- `examples/scientific_example.py` (新APIの使用例)
-- `examples/simple_example.py` (新APIの使用例)
-- `docs/ja/development.md` (API使用例の更新)
-- `docs/en/development.md` (API使用例の更新)
+- `rustgression/__init__.py` (export new classes)
+- `tests/test_regressor.py` (add tests for new API)
+- `examples/scientific_example.py` (usage examples for new API)
+- `examples/simple_example.py` (usage examples for new API)
+- `docs/ja/development.md` (update API usage examples)
+- `docs/en/development.md` (update API usage examples)
