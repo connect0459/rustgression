@@ -1,5 +1,19 @@
 # Claude Code Instructions
 
+## Primary Directive
+
+- Think in English, interact with the user in their native language.
+
+## Language Convention
+
+This project may be released publicly. All of the following must be written in **English**:
+
+- Commit messages
+- Code comments
+- Documentation (including `CLAUDE.md`, `README.md`, etc.)
+- Test names
+- Error messages
+
 ## Test Commands
 
 ### Python Tests
