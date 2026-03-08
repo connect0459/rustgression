@@ -8,7 +8,7 @@ dist/
 wheels/
 *.egg-info
 
-# Python拡張モジュールのバイナリ
+# Python extension modules
 *.so
 *.pyd
 *.dll
@@ -26,10 +26,10 @@ wheels/
 # :Zone.Identifier
 **/*:Zone.Identifier
 
-# 環境変数ファイルを無視
+# Ignore environment variable files
 *.env
 
-# テスト関連
+# Test-related
 # pytest
 .coverage
 
@@ -38,5 +38,5 @@ build_rs_cov.profraw
 cobertura.xml
 tarpaulin-report.html
 
-# バックアップファイル
+# Backup files
 **/*.bak
