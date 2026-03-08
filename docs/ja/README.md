@@ -107,7 +107,7 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 
 コントリビューションを歓迎します！開発環境のセットアップとガイドラインについては、以下をご覧ください：
 
-**🔗 [開発者ドキュメント](development.md)**
+**[開発者ドキュメント](development.md)**
 
 ## ライセンス
 

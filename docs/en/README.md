@@ -107,7 +107,7 @@ Use TLS when both variables have measurement errors, and OLS when only the depen
 
 We welcome contributions! For development setup and guidelines, see:
 
-**🔗 [Developer Documentation](development.md)**
+**[Developer Documentation](development.md)**
 
 ## License
 
