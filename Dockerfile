@@ -21,9 +21,11 @@ ENV UV_LINK_MODE=copy
 
 WORKDIR /workspace
 
-COPY . .
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project
 
-RUN uv sync
+COPY . .
+RUN uv sync --frozen
 
 RUN uv run maturin develop
 
