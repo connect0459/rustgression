@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  workflow_dispatch: # 手動実行も可能にする
+  workflow_dispatch: # allows manual execution
 
 run-name: CI on ${{ github.head_ref || github.ref_name }}
 
@@ -11,7 +11,7 @@ jobs:
   run:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false # 一つの環境のビルド失敗で全体が止まらないようにする
+      fail-fast: false # prevent one failing environment from cancelling all others
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 変更されたファイルを検出（関連ファイルに変更がない場合は後続ステップをスキップ）
+      # Detect changed files to skip subsequent steps when no relevant files are modified
       - name: Detect changed files
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
@@ -46,9 +46,9 @@ jobs:
       - name: Set up Rust
         if: steps.filter.outputs.code == 'true'
         uses: actions-rust-lang/setup-rust-toolchain@a0b538fa0b742a6aa35d6e2c169b4bd06d225a98 # v1.15.3
-        # rust-toolchain.tomlを自動的に読み込んでツールチェーンをセットアップ
+        # automatically reads rust-toolchain.toml to set up the toolchain
 
-      # Linux環境のセットアップ（Ubuntu）
+      # Set up dependencies for Linux (Ubuntu)
       - name: Setup Ubuntu dependencies
         if: steps.filter.outputs.code == 'true' && matrix.os == 'ubuntu-latest'
         run: |
@@ -60,7 +60,7 @@ jobs:
             sudo apt-get install -y cmake
           fi
 
-      # macOS環境のセットアップ
+      # Set up dependencies for macOS
       - name: Setup macOS dependencies
         if: steps.filter.outputs.code == 'true' && matrix.os == 'macos-latest'
         run: |
@@ -71,7 +71,7 @@ jobs:
             brew install cmake
           fi
 
-      # Windows環境のセットアップ
+      # Set up dependencies for Windows
       - name: Setup Windows dependencies
         if: steps.filter.outputs.code == 'true' && matrix.os == 'windows-latest'
         run: |
@@ -82,17 +82,17 @@ jobs:
             choco install cmake -y
           }
 
-      # 依存関係の同期
+      # Sync dependencies
       - name: Install dependencies
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
-          # 環境情報を表示
+          # Print environment info
           echo "Building environment info:"
           uv run python --version
           rustc --version
 
-          # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
+          # Sync dependencies from pyproject.toml (including main and dev dependencies)
           uv sync --frozen
 
       # Lint and format checks
@@ -116,52 +116,52 @@ jobs:
 
           echo "All lint and format checks passed!"
 
-      # ビルドとインストール
+      # Build and install
       - name: Build wheels and install
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
-          # 事前に生成されたwheelsをクリーンアップ
+          # Clean up pre-generated wheels
           # ref: <https://github.com/connect0459/rustgression/pull/44>
           rm -rf target/wheels/ || echo "No wheels directory to clean"
 
-          # ホイールをビルド（PyPI互換性を確保）
+          # Build wheels (ensure PyPI compatibility)
           uv run maturin build --release --compatibility pypi
 
-          # ビルドされたホイールを確認
+          # Verify built wheels
           echo "Built wheels:"
           ls -la target/wheels/ || echo "No wheels directory found"
 
-          # インストールされたモジュールを確認
-          echo "インストールされたパッケージ:"
+          # Verify installed packages
+          echo "Installed packages:"
           uv pip list
 
-          # Pythonモジュールパスとモジュール構造を確認
+          # Verify Python module paths and module structure
           uv run python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
           uv run python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
 
-      # パッケージのインポートテスト
+      # Test package import
       - name: Test import
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           uv run python scripts/test-import-operation.py
 
-      # テストの実行
+      # Run tests
       - name: Run tests
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
-          # インポートテスト（失敗時はワークフローを失敗させる）
+          # Verify import (fail the workflow if import fails)
           if ! uv run python -c "import rustgression"; then
             echo "Import failed: rustgression module not found."
             exit 1
           fi
 
-          # テスト実行
+          # Run tests
           uv run pytest
 
-      # 変更がない場合の成功メッセージ
+      # Success message when no relevant changes are detected
       - name: Skip CI checks (no relevant changes)
         if: steps.filter.outputs.code != 'true'
         shell: bash

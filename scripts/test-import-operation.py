@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-インポートテストと基本動作確認スクリプト
+Import test and basic functionality verification script
 
-このスクリプトは以下を実行します:
-1. rustgressionモジュールのインポートテスト
-2. 基本的なクラスのインスタンス化テスト
-3. 簡単な回帰分析の動作確認
+This script performs the following:
+1. Import test for the rustgression module
+2. Basic class instantiation test
+3. Basic regression analysis verification
 """
 
 import sys
@@ -15,7 +15,7 @@ import numpy as np
 
 
 def test_import():
-    """rustgressionモジュールのインポートテスト"""
+    """Import test for the rustgression module."""
     try:
         import rustgression
 
@@ -27,22 +27,22 @@ def test_import():
 
 
 def test_basic_functionality():
-    """基本的なクラスのインスタンス化と動作テスト"""
+    """Basic class instantiation and functionality test."""
     try:
         import rustgression
 
-        # 簡単なテストデータを作成
+        # Create simple test data
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
 
-        # OLSレグレッサーを試す（新しいプロパティメソッドAPI）
+        # Try OLS regressor (new property method API)
         print("Creating OLS regressor...")
         regressor = rustgression.OlsRegressor(x, y)
         print(f"OLS slope: {regressor.slope()}")
         print(f"OLS intercept: {regressor.intercept()}")
         print(f"OLS r_value: {regressor.r_value()}")
 
-        # TLSレグレッサーも試す（新しいプロパティメソッドAPI）
+        # Try TLS regressor as well (new property method API)
         print("Creating TLS regressor...")
         tls = rustgression.TlsRegressor(x, y)
         print(f"TLS slope: {tls.slope()}")
@@ -59,14 +59,14 @@ def test_basic_functionality():
 
 
 def main():
-    """メイン実行関数"""
+    """Main entry point."""
     print("=== Rustgression Import and Basic Functionality Test ===")
 
-    # インポートテスト
+    # Run import test
     if not test_import():
         sys.exit(1)
 
-    # 基本動作テスト
+    # Run basic functionality test
     if not test_basic_functionality():
         sys.exit(1)
 

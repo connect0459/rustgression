@@ -45,9 +45,9 @@ jobs:
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@a0b538fa0b742a6aa35d6e2c169b4bd06d225a98 # v1.15.3
-        # rust-toolchain.tomlを自動的に読み込んでツールチェーンをセットアップ
+        # automatically reads rust-toolchain.toml to set up the toolchain
 
-      # Linux環境のセットアップ（Ubuntu）
+      # Set up dependencies for Linux (Ubuntu)
       - name: Setup Ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -59,7 +59,7 @@ jobs:
             sudo apt-get install -y cmake
           fi
 
-      # macOS環境のセットアップ
+      # Set up dependencies for macOS
       - name: Setup macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
@@ -70,7 +70,7 @@ jobs:
             brew install cmake
           fi
 
-      # Windows環境のセットアップ
+      # Set up dependencies for Windows
       - name: Setup Windows dependencies
         if: matrix.os == 'windows-latest'
         run: |
@@ -81,27 +81,27 @@ jobs:
             choco install cmake -y
           }
 
-      # ホイールをビルド
+      # Build wheels
       - name: Build wheels
         shell: bash
         run: |
           echo "Building wheels for ${{ matrix.os }}..."
 
-          # pyproject.tomlから依存関係を同期（本体依存関係と開発依存関係を含む）
+          # Sync dependencies from pyproject.toml (including main and dev dependencies)
           uv sync --frozen
 
-          # 事前に生成されたwheelsをクリーンアップ
+          # Clean up pre-generated wheels
           # ref: <https://github.com/connect0459/rustgression/pull/44>
           rm -rf target/wheels/ || echo "No wheels directory to clean"
 
-          # ホイールを明示的にビルド（PyPI互換性を確保）
+          # Explicitly build wheels (ensure PyPI compatibility)
           uv run maturin build --release --compatibility pypi
 
-          # ビルドされたホイールの場所を確認
+          # Verify built wheel locations
           echo "Built wheels:"
           ls -la target/wheels/ || echo "No wheels directory found"
 
-      # ビルドしたホイールをアーティファクトとしてアップロード
+      # Upload built wheels as artifacts
       - name: Upload wheels as artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
@@ -139,13 +139,13 @@ jobs:
 
       - name: Publish to PyPI
         run: |
-          # pyproject.tomlから依存関係を同期（twineとpackagingを含む）
+          # Sync dependencies from pyproject.toml (including twine and packaging)
           uv sync --frozen
 
-          # 環境変数を設定
+          # Set environment variables
           export TWINE_USERNAME=__token__
           export TWINE_PASSWORD=${{ secrets.PYPI_API_TOKEN }}
 
-          # 全てのホイールを一括アップロード
+          # Upload all wheels at once
           echo "Uploading all wheels to PyPI:"
           uv run twine upload dist/*.whl
