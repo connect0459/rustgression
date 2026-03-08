@@ -20,7 +20,7 @@ sudo apt-get install cmake libblas-dev liblapack-dev gfortran
 Place `pyproject.toml` in the project root and install with the following command.
 
 ```bash
-uv sync
+uv sync --frozen
 ```
 
 ## Testing the Created Package
