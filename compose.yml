@@ -3,7 +3,7 @@ services:
     build: .
     container_name: rustgression-container
     volumes:
-      # Mount project root for real-time file sync
+      # Mount project for real-time file sync
       - .:/workspace
       # Persist Cargo cache directory
       - cargo-cache:/root/.cargo

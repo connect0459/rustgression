@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = ["numpy>=1.20.0"]
 
-# `uv sync --extra examples`でインストールされる依存関係
+# Dependencies installed with `uv sync --extra examples`
 [project.optional-dependencies]
 examples = ["matplotlib>=3.10.1", "scipy>=1.15.2"]
 
@@ -40,16 +40,16 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.ruff]
-# 行の長さ制限
+# Maximum line length
 line-length = 88
 
-# 検査するファイルやディレクトリ
+# Source roots for import/module resolution
 src = ["rustgression", "tests"]
 
-# 無視するファイルやディレクトリ
+# Files and directories to exclude
 exclude = [".git", ".venv", "__pycache__", "build", "dist"]
 
-# 有効にするルール
+# Enabled rules
 [tool.ruff.lint]
 select = [
   "E",   # pycodestyle errors
@@ -62,17 +62,17 @@ select = [
   "RUF", # ruff-specific rules
 ]
 
-# 無視するルール
+# Ignored rules
 ignore = [
   "E501",   # line length violations
   "RUF003", # allow "KATAKANA LETTER"
 ]
 
-# 自動修正の対象とするルール
+# Rules to auto-fix
 fixable = ["I", "F401", "RUF002", "RUF022", "UP006", "UP007", "UP035"]
 
 [tool.ruff.lint.isort]
-# isortの設定
+# isort configuration
 known-first-party = ["rustgression"]
 known-third-party = ["numpy", "pandas"]
 section-order = [
@@ -84,11 +84,11 @@ section-order = [
 ]
 
 [tool.ruff.lint.mccabe]
-# 循環的複雑度の最大値
+# Maximum cyclomatic complexity
 max-complexity = 10
 
 [tool.ruff.lint.pydocstyle]
-# docstringのスタイル
+# Docstring convention
 convention = "numpy"
 
 [tool.uv]
