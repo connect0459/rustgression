@@ -43,7 +43,7 @@ addopts = "-v"
 # Maximum line length
 line-length = 88
 
-# Files and directories to check
+# Source roots for import/module resolution
 src = ["rustgression", "tests"]
 
 # Files and directories to exclude
