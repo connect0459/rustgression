@@ -205,7 +205,7 @@ mod tests {
         }
 
         #[test]
-        fn edge_cases_table_driven() {
+        fn correctly_fits_various_linear_patterns() {
             let test_cases = vec![
                 (
                     "horizontal_line",
@@ -277,7 +277,7 @@ mod tests {
         }
 
         #[test]
-        fn boundary_cases_table_driven() {
+        fn handles_degenerate_input_configurations() {
             let test_cases = vec![
                 (
                     "identical_x_values",
@@ -334,7 +334,7 @@ mod tests {
         }
 
         #[test]
-        fn p_value_table_driven() {
+        fn returns_p_value_in_valid_range_for_various_inputs() {
             let test_cases = vec![
                 ("small_degrees_of_freedom", 2.0, 5.0),
                 ("zero_t_value", 0.0, 10.0),

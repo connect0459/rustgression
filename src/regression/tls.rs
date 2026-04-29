@@ -236,7 +236,7 @@ mod tests {
         }
 
         #[test]
-        fn edge_cases_table_driven() {
+        fn preserves_correlation_sign_for_various_linear_patterns() {
             let test_cases = vec![
                 (
                     "negative_correlation",
@@ -314,7 +314,7 @@ mod tests {
         }
 
         #[test]
-        fn boundary_cases_table_driven() {
+        fn handles_degenerate_data_configurations() {
             let test_cases = vec![
                 (
                     "vertical_line_case",
@@ -381,7 +381,7 @@ mod tests {
         }
 
         #[test]
-        fn svd_edge_cases_table_driven() {
+        fn completes_without_panic_for_numerically_challenging_inputs() {
             let test_cases = vec![
                 (
                     "near_singular_matrix",
@@ -547,7 +547,7 @@ mod tests {
         }
 
         #[test]
-        fn compute_r_value_table_driven() {
+        fn returns_correct_correlation_sign_for_various_data_patterns() {
             let test_cases = vec![
                 (
                     "zero_x_variance",
