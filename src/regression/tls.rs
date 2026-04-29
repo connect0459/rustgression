@@ -208,7 +208,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn valid_regression() {
+        fn returns_positive_slope_for_positively_correlated_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
 
@@ -227,7 +227,7 @@ mod tests {
         }
 
         #[test]
-        fn zero_division_protection() {
+        fn returns_non_finite_slope_when_data_has_no_variance() {
             let x = vec![1.0, 1.0, 1.0];
             let y = vec![2.0, 2.0, 2.0];
 
@@ -236,7 +236,7 @@ mod tests {
         }
 
         #[test]
-        fn edge_cases_table_driven() {
+        fn preserves_correlation_sign_for_various_linear_patterns() {
             let test_cases = vec![
                 (
                     "negative_correlation",
@@ -314,7 +314,7 @@ mod tests {
         }
 
         #[test]
-        fn boundary_cases_table_driven() {
+        fn handles_degenerate_data_configurations() {
             let test_cases = vec![
                 (
                     "vertical_line_case",
@@ -368,7 +368,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn svd_numerical_stability() {
+        fn completes_without_panic_for_nearly_identical_x_values() {
             // SVD stability test with large condition number matrix
             let x = vec![1.0, 1.0000001, 1.0000002]; // Nearly identical values
             let y = vec![1.0, 2.0, 3.0];
@@ -381,7 +381,7 @@ mod tests {
         }
 
         #[test]
-        fn svd_edge_cases_table_driven() {
+        fn completes_without_panic_for_numerically_challenging_inputs() {
             let test_cases = vec![
                 (
                     "near_singular_matrix",
@@ -413,7 +413,7 @@ mod tests {
         }
 
         #[test]
-        fn sign_consistency() {
+        fn slope_sign_matches_data_correlation_direction() {
             // Sign consistency test
             let test_cases = vec![
                 (
@@ -452,7 +452,7 @@ mod tests {
         }
 
         #[test]
-        fn condition_number_handling() {
+        fn completes_without_panic_for_perfect_linear_relationship() {
             // Verify condition number calculation works properly
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1.0, 2.0, 3.0]; // Perfect linear relationship
@@ -472,30 +472,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_nan_input_handling() {
-            // NaN input causes SVD library to panic,
-            // so actual function detects it beforehand with input validation
-            // This test shows the importance of input validation
-            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
-            let y = vec![2.0, 4.0, 6.0];
-
-            let result = perform_tls(&x, &y);
-            assert!(result.slope.is_finite());
-        }
-
-        #[test]
-        fn test_infinite_input_handling() {
-            // Infinite input also causes SVD library to panic,
-            // so actual function detects it beforehand with input validation
-            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
-            let y = vec![2.0, 4.0, 6.0];
-
-            let result = perform_tls(&x, &y);
-            assert!(result.slope.is_finite());
-        }
-
-        #[test]
-        fn test_subnormal_numbers_tls() {
+        fn completes_without_panic_for_subnormal_y_values() {
             // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
@@ -508,7 +485,7 @@ mod tests {
         }
 
         #[test]
-        fn test_extreme_values_tls() {
+        fn completes_without_panic_for_extreme_value_range() {
             // Extreme value test
             let x = vec![1e-50, 2e-50, 3e-50];
             let y = vec![1e50, 2e50, 3e50];
@@ -521,7 +498,7 @@ mod tests {
         }
 
         #[test]
-        fn test_numerical_stability_edge_cases() {
+        fn completes_without_panic_for_near_epsilon_x_differences() {
             // Numerically challenging case
             let x = vec![1.0, 1.0 + f64::EPSILON, 1.0 + 2.0 * f64::EPSILON];
             let y = vec![1e10, 1e10 + 1.0, 1e10 + 2.0];
@@ -538,7 +515,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn perfect_correlation() {
+        fn returns_one_for_perfectly_linearly_correlated_data() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.0, 4.0, 6.0]);
 
@@ -547,7 +524,7 @@ mod tests {
         }
 
         #[test]
-        fn compute_r_value_table_driven() {
+        fn returns_correct_correlation_sign_for_various_data_patterns() {
             let test_cases = vec![
                 (
                     "zero_x_variance",
@@ -606,7 +583,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_perform_tls_directly() {
+        fn returns_positive_slope_for_perfect_linear_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0];
             let y = vec![2.0, 4.0, 6.0, 8.0];
 
@@ -625,7 +602,7 @@ mod tests {
         }
 
         #[test]
-        fn test_perform_tls_edge_cases() {
+        fn completes_without_panic_for_degenerate_inputs() {
             let test_cases = vec![
                 ("minimal_data", vec![1.0, 2.0], vec![2.0, 4.0]),
                 ("identical_points", vec![3.0, 3.0, 3.0], vec![4.0, 4.0, 4.0]),

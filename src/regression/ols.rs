@@ -184,7 +184,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn valid_regression() {
+        fn returns_correct_parameters_for_perfect_linear_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
 
@@ -196,7 +196,7 @@ mod tests {
         }
 
         #[test]
-        fn insufficient_data_points() {
+        fn returns_non_finite_result_for_single_data_point() {
             let x = vec![1.0];
             let y = vec![2.0];
 
@@ -205,7 +205,7 @@ mod tests {
         }
 
         #[test]
-        fn edge_cases_table_driven() {
+        fn correctly_fits_various_linear_patterns() {
             let test_cases = vec![
                 (
                     "horizontal_line",
@@ -277,7 +277,7 @@ mod tests {
         }
 
         #[test]
-        fn boundary_cases_table_driven() {
+        fn handles_degenerate_input_configurations() {
             let test_cases = vec![
                 (
                     "identical_x_values",
@@ -328,13 +328,13 @@ mod tests {
         use super::*;
 
         #[test]
-        fn large_degrees_of_freedom() {
+        fn returns_valid_p_value_for_large_degrees_of_freedom() {
             let p_val = calculate_p_value_exact(2.0, 100.0);
             assert!(p_val > 0.0 && p_val < 1.0);
         }
 
         #[test]
-        fn p_value_table_driven() {
+        fn returns_p_value_in_valid_range_for_various_inputs() {
             let test_cases = vec![
                 ("small_degrees_of_freedom", 2.0, 5.0),
                 ("zero_t_value", 0.0, 10.0),
@@ -355,7 +355,7 @@ mod tests {
         }
 
         #[test]
-        fn accuracy_comparison() {
+        fn matches_known_p_values_for_standard_t_statistics() {
             // Test with known t-value and p-value combinations
             let test_cases = vec![
                 (0.0, 10.0, 1.0),     // t=0 => p=1
@@ -380,7 +380,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn kahan_sum_accuracy() {
+        fn sums_small_values_without_accumulated_rounding_error() {
             // More practical test: many small values
             let small_values = vec![0.1; 10];
             let kahan_result = kahan_sum(&small_values);
@@ -403,7 +403,7 @@ mod tests {
         }
 
         #[test]
-        fn kahan_sum_vs_naive() {
+        fn preserves_small_addend_when_summing_with_many_large_values() {
             // Test floating-point precision limits
             let mut values = vec![1.0; 1000000];
             values.push(1e-10);
@@ -419,7 +419,7 @@ mod tests {
         }
 
         #[test]
-        fn kahan_sum_edge_cases() {
+        fn handles_empty_array_single_value_and_nan_input() {
             assert_eq!(kahan_sum(&[]), 0.0);
             assert_eq!(kahan_sum(&[42.0]), 42.0);
             assert!(kahan_sum(&[f64::NAN]).is_nan());
@@ -430,7 +430,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_nan_input_detection() {
+        fn completes_without_panic_for_nan_input() {
             let x = vec![1.0, 2.0, f64::NAN];
             let y = vec![2.0, 4.0, 6.0];
 
@@ -441,7 +441,7 @@ mod tests {
         }
 
         #[test]
-        fn test_infinite_input_detection() {
+        fn completes_without_panic_for_infinite_input() {
             let x = vec![1.0, 2.0, f64::INFINITY];
             let y = vec![2.0, 4.0, 6.0];
 
@@ -453,7 +453,7 @@ mod tests {
         }
 
         #[test]
-        fn test_subnormal_numbers() {
+        fn completes_without_panic_for_subnormal_values() {
             // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
@@ -464,7 +464,7 @@ mod tests {
         }
 
         #[test]
-        fn test_extreme_values() {
+        fn completes_without_panic_for_extreme_value_range() {
             // Extreme value test
             let x = vec![1e-100, 2e-100, 3e-100];
             let y = vec![1e100, 2e100, 3e100];
@@ -475,7 +475,7 @@ mod tests {
         }
 
         #[test]
-        fn test_zero_division_cases() {
+        fn returns_non_finite_slope_when_x_has_zero_variance() {
             // Case with zero variance
             let x = vec![1.0, 1.0, 1.0]; // Zero variance
             let y = vec![2.0, 4.0, 6.0];
@@ -491,7 +491,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_perform_ols_directly() {
+        fn returns_correct_parameters_for_perfect_linear_relationship() {
             let x = vec![1.0, 2.0, 3.0, 4.0];
             let y = vec![2.0, 4.0, 6.0, 8.0];
 
@@ -502,7 +502,7 @@ mod tests {
         }
 
         #[test]
-        fn test_perform_ols_edge_cases() {
+        fn completes_without_panic_for_degenerate_inputs() {
             let test_cases = vec![
                 ("single_point", vec![1.0], vec![2.0]),
                 ("zero_variance_x", vec![2.0, 2.0, 2.0], vec![1.0, 2.0, 3.0]),

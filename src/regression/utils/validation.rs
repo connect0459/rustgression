@@ -125,13 +125,13 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_valid_array() {
+        fn valid_array() {
             let array = [1.0, 2.0, 3.0, 4.0, 5.0];
             assert!(validate_finite_array_test(&array, "test").is_ok());
         }
 
         #[test]
-        fn test_nan_detection() {
+        fn rejects_nan_with_error_indicating_index() {
             let array = [1.0, 2.0, f64::NAN, 4.0];
             let result = validate_finite_array_test(&array, "test");
             assert!(result.is_err());
@@ -141,7 +141,7 @@ mod tests {
         }
 
         #[test]
-        fn test_positive_infinity_detection() {
+        fn rejects_positive_infinity_with_error_indicating_index() {
             let array = [1.0, f64::INFINITY, 3.0];
             let result = validate_finite_array_test(&array, "test");
             assert!(result.is_err());
@@ -151,7 +151,7 @@ mod tests {
         }
 
         #[test]
-        fn test_negative_infinity_detection() {
+        fn rejects_negative_infinity_with_error_indicating_index() {
             let array = [1.0, 2.0, f64::NEG_INFINITY];
             let result = validate_finite_array_test(&array, "test");
             assert!(result.is_err());
@@ -161,7 +161,7 @@ mod tests {
         }
 
         #[test]
-        fn test_subnormal_number_warning() {
+        fn accepts_subnormal_numbers_without_error() {
             // Test with very small numbers (subnormal)
             let array = [1.0, 1e-320, 3.0]; // 1e-320 is subnormal
             let result = validate_finite_array_test(&array, "test");
@@ -169,13 +169,13 @@ mod tests {
         }
 
         #[test]
-        fn test_empty_array() {
+        fn empty_array() {
             let array: [f64; 0] = [];
             assert!(validate_finite_array_test(&array, "test").is_ok());
         }
 
         #[test]
-        fn test_zeros_and_negatives() {
+        fn zeros_and_negatives() {
             let array = [0.0, -1.0, -0.0, 42.0];
             assert!(validate_finite_array_test(&array, "test").is_ok());
         }
@@ -185,14 +185,14 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_normal_division() {
+        fn normal_division() {
             let result = safe_divide_test(10.0, 2.0, "test");
             assert!(result.is_ok());
             assert_eq!(result.unwrap(), 5.0);
         }
 
         #[test]
-        fn test_zero_division() {
+        fn rejects_zero_denominator_with_error() {
             let result = safe_divide_test(5.0, 0.0, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -200,7 +200,7 @@ mod tests {
         }
 
         #[test]
-        fn test_near_zero_division() {
+        fn rejects_near_zero_denominator_with_error() {
             let result = safe_divide_test(5.0, f64::EPSILON / 2.0, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -208,7 +208,7 @@ mod tests {
         }
 
         #[test]
-        fn test_nan_numerator() {
+        fn rejects_nan_in_numerator_with_error() {
             let result = safe_divide_test(f64::NAN, 2.0, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -216,7 +216,7 @@ mod tests {
         }
 
         #[test]
-        fn test_nan_denominator() {
+        fn rejects_nan_in_denominator_with_error() {
             let result = safe_divide_test(5.0, f64::NAN, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -224,7 +224,7 @@ mod tests {
         }
 
         #[test]
-        fn test_infinite_numerator() {
+        fn rejects_infinite_numerator_with_error() {
             let result = safe_divide_test(f64::INFINITY, 2.0, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -232,7 +232,7 @@ mod tests {
         }
 
         #[test]
-        fn test_infinite_denominator() {
+        fn rejects_infinite_denominator_with_error() {
             let result = safe_divide_test(5.0, f64::INFINITY, "test");
             assert!(result.is_err());
             let error = result.unwrap_err();
@@ -240,21 +240,21 @@ mod tests {
         }
 
         #[test]
-        fn test_negative_division() {
+        fn negative_division() {
             let result = safe_divide_test(-10.0, -2.0, "test");
             assert!(result.is_ok());
             assert_eq!(result.unwrap(), 5.0);
         }
 
         #[test]
-        fn test_very_large_result() {
+        fn rejects_division_that_would_overflow() {
             // Test that could potentially overflow
             let result = safe_divide_test(f64::MAX, 0.5, "test");
             assert!(result.is_err()); // Should fail due to non-finite result
         }
 
         #[test]
-        fn test_context_in_error_message() {
+        fn includes_context_string_in_error_message() {
             let result = safe_divide_test(5.0, 0.0, "custom context");
             assert!(result.is_err());
             let error = result.unwrap_err();
