@@ -78,7 +78,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_perfect_positive_correlation() {
+        fn perfect_positive_correlation() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.0, 4.0, 6.0, 8.0]);
             let result = compute_r_value(&x, &y);
@@ -86,7 +86,7 @@ mod tests {
         }
 
         #[test]
-        fn test_perfect_negative_correlation() {
+        fn perfect_negative_correlation() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![8.0, 6.0, 4.0, 2.0]);
             let result = compute_r_value(&x, &y);
@@ -94,7 +94,7 @@ mod tests {
         }
 
         #[test]
-        fn test_returns_value_in_valid_range_for_mixed_ordered_data() {
+        fn returns_value_in_valid_range_for_mixed_ordered_data() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![1.0, 3.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);
@@ -103,7 +103,7 @@ mod tests {
         }
 
         #[test]
-        fn test_zero_variance_x() {
+        fn zero_variance_x() {
             let x = numpy::ndarray::Array1::from_vec(vec![2.0, 2.0, 2.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let result = compute_r_value(&x, &y);
@@ -111,7 +111,7 @@ mod tests {
         }
 
         #[test]
-        fn test_zero_variance_y() {
+        fn zero_variance_y() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![5.0, 5.0, 5.0]);
             let result = compute_r_value(&x, &y);
@@ -119,7 +119,7 @@ mod tests {
         }
 
         #[test]
-        fn test_single_point() {
+        fn single_point() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.0]);
             let result = compute_r_value(&x, &y);
@@ -127,7 +127,7 @@ mod tests {
         }
 
         #[test]
-        fn test_two_identical_points() {
+        fn two_identical_points() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 1.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.0, 2.0]);
             let result = compute_r_value(&x, &y);
@@ -135,7 +135,7 @@ mod tests {
         }
 
         #[test]
-        fn test_correlation_range() {
+        fn correlation_range() {
             // Test that correlation is always in [-1, 1]
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.1, 3.9, 6.2, 7.8, 10.1]);
@@ -144,7 +144,7 @@ mod tests {
         }
 
         #[test]
-        fn test_weak_correlation() {
+        fn weak_correlation() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![1.1, 2.1, 2.9, 4.2]);
             let result = compute_r_value(&x, &y);
@@ -152,7 +152,7 @@ mod tests {
         }
 
         #[test]
-        fn test_negative_values() {
+        fn negative_values() {
             let x = numpy::ndarray::Array1::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![-4.0, -2.0, 0.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);
@@ -164,20 +164,20 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_zero_t_value() {
+        fn zero_t_value() {
             let p_val = calculate_p_value_exact(0.0, 10.0);
             assert!((p_val - 1.0).abs() < 1e-10); // t=0 should give p≈1
         }
 
         #[test]
-        fn test_positive_t_value() {
+        fn positive_t_value() {
             let p_val = calculate_p_value_exact(2.0, 10.0);
             assert!(p_val > 0.0 && p_val < 1.0);
             assert!(p_val < 0.1); // Should be significant
         }
 
         #[test]
-        fn test_negative_t_value() {
+        fn negative_t_value() {
             let p_val_pos = calculate_p_value_exact(2.0, 10.0);
             let p_val_neg = calculate_p_value_exact(-2.0, 10.0);
             // Two-tailed test should give same result for positive and negative
@@ -185,26 +185,26 @@ mod tests {
         }
 
         #[test]
-        fn test_large_degrees_of_freedom() {
+        fn large_degrees_of_freedom() {
             let p_val = calculate_p_value_exact(1.96, 1000.0);
             // With large df, t-distribution approaches normal
             assert!((p_val - 0.05).abs() < 0.01); // Should be close to 0.05
         }
 
         #[test]
-        fn test_small_degrees_of_freedom() {
+        fn small_degrees_of_freedom() {
             let p_val = calculate_p_value_exact(2.0, 1.0);
             assert!(p_val > 0.0 && p_val < 1.0);
         }
 
         #[test]
-        fn test_very_large_t_value() {
+        fn very_large_t_value() {
             let p_val = calculate_p_value_exact(10.0, 10.0);
             assert!(p_val < 0.001); // Should be very small, but allow more tolerance
         }
 
         #[test]
-        fn test_p_value_range() {
+        fn p_value_range() {
             let test_cases = vec![
                 (0.0, 5.0),
                 (1.0, 10.0),
@@ -224,7 +224,7 @@ mod tests {
         }
 
         #[test]
-        fn test_invalid_degrees_of_freedom() {
+        fn invalid_degrees_of_freedom() {
             // Test with very small or invalid degrees of freedom
             let p_val = calculate_p_value_exact(1.0, 0.1);
             // Should return NaN for invalid df
@@ -232,7 +232,7 @@ mod tests {
         }
 
         #[test]
-        fn test_higher_t_statistic_yields_lower_p_value() {
+        fn higher_t_statistic_yields_lower_p_value() {
             // Larger absolute t-values should give smaller p-values
             let p1 = calculate_p_value_exact(1.0, 10.0);
             let p2 = calculate_p_value_exact(2.0, 10.0);
@@ -243,7 +243,7 @@ mod tests {
         }
 
         #[test]
-        fn test_negative_t_statistic_yields_same_p_value_as_positive() {
+        fn negative_t_statistic_yields_same_p_value_as_positive() {
             // Test symmetry around zero
             for t in [0.5, 1.0, 1.5, 2.0, 2.5] {
                 let p_pos = calculate_p_value_exact(t, 10.0);

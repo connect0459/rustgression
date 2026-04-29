@@ -472,7 +472,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_returns_finite_slope_for_nan_free_input() {
+        fn returns_finite_slope_for_nan_free_input() {
             // NaN input causes SVD library to panic,
             // so actual function detects it beforehand with input validation
             // This test shows the importance of input validation
@@ -484,7 +484,7 @@ mod tests {
         }
 
         #[test]
-        fn test_returns_finite_slope_for_finite_input() {
+        fn returns_finite_slope_for_finite_input() {
             // Infinite input also causes SVD library to panic,
             // so actual function detects it beforehand with input validation
             let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
@@ -495,7 +495,7 @@ mod tests {
         }
 
         #[test]
-        fn test_completes_without_panic_for_subnormal_y_values() {
+        fn completes_without_panic_for_subnormal_y_values() {
             // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
@@ -508,7 +508,7 @@ mod tests {
         }
 
         #[test]
-        fn test_completes_without_panic_for_extreme_value_range() {
+        fn completes_without_panic_for_extreme_value_range() {
             // Extreme value test
             let x = vec![1e-50, 2e-50, 3e-50];
             let y = vec![1e50, 2e50, 3e50];
@@ -521,7 +521,7 @@ mod tests {
         }
 
         #[test]
-        fn test_completes_without_panic_for_near_epsilon_x_differences() {
+        fn completes_without_panic_for_near_epsilon_x_differences() {
             // Numerically challenging case
             let x = vec![1.0, 1.0 + f64::EPSILON, 1.0 + 2.0 * f64::EPSILON];
             let y = vec![1e10, 1e10 + 1.0, 1e10 + 2.0];
@@ -606,7 +606,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_returns_positive_slope_for_perfect_linear_data() {
+        fn returns_positive_slope_for_perfect_linear_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0];
             let y = vec![2.0, 4.0, 6.0, 8.0];
 
@@ -625,7 +625,7 @@ mod tests {
         }
 
         #[test]
-        fn test_completes_without_panic_for_degenerate_inputs() {
+        fn completes_without_panic_for_degenerate_inputs() {
             let test_cases = vec![
                 ("minimal_data", vec![1.0, 2.0], vec![2.0, 4.0]),
                 ("identical_points", vec![3.0, 3.0, 3.0], vec![4.0, 4.0, 4.0]),
