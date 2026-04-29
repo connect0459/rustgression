@@ -99,12 +99,14 @@ class TestModuleInitialization:
         assert TlsRegressionParams is not None
         assert create_regressor is not None
 
-    def test_package_version_matches_current_release(self):
+    def test_version_attribute_matches_installed_package_metadata(self):
         """Test package version is available."""
+        import importlib.metadata
+
         import rustgression
 
         assert hasattr(rustgression, "__version__")
-        assert rustgression.__version__ == "0.4.1"
+        assert rustgression.__version__ == importlib.metadata.version("rustgression")
 
     def test_all_attribute_contains_exactly_five_public_names(self):
         """Test __all__ attribute contains expected items."""
