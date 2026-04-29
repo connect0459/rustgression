@@ -112,14 +112,14 @@ mod tests {
         }
 
         #[test]
-        fn test_nan_handling() {
+        fn test_propagates_nan_through_sum() {
             let values = [1.0, f64::NAN, 3.0];
             let result = kahan_sum(&values);
             assert!(result.is_nan());
         }
 
         #[test]
-        fn test_infinity_handling() {
+        fn test_propagates_infinity_through_sum() {
             let values = [1.0, f64::INFINITY, 3.0];
             let result = kahan_sum(&values);
             // With infinity, the result should either be infinite or NaN due to compensation arithmetic
@@ -127,7 +127,7 @@ mod tests {
         }
 
         #[test]
-        fn test_alternating_small_large() {
+        fn test_returns_approximately_correct_sum_for_alternating_magnitude_values() {
             // Test case that challenges floating-point precision
             let values = [1e20, 1.0, -1e20, 1.0];
             let result = kahan_sum(&values);

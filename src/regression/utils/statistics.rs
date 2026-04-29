@@ -232,7 +232,7 @@ mod tests {
         }
 
         #[test]
-        fn test_monotonicity() {
+        fn test_higher_t_statistic_yields_lower_p_value() {
             // Larger absolute t-values should give smaller p-values
             let p1 = calculate_p_value_exact(1.0, 10.0);
             let p2 = calculate_p_value_exact(2.0, 10.0);
@@ -243,7 +243,7 @@ mod tests {
         }
 
         #[test]
-        fn test_symmetry() {
+        fn test_negative_t_statistic_yields_same_p_value_as_positive() {
             // Test symmetry around zero
             for t in [0.5, 1.0, 1.5, 2.0, 2.5] {
                 let p_pos = calculate_p_value_exact(t, 10.0);

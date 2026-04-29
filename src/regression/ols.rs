@@ -430,7 +430,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_nan_input_detection() {
+        fn test_completes_without_panic_for_nan_input() {
             let x = vec![1.0, 2.0, f64::NAN];
             let y = vec![2.0, 4.0, 6.0];
 
@@ -441,7 +441,7 @@ mod tests {
         }
 
         #[test]
-        fn test_infinite_input_detection() {
+        fn test_completes_without_panic_for_infinite_input() {
             let x = vec![1.0, 2.0, f64::INFINITY];
             let y = vec![2.0, 4.0, 6.0];
 
@@ -453,7 +453,7 @@ mod tests {
         }
 
         #[test]
-        fn test_subnormal_numbers() {
+        fn test_completes_without_panic_for_subnormal_values() {
             // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1e-320, 2e-320, 3e-320]; // Very small values
@@ -464,7 +464,7 @@ mod tests {
         }
 
         #[test]
-        fn test_extreme_values() {
+        fn test_completes_without_panic_for_extreme_value_range() {
             // Extreme value test
             let x = vec![1e-100, 2e-100, 3e-100];
             let y = vec![1e100, 2e100, 3e100];
@@ -475,7 +475,7 @@ mod tests {
         }
 
         #[test]
-        fn test_zero_division_cases() {
+        fn test_returns_non_finite_slope_when_x_has_zero_variance() {
             // Case with zero variance
             let x = vec![1.0, 1.0, 1.0]; // Zero variance
             let y = vec![2.0, 4.0, 6.0];
@@ -491,7 +491,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_perform_ols_directly() {
+        fn test_returns_correct_parameters_for_perfect_linear_relationship() {
             let x = vec![1.0, 2.0, 3.0, 4.0];
             let y = vec![2.0, 4.0, 6.0, 8.0];
 
@@ -502,7 +502,7 @@ mod tests {
         }
 
         #[test]
-        fn test_perform_ols_edge_cases() {
+        fn test_completes_without_panic_for_degenerate_inputs() {
             let test_cases = vec![
                 ("single_point", vec![1.0], vec![2.0]),
                 ("zero_variance_x", vec![2.0, 2.0, 2.0], vec![1.0, 2.0, 3.0]),
