@@ -29,7 +29,7 @@ def sample_data():
 class TestCreateRegressor:
     """Tests for the factory function for creating regressors."""
 
-    def test_normal_case(self, sample_data):
+    def test_creates_ols_and_tls_regressors_by_method_name(self, sample_data):
         """Test normal regressor creation."""
         x, y = sample_data
 
@@ -39,13 +39,13 @@ class TestCreateRegressor:
         tls = create_regressor(x, y, "tls")
         assert isinstance(tls, TlsRegressor)
 
-    def test_default_behavior(self, sample_data):
+    def test_creates_ols_regressor_when_no_method_is_specified(self, sample_data):
         """Test default regressor creation."""
         x, y = sample_data
         default = create_regressor(x, y)
         assert isinstance(default, OlsRegressor)
 
-    def test_invalid_method(self, sample_data):
+    def test_raises_value_error_for_unknown_method_name(self, sample_data):
         """Test error handling for invalid methods."""
         x, y = sample_data
         with pytest.raises(ValueError, match="Unknown regression method"):
@@ -70,7 +70,9 @@ class TestInputValidation:
             OlsRegressor(np.array([1]), np.array([1]))
 
     @pytest.mark.parametrize("regressor_class", [OlsRegressor, TlsRegressor])
-    def test_edge_cases_table_driven(self, regressor_class):
+    def test_raises_error_for_empty_arrays_single_point_and_length_mismatch(
+        self, regressor_class
+    ):
         """Test edge cases with different input patterns."""
         test_cases = [
             ("empty_arrays", np.array([]), np.array([]), ValueError),

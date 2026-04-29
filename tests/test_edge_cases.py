@@ -11,7 +11,7 @@ from rustgression import OlsRegressor, TlsRegressor
 class TestRegressorEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_regressor_string_representation(self):
+    def test_repr_includes_class_name_slope_intercept_and_r_value(self):
         """Test string representation of regressors."""
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
@@ -33,7 +33,7 @@ class TestRegressorEdgeCases:
         assert "intercept=" in tls_repr
         assert "r_value=" in tls_repr
 
-    def test_predict_method_coverage(self):
+    def test_prediction_returns_values_matching_linear_formula(self):
         """Test predict method for complete coverage."""
         x = np.array([1.0, 2.0, 3.0, 4.0])
         y = np.array([2.0, 4.0, 6.0, 8.0])
@@ -51,7 +51,7 @@ class TestRegressorEdgeCases:
         expected = regressor.slope() * x_new + regressor.intercept()
         np.testing.assert_array_almost_equal(predictions, expected, decimal=10)
 
-    def test_abstract_method_coverage(self):
+    def test_base_regressor_cannot_be_instantiated_directly(self):
         """Test abstract method behaviors."""
         from rustgression.regression.base import BaseRegressor
 
@@ -59,7 +59,7 @@ class TestRegressorEdgeCases:
         with pytest.raises(TypeError):
             BaseRegressor(np.array([1, 2]), np.array([1, 2]))
 
-    def test_get_params_method_coverage(self):
+    def test_params_expose_slope_intercept_and_r_value(self):
         """Test get_params method for coverage."""
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
@@ -84,7 +84,7 @@ class TestRegressorEdgeCases:
         assert hasattr(tls_params, "intercept")
         assert hasattr(tls_params, "r_value")
 
-    def test_regressor_properties_consistency(self):
+    def test_slope_intercept_and_r_value_match_params_returned_by_get_params(self):
         """Test that regressor properties are consistent with get_params."""
         x = np.array([1.0, 2.0, 3.0, 4.0])
         y = np.array([1.5, 3.5, 5.5, 7.5])
@@ -97,7 +97,7 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept() - params.intercept) < 1e-10
         assert abs(regressor.r_value() - params.r_value) < 1e-10
 
-    def test_large_numbers_handling(self):
+    def test_computes_correct_slope_for_million_scale_inputs(self):
         """Test handling of large numbers."""
         x = np.array([1e6, 2e6, 3e6])
         y = np.array([2e6, 4e6, 6e6])
@@ -109,7 +109,7 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept()) < 1e-6
         assert abs(regressor.r_value() - 1.0) < 1e-10
 
-    def test_small_numbers_handling(self):
+    def test_computes_correct_slope_for_micro_scale_inputs(self):
         """Test handling of very small numbers."""
         x = np.array([1e-6, 2e-6, 3e-6])
         y = np.array([2e-6, 4e-6, 6e-6])

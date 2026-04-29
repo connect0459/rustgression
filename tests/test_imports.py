@@ -10,7 +10,7 @@ import unittest.mock
 class TestImportErrorHandling:
     """Test error handling for import failures."""
 
-    def test_rust_module_import_error(self):
+    def test_calculate_ols_regression_is_callable_when_imported(self):
         """Test handling of Rust module import errors."""
         # Test that ImportError is properly handled without breaking the import system
         # Since the Rust module is already loaded, we'll test the error handling logic
@@ -27,7 +27,7 @@ class TestImportErrorHandling:
 
             assert callable(calculate_ols_regression)
 
-    def test_importlib_find_spec_none_handling(self):
+    def test_find_spec_mock_is_called_with_given_module_name(self):
         """Test that find_spec None return is handled correctly."""
         # Test the specific code path where find_spec returns None
         with unittest.mock.patch(
@@ -36,9 +36,9 @@ class TestImportErrorHandling:
             # Since the module is already imported, we test the logic indirectly
             spec = importlib.util.find_spec("nonexistent.module")
             assert spec is None
-            mock_find_spec.assert_called_once()
+            mock_find_spec.assert_called_once_with("nonexistent.module")
 
-    def test_dynamic_import_error_scenario(self):
+    def test_module_creation_from_mocked_spec_returns_mock_instance(self):
         """Test dynamic import error handling scenario."""
         # Test that when spec is found but exec_module fails, it's handled
         mock_spec = unittest.mock.MagicMock()
@@ -63,7 +63,7 @@ class TestImportErrorHandling:
 class TestModuleInitialization:
     """Test module initialization scenarios."""
 
-    def test_successful_rust_import(self):
+    def test_rust_imports_exposes_ols_and_tls_functions_in_all(self):
         """Test successful import of Rust module."""
         # Test that the functions are available and callable
         # This avoids the PyO3 reinitialization issue by not reimporting
@@ -82,7 +82,7 @@ class TestModuleInitialization:
         expected_functions = {"calculate_ols_regression", "calculate_tls_regression"}
         assert set(rustgression.regression._rust_imports.__all__) == expected_functions
 
-    def test_regression_module_components(self):
+    def test_all_public_symbols_are_importable_from_package(self):
         """Test that all expected components are available."""
         from rustgression import (
             OlsRegressionParams,
@@ -99,14 +99,16 @@ class TestModuleInitialization:
         assert TlsRegressionParams is not None
         assert create_regressor is not None
 
-    def test_package_version(self):
+    def test_version_attribute_matches_installed_package_metadata(self):
         """Test package version is available."""
+        import importlib.metadata
+
         import rustgression
 
         assert hasattr(rustgression, "__version__")
-        assert rustgression.__version__ == "0.4.1"
+        assert rustgression.__version__ == importlib.metadata.version("rustgression")
 
-    def test_package_all_attribute(self):
+    def test_all_attribute_contains_exactly_five_public_names(self):
         """Test __all__ attribute contains expected items."""
         import rustgression
 
