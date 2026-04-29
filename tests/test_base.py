@@ -70,7 +70,9 @@ class TestInputValidation:
             OlsRegressor(np.array([1]), np.array([1]))
 
     @pytest.mark.parametrize("regressor_class", [OlsRegressor, TlsRegressor])
-    def test_edge_cases_table_driven(self, regressor_class):
+    def test_raises_error_for_empty_arrays_single_point_and_length_mismatch(
+        self, regressor_class
+    ):
         """Test edge cases with different input patterns."""
         test_cases = [
             ("empty_arrays", np.array([]), np.array([]), ValueError),

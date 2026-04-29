@@ -64,7 +64,7 @@ class TestOlsRegressor:
             ([1.0, 2.0, 3.0, 4.0, 5.0], [3.0, 3.0, 3.0, 3.0, 3.0], 0.0, 3.0),
         ],
     )
-    def test_edge_cases_table_driven(
+    def test_correctly_fits_various_linear_patterns(
         self, x_data, y_data, expected_slope, expected_intercept
     ):
         """Test various regression patterns."""
