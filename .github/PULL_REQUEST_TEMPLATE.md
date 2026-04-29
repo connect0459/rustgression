@@ -96,7 +96,7 @@ Also document rollback procedures in case of issues, e.g., Revert.
 - [ ] Design decisions documented in ADR (if applicable)
 - [ ] **Version Update** (for release PRs): Executed `./scripts/version-update.sh <new-version>` to update all version files consistently
 
-> 💡 **Important**: Since this is a private repository, this checklist ensures quality. Please verify all items before requesting review.
+> 💡 **Important**: This checklist ensures quality. Please verify all items before requesting review.
 
 ## Work Time
 
