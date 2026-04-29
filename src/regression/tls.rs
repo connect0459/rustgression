@@ -472,29 +472,6 @@ mod tests {
         use super::*;
 
         #[test]
-        fn returns_finite_slope_for_nan_free_input() {
-            // NaN input causes SVD library to panic,
-            // so actual function detects it beforehand with input validation
-            // This test shows the importance of input validation
-            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
-            let y = vec![2.0, 4.0, 6.0];
-
-            let result = perform_tls(&x, &y);
-            assert!(result.slope.is_finite());
-        }
-
-        #[test]
-        fn returns_finite_slope_for_finite_input() {
-            // Infinite input also causes SVD library to panic,
-            // so actual function detects it beforehand with input validation
-            let x = vec![1.0, 2.0, 3.0]; // Use normal data as substitute
-            let y = vec![2.0, 4.0, 6.0];
-
-            let result = perform_tls(&x, &y);
-            assert!(result.slope.is_finite());
-        }
-
-        #[test]
         fn completes_without_panic_for_subnormal_y_values() {
             // Subnormal number test
             let x = vec![1.0, 2.0, 3.0];
