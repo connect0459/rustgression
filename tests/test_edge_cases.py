@@ -84,7 +84,7 @@ class TestRegressorEdgeCases:
         assert hasattr(tls_params, "intercept")
         assert hasattr(tls_params, "r_value")
 
-    def test_regressor_properties_consistency(self):
+    def test_slope_intercept_and_r_value_match_params_returned_by_get_params(self):
         """Test that regressor properties are consistent with get_params."""
         x = np.array([1.0, 2.0, 3.0, 4.0])
         y = np.array([1.5, 3.5, 5.5, 7.5])
@@ -97,7 +97,7 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept() - params.intercept) < 1e-10
         assert abs(regressor.r_value() - params.r_value) < 1e-10
 
-    def test_large_numbers_handling(self):
+    def test_computes_correct_slope_for_million_scale_inputs(self):
         """Test handling of large numbers."""
         x = np.array([1e6, 2e6, 3e6])
         y = np.array([2e6, 4e6, 6e6])
@@ -109,7 +109,7 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept()) < 1e-6
         assert abs(regressor.r_value() - 1.0) < 1e-10
 
-    def test_small_numbers_handling(self):
+    def test_computes_correct_slope_for_micro_scale_inputs(self):
         """Test handling of very small numbers."""
         x = np.array([1e-6, 2e-6, 3e-6])
         y = np.array([2e-6, 4e-6, 6e-6])

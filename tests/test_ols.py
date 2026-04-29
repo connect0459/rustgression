@@ -25,7 +25,9 @@ def sample_data():
 class TestOlsRegressor:
     """Tests for the OlsRegressor class."""
 
-    def test_normal_regression(self, sample_data):
+    def test_returns_accurate_slope_intercept_r_value_p_value_and_stderr_for_noisy_data(
+        self, sample_data
+    ):
         """Test normal regression analysis."""
         x, y = sample_data
         regressor = OlsRegressor(x, y)
@@ -44,7 +46,7 @@ class TestOlsRegressor:
             assert isinstance(params, OlsRegressionParams)
             assert 1.9 < params.slope < 2.1
 
-    def test_prediction(self, sample_data):
+    def test_predicted_values_yield_r_squared_above_0_95(self, sample_data):
         """Test prediction functionality."""
         x, y = sample_data
         regressor = OlsRegressor(x, y)
@@ -81,7 +83,7 @@ class TestOlsRegressor:
             f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
         )
 
-    def test_boundary_cases(self):
+    def test_computes_exact_slope_and_zero_intercept_for_two_data_points(self):
         """Test boundary conditions."""
         # Minimum data points
         x = np.array([1.0, 2.0])

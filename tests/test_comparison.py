@@ -25,7 +25,7 @@ def sample_data():
 class TestMethodComparison:
     """Tests for comparing OLS and TLS regression methods."""
 
-    def test_parameter_similarity(self, sample_data):
+    def test_ols_and_tls_produce_similar_slope_intercept_and_r_value(self, sample_data):
         """Test parameter similarity between methods."""
         x, y = sample_data
 
