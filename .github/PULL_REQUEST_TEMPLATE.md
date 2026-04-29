@@ -21,35 +21,6 @@ It's difficult to review without knowing the specifications and background.
 - Release considerations
   - Dependencies on other PRs being released first, etc.
 
-## Target Devices/Environments
-
-- [ ] PC (Windows, Mac)
-  - [ ] Chrome
-  - [ ] Firefox
-  - [ ] Edge
-  - [ ] Safari
-- [ ] Mobile (Android, iPhone)
-  - [ ] Chrome
-  - [ ] Safari
-
-```txt
-Check devices/environments that may be affected and should be tested.
-This helps reviewers determine whether device-specific bugs should be addressed
-or can be ignored because they're not target devices.
-```
-
-## Related Database
-
-- Related tables
-
-## External Integrations
-
-- Links to partner API specifications if applicable.
-
-```txt
-For external integration cases, integration specifications are necessary for review.
-```
-
 ## Deferred Items and TODOs
 
 - Items that were deferred and the reasons why.
