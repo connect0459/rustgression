@@ -208,7 +208,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn valid_regression() {
+        fn returns_positive_slope_for_positively_correlated_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
 
@@ -538,7 +538,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn perfect_correlation() {
+        fn returns_one_for_perfectly_linearly_correlated_data() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![2.0, 4.0, 6.0]);
 

@@ -94,7 +94,7 @@ mod tests {
         }
 
         #[test]
-        fn test_no_correlation() {
+        fn test_returns_value_in_valid_range_for_mixed_ordered_data() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![1.0, 3.0, 2.0, 4.0]);
             let result = compute_r_value(&x, &y);

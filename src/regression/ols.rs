@@ -184,7 +184,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn valid_regression() {
+        fn returns_correct_parameters_for_perfect_linear_data() {
             let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
             let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
 
@@ -196,7 +196,7 @@ mod tests {
         }
 
         #[test]
-        fn insufficient_data_points() {
+        fn returns_non_finite_result_for_single_data_point() {
             let x = vec![1.0];
             let y = vec![2.0];
 
@@ -328,7 +328,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn large_degrees_of_freedom() {
+        fn returns_valid_p_value_for_large_degrees_of_freedom() {
             let p_val = calculate_p_value_exact(2.0, 100.0);
             assert!(p_val > 0.0 && p_val < 1.0);
         }
@@ -355,7 +355,7 @@ mod tests {
         }
 
         #[test]
-        fn accuracy_comparison() {
+        fn matches_known_p_values_for_standard_t_statistics() {
             // Test with known t-value and p-value combinations
             let test_cases = vec![
                 (0.0, 10.0, 1.0),     // t=0 => p=1
