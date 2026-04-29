@@ -55,7 +55,7 @@ class TestErrorHandling:
                     # Expected behavior
                     pass
 
-    def test_rust_imports_error_path_coverage(self):
+    def test_find_spec_returns_none_for_nonexistent_module(self):
         """Test error path coverage in _rust_imports.py."""
         # Test the error handling logic without trying to reimport the module
         # This tests the specific error message generation

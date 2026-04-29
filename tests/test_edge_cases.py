@@ -33,7 +33,7 @@ class TestRegressorEdgeCases:
         assert "intercept=" in tls_repr
         assert "r_value=" in tls_repr
 
-    def test_predict_method_coverage(self):
+    def test_prediction_returns_values_matching_linear_formula(self):
         """Test predict method for complete coverage."""
         x = np.array([1.0, 2.0, 3.0, 4.0])
         y = np.array([2.0, 4.0, 6.0, 8.0])
@@ -51,7 +51,7 @@ class TestRegressorEdgeCases:
         expected = regressor.slope() * x_new + regressor.intercept()
         np.testing.assert_array_almost_equal(predictions, expected, decimal=10)
 
-    def test_abstract_method_coverage(self):
+    def test_base_regressor_cannot_be_instantiated_directly(self):
         """Test abstract method behaviors."""
         from rustgression.regression.base import BaseRegressor
 
@@ -59,7 +59,7 @@ class TestRegressorEdgeCases:
         with pytest.raises(TypeError):
             BaseRegressor(np.array([1, 2]), np.array([1, 2]))
 
-    def test_get_params_method_coverage(self):
+    def test_params_expose_slope_intercept_and_r_value(self):
         """Test get_params method for coverage."""
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
