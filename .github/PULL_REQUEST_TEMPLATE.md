@@ -21,35 +21,6 @@ It's difficult to review without knowing the specifications and background.
 - Release considerations
   - Dependencies on other PRs being released first, etc.
 
-## Target Devices/Environments
-
-- [ ] PC (Windows, Mac)
-  - [ ] Chrome
-  - [ ] Firefox
-  - [ ] Edge
-  - [ ] Safari
-- [ ] Mobile (Android, iPhone)
-  - [ ] Chrome
-  - [ ] Safari
-
-```txt
-Check devices/environments that may be affected and should be tested.
-This helps reviewers determine whether device-specific bugs should be addressed
-or can be ignored because they're not target devices.
-```
-
-## Related Database
-
-- Related tables
-
-## External Integrations
-
-- Links to partner API specifications if applicable.
-
-```txt
-For external integration cases, integration specifications are necessary for review.
-```
-
 ## Deferred Items and TODOs
 
 - Items that were deferred and the reasons why.
@@ -87,7 +58,7 @@ Also document rollback procedures in case of issues, e.g., Revert.
 - Areas you're somewhat concerned about.
 - Feel free to highlight parts you think went well.
 
-## ✅ Quality Checklist (Required)
+## [Required] Quality Checklist
 
 ### Please check all items before merging
 
@@ -96,7 +67,7 @@ Also document rollback procedures in case of issues, e.g., Revert.
 - [ ] Design decisions documented in ADR (if applicable)
 - [ ] **Version Update** (for release PRs): Executed `./scripts/version-update.sh <new-version>` to update all version files consistently
 
-> 💡 **Important**: Since this is a private repository, this checklist ensures quality. Please verify all items before requesting review.
+> 💡 **Important**: This checklist ensures quality. Please verify all items before requesting review.
 
 ## Work Time
 
