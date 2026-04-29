@@ -12,7 +12,7 @@ import pytest
 class TestErrorHandling:
     """Test error handling scenarios."""
 
-    def test_init_rust_import_error(self):
+    def test_stderr_receives_two_writes_when_rust_import_fails(self):
         """Test error handling in __init__.py when Rust import fails."""
         # Test that the package can handle import errors gracefully
         # Since the module is already loaded, we test the error handling indirectly
@@ -30,7 +30,7 @@ class TestErrorHandling:
             # Verify stderr was used
             assert mock_stderr.write.call_count >= 2
 
-    def test_init_regression_import_error(self):
+    def test_reload_raises_import_error_when_regression_module_is_missing(self):
         """Test error handling in __init__.py when regression module import fails."""
         # Mock successful Rust import but failed regression import
         mock_rust_module = unittest.mock.MagicMock()
@@ -73,7 +73,7 @@ class TestErrorHandling:
             assert "Could not find" in error_msg
             assert "rustgression.rustgression module" in error_msg
 
-    def test_rust_imports_stderr_output(self):
+    def test_error_message_written_to_stderr_on_import_failure(self):
         """Test stderr output in _rust_imports.py error handling."""
         # Test stderr output handling directly
         with unittest.mock.patch("sys.stderr") as mock_stderr:
@@ -86,7 +86,7 @@ class TestErrorHandling:
             # Verify stderr.write was called
             mock_stderr.write.assert_called()
 
-    def test_abstract_methods_not_implemented(self):
+    def test_incomplete_subclass_raises_type_error(self):
         """Test that abstract methods raise appropriate errors."""
         import numpy as np
 

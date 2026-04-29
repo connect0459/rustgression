@@ -11,7 +11,7 @@ from rustgression import OlsRegressor, TlsRegressor
 class TestRegressorEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_regressor_string_representation(self):
+    def test_repr_includes_class_name_slope_intercept_and_r_value(self):
         """Test string representation of regressors."""
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([2.0, 4.0, 6.0])
