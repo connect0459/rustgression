@@ -368,7 +368,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn svd_numerical_stability() {
+        fn completes_without_panic_for_nearly_identical_x_values() {
             // SVD stability test with large condition number matrix
             let x = vec![1.0, 1.0000001, 1.0000002]; // Nearly identical values
             let y = vec![1.0, 2.0, 3.0];
@@ -413,7 +413,7 @@ mod tests {
         }
 
         #[test]
-        fn sign_consistency() {
+        fn slope_sign_matches_data_correlation_direction() {
             // Sign consistency test
             let test_cases = vec![
                 (
@@ -452,7 +452,7 @@ mod tests {
         }
 
         #[test]
-        fn condition_number_handling() {
+        fn completes_without_panic_for_perfect_linear_relationship() {
             // Verify condition number calculation works properly
             let x = vec![1.0, 2.0, 3.0];
             let y = vec![1.0, 2.0, 3.0]; // Perfect linear relationship

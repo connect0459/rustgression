@@ -380,7 +380,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn kahan_sum_accuracy() {
+        fn sums_small_values_without_accumulated_rounding_error() {
             // More practical test: many small values
             let small_values = vec![0.1; 10];
             let kahan_result = kahan_sum(&small_values);
@@ -403,7 +403,7 @@ mod tests {
         }
 
         #[test]
-        fn kahan_sum_vs_naive() {
+        fn preserves_small_addend_when_summing_with_many_large_values() {
             // Test floating-point precision limits
             let mut values = vec![1.0; 1000000];
             values.push(1e-10);
@@ -419,7 +419,7 @@ mod tests {
         }
 
         #[test]
-        fn kahan_sum_edge_cases() {
+        fn handles_empty_array_single_value_and_nan_input() {
             assert_eq!(kahan_sum(&[]), 0.0);
             assert_eq!(kahan_sum(&[42.0]), 42.0);
             assert!(kahan_sum(&[f64::NAN]).is_nan());

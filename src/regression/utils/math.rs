@@ -52,7 +52,7 @@ mod tests {
         }
 
         #[test]
-        fn test_precision_improvement() {
+        fn test_achieves_high_precision_when_summing_ten_small_values() {
             // Test case where Kahan summation shows improvement over naive summation
             let small_values = vec![0.1; 10];
             let kahan_result = kahan_sum(&small_values);
@@ -63,7 +63,7 @@ mod tests {
         }
 
         #[test]
-        fn test_precision_vs_naive() {
+        fn test_preserves_small_addend_when_summing_with_many_large_values() {
             // Test floating-point precision limits
             let mut values = vec![1.0; 1000000];
             values.push(1e-10);
