@@ -87,7 +87,7 @@ Also document rollback procedures in case of issues, e.g., Revert.
 - Areas you're somewhat concerned about.
 - Feel free to highlight parts you think went well.
 
-## ✅ Quality Checklist (Required)
+## [Required] Quality Checklist
 
 ### Please check all items before merging
 
