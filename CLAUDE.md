@@ -14,6 +14,10 @@ This project may be released publicly. All of the following must be written in *
 - Test names
 - Error messages
 
+## Commit Conventions
+
+Follow the project commit conventions defined in [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
+
 ## Test Commands
 
 ### Python Tests
