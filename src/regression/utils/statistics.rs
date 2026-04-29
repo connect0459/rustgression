@@ -144,11 +144,11 @@ mod tests {
         }
 
         #[test]
-        fn weak_correlation() {
+        fn strong_positive_correlation_for_near_linear_data() {
             let x = numpy::ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0, 4.0]);
             let y = numpy::ndarray::Array1::from_vec(vec![1.1, 2.1, 2.9, 4.2]);
             let result = compute_r_value(&x, &y);
-            assert!(result > 0.9); // Should be strongly positive
+            assert!(result > 0.9);
         }
 
         #[test]
