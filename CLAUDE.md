@@ -2,7 +2,7 @@
 
 ## Primary Directive
 
-- Think in English, interact with the user in their native language.
+- Think in English. For user interaction language, follow the setting in the user's global CLAUDE.md or CLAUDE.local.md.
 
 ## Language Convention
 
