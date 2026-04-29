@@ -2,7 +2,7 @@
 
 ## Primary Directive
 
-- Think in English, interact with the user in their native language.
+- Think in English. For user interaction language, follow the setting in the user's global CLAUDE.md or CLAUDE.local.md.
 
 ## Language Convention
 
@@ -13,6 +13,10 @@ This project may be released publicly. All of the following must be written in *
 - Documentation (including `CLAUDE.md`, `README.md`, etc.)
 - Test names
 - Error messages
+
+## Commit Conventions
+
+Follow the project commit conventions defined in [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
 
 ## Test Commands
 
