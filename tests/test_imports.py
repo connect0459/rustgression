@@ -36,7 +36,7 @@ class TestImportErrorHandling:
             # Since the module is already imported, we test the logic indirectly
             spec = importlib.util.find_spec("nonexistent.module")
             assert spec is None
-            mock_find_spec.assert_called_once()
+            mock_find_spec.assert_called_once_with("nonexistent.module")
 
     def test_module_creation_from_mocked_spec_returns_mock_instance(self):
         """Test dynamic import error handling scenario."""
