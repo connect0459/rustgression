@@ -21,7 +21,8 @@
 | `refactor` | Code change that is neither a fix nor a feature |
 | `tidy` | Small, safe cleanup (< 2 min; no behavior change) |
 | `test` | Adding or updating tests |
-| `chore` | Build process, tooling, config, CI/CD pipeline changes |
+| `chore` | Build process, tooling, or config changes |
+| `ci` | CI/CD pipeline changes (GitHub Actions, workflows) |
 | `perf` | Performance improvement |
 
 ## Scopes
