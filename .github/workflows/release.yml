@@ -150,10 +150,11 @@ jobs:
           ls -la dist/
           echo "Wheel count: $(ls -1 dist/*.whl | wc -l)"
 
+      - name: Install release dependencies
+        run: uv sync --only-group release --frozen
+
       - name: Publish to PyPI
-        run: |
-          echo "Uploading all wheels to PyPI:"
-          uvx twine upload dist/*.whl
+        run: uv run twine upload dist/*.whl
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
