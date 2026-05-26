@@ -51,11 +51,20 @@ class TlsRegressionParams:
         The y-intercept of the regression line.
     r_value : float
         The correlation coefficient indicating the strength of the relationship.
+    p_value : float
+        The p-value for the hypothesis test that slope equals zero.
+    stderr : float
+        The standard error of the slope estimate.
+    intercept_stderr : float
+        The standard error of the intercept estimate.
     """
 
     slope: float
     intercept: float
     r_value: float
+    p_value: float
+    stderr: float
+    intercept_stderr: float
 
 
 class BaseRegressor(ABC, Generic[T]):
