@@ -10,15 +10,9 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=500]
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
   - repo: local
     hooks:
+      # Rust
       - id: rust-fmt
         name: rust fmt
         entry: cargo fmt
@@ -33,3 +27,30 @@ repos:
         files: \.rs$
         pass_filenames: false
         args: [--all-targets, --all-features, --, -D, warnings]
+      - id: rust-test
+        name: rust test
+        entry: cargo test
+        language: system
+        files: \.rs$
+        pass_filenames: false
+
+      # Python
+      - id: python-lint
+        name: python lint
+        entry: uv run ruff check
+        language: system
+        files: \.py$
+        pass_filenames: false
+        args: [--fix]
+      - id: python-format
+        name: python format
+        entry: uv run ruff format
+        language: system
+        files: \.py$
+        pass_filenames: false
+      - id: python-test
+        name: python test
+        entry: uv run pytest
+        language: system
+        files: \.py$
+        pass_filenames: false
