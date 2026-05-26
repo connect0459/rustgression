@@ -184,6 +184,16 @@ fn calculate_slope_with_sign_correction(
     x_mean: f64,
     y_mean: f64,
 ) -> PyResult<(f64, f64)> {
+    let stability_threshold = f64::EPSILON.sqrt();
+    if v_col[1].abs() < stability_threshold {
+        return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+            "TLS regression is numerically unstable: null-vector y-component \
+             magnitude ({:.2e}) is below the stability threshold ({:.2e}). \
+             The data may represent a nearly vertical or uncorrelated relationship.",
+            v_col[1].abs(),
+            stability_threshold
+        )));
+    }
     let mut slope = safe_divide(-v_col[0], v_col[1], "TLS slope calculation")?;
 
     let mut covariance = 0.0;
