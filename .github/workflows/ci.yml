@@ -43,7 +43,7 @@ jobs:
               - 'rust-toolchain.toml'
               - 'uv.lock'
 
-      - name: Install uv
+      - name: Set up Python (uv)
         if: steps.filter.outputs.code == 'true'
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
@@ -66,8 +66,8 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
         # automatically reads rust-toolchain.toml to set up the toolchain
 
-      # Set up dependencies for Linux (Ubuntu)
-      - name: Setup Ubuntu dependencies
+      # Set up Rust build dependencies for Linux (Ubuntu)
+      - name: Set up Rust build dependencies (Ubuntu)
         if: steps.filter.outputs.code == 'true' && matrix.os == 'ubuntu-latest'
         run: |
           if command -v cmake &> /dev/null; then
@@ -78,8 +78,8 @@ jobs:
             sudo apt-get install -y cmake
           fi
 
-      # Set up dependencies for macOS
-      - name: Setup macOS dependencies
+      # Set up Rust build dependencies for macOS
+      - name: Set up Rust build dependencies (macOS)
         if: steps.filter.outputs.code == 'true' && matrix.os == 'macos-latest'
         run: |
           if command -v cmake &> /dev/null; then
@@ -89,8 +89,8 @@ jobs:
             brew install cmake
           fi
 
-      # Set up dependencies for Windows
-      - name: Setup Windows dependencies
+      # Set up Rust build dependencies for Windows
+      - name: Set up Rust build dependencies (Windows)
         if: steps.filter.outputs.code == 'true' && matrix.os == 'windows-latest'
         run: |
           if (Get-Command cmake -ErrorAction SilentlyContinue) {
@@ -100,8 +100,8 @@ jobs:
             choco install cmake -y
           }
 
-      # Sync dependencies
-      - name: Install dependencies
+      # Sync Python dependencies
+      - name: Install Python dependencies
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
@@ -113,29 +113,41 @@ jobs:
           # Sync dependencies from pyproject.toml (including main and dev dependencies)
           uv sync --frozen
 
-      # Lint and format checks
-      - name: Run lint and format checks
+      # Rust lint and format checks
+      - name: Lint and format Rust
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
-          echo "Running lint and format checks..."
-
-          # Python lint and format checks
-          echo "Checking Python code with ruff..."
-          uv run ruff check
-          uv run ruff format --check
-
-          # Rust format and lint checks
           echo "Checking Rust code formatting..."
           cargo fmt --all --check
 
           echo "Running Rust clippy..."
           cargo clippy --all-targets --all-features -- -D warnings
 
-          echo "All lint and format checks passed!"
+          echo "Rust lint and format checks passed!"
 
-      # Build and install
-      - name: Build wheels and install
+      # Python lint and format checks
+      - name: Lint and format Python
+        if: steps.filter.outputs.code == 'true'
+        shell: bash
+        run: |
+          echo "Checking Python code with ruff..."
+          uv run ruff check
+          uv run ruff format --check
+
+          echo "Python lint and format checks passed!"
+
+      # Run Rust unit tests
+      - name: Run Rust tests
+        if: steps.filter.outputs.code == 'true'
+        shell: bash
+        run: |
+          echo "Running Rust unit tests..."
+          cargo test
+          echo "Rust tests passed!"
+
+      # Build and install Python package
+      - name: Build and install Python wheels
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
@@ -158,15 +170,15 @@ jobs:
           uv run python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
           uv run python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
 
-      # Test package import
-      - name: Test import
+      # Test Python package import
+      - name: Test Python package import
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           uv run python scripts/test-import-operation.py
 
-      # Run tests
-      - name: Run tests
+      # Run Python tests
+      - name: Run Python tests
         if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
