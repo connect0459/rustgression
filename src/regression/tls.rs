@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 use std::f64;
 
 // Type aliases to reduce complexity
+type TlsResult<'py> = (Bound<'py, PyArray1<f64>>, f64, f64, f64, f64, f64, f64);
 type Array1Ref =
     numpy::ndarray::ArrayBase<numpy::ndarray::OwnedRepr<f64>, numpy::ndarray::Dim<[usize; 1]>>;
 type VMatrix = nalgebra::Matrix<
@@ -49,7 +50,7 @@ pub fn calculate_tls_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
-) -> PyResult<(Bound<'py, PyArray1<f64>>, f64, f64, f64, f64, f64, f64)> {
+) -> PyResult<TlsResult<'py>> {
     // Convert NumPy arrays to ndarray
     let x_array: Array1Ref = x.as_array().to_owned();
     let y_array: Array1Ref = y.as_array().to_owned();
