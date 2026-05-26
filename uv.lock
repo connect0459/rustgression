@@ -1188,6 +1188,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "scipy" },
     { name = "setuptools" },
     { name = "twine" },
 ]
@@ -1211,6 +1212,7 @@ dev = [
     { name = "pytest", specifier = "==9.0.3" },
     { name = "pytest-cov", specifier = "==7.1.0" },
     { name = "ruff", specifier = "==0.15.14" },
+    { name = "scipy", specifier = ">=1.15.2" },
     { name = "setuptools", specifier = "==82.0.1" },
     { name = "twine", specifier = "==6.2.0" },
 ]

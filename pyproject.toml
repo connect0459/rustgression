@@ -106,5 +106,6 @@ dev = [
   "pytest==9.0.3",
   "pytest-cov==7.1.0",
   "ruff==0.15.14",
+  "scipy>=1.15.2",
   "setuptools==82.0.1",
 ]
