@@ -17,7 +17,7 @@ class TestTlsNumericalStability:
         np.random.seed(42)
         x = np.linspace(0, 1e-10, 50) + np.random.normal(0, 1e-12, 50)
         y = np.linspace(0, 1.0, 50)
-        with pytest.raises((ValueError, RuntimeError)):
+        with pytest.raises(RuntimeError, match="numerically unstable"):
             TlsRegressor(x, y)
 
     def test_produces_accurate_slope_for_data_with_moderate_noise(self):
