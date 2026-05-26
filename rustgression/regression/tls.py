@@ -20,10 +20,15 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
 
     def _fit(self) -> None:
         """Perform TLS regression."""
-        # Call the Rust implementation
-        _, self._slope, self._intercept, self._r_value = calculate_tls_regression(
-            self.x, self.y
-        )
+        (
+            _,
+            self._slope,
+            self._intercept,
+            self._r_value,
+            self._p_value,
+            self._stderr,
+            self._intercept_stderr,
+        ) = calculate_tls_regression(self.x, self.y)
 
     def slope(self) -> float:
         """Return the slope of the regression line
@@ -55,11 +60,49 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         """
         return self._r_value
 
+    def p_value(self) -> float:
+        """Return the two-tailed p-value for the slope.
+
+        Computed via a t-test with n-2 degrees of freedom, assuming equal
+        measurement error variance (λ=1) in both x and y.
+
+        Returns
+        -------
+        float
+            The p-value for the hypothesis test that slope equals zero.
+        """
+        return self._p_value
+
+    def stderr(self) -> float:
+        """Return the standard error of the slope.
+
+        Derived from vertical residuals, which is equivalent to
+        orthogonal-residual inference under equal measurement error
+        variance (λ=1).
+
+        Returns
+        -------
+        float
+            The standard error of the slope estimate.
+        """
+        return self._stderr
+
+    def intercept_stderr(self) -> float:
+        """Return the standard error of the intercept.
+
+        Returns
+        -------
+        float
+            The standard error of the intercept estimate.
+        """
+        return self._intercept_stderr
+
     def get_params(self) -> TlsRegressionParams:
         """Retrieve regression parameters.
 
         .. deprecated:: 0.2.0
-            Use property methods instead: slope(), intercept(), r_value()
+            Use property methods instead: slope(), intercept(), r_value(),
+            p_value(), stderr(), intercept_stderr()
             This method will be removed in v1.0.0.
 
         Returns
@@ -69,10 +112,16 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         """
         warnings.warn(
             "get_params() is deprecated and will be removed in v1.0.0. "
-            "Use property methods instead: slope(), intercept(), r_value()",
+            "Use property methods instead: slope(), intercept(), r_value(), "
+            "p_value(), stderr(), intercept_stderr()",
             DeprecationWarning,
             stacklevel=2,
         )
         return TlsRegressionParams(
-            slope=self._slope, intercept=self._intercept, r_value=self._r_value
+            slope=self._slope,
+            intercept=self._intercept,
+            r_value=self._r_value,
+            p_value=self._p_value,
+            stderr=self._stderr,
+            intercept_stderr=self._intercept_stderr,
         )

@@ -27,6 +27,9 @@ class TlsRegressionParams:
     slope: float
     intercept: float
     r_value: float
+    p_value: float
+    stderr: float
+    intercept_stderr: float
 
 class BaseRegressor(ABC, Generic[T]):
     """Base class for regression analysis."""
