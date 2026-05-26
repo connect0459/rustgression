@@ -1,6 +1,8 @@
 #![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 #[allow(unused_imports)] // kahan_sum and Array1 are used in tests
-use crate::regression::utils::{compute_r_value, kahan_sum, safe_divide, validate_finite_array};
+use crate::regression::utils::{
+    calculate_p_value_exact, compute_r_value, kahan_sum, safe_divide, validate_finite_array,
+};
 use nalgebra::{DMatrix, SVD};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
@@ -40,13 +42,14 @@ struct SvdAnalysisResult {
 /// Returns
 /// -------
 /// tuple
-///     A tuple containing (predicted values, slope, intercept, r_value).
+///     A tuple containing (predicted values, slope, intercept, r_value,
+///     p_value, stderr, intercept_stderr).
 #[pyfunction]
 pub fn calculate_tls_regression<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
-) -> PyResult<(Bound<'py, PyArray1<f64>>, f64, f64, f64)> {
+) -> PyResult<(Bound<'py, PyArray1<f64>>, f64, f64, f64, f64, f64, f64)> {
     // Convert NumPy arrays to ndarray
     let x_array: Array1Ref = x.as_array().to_owned();
     let y_array: Array1Ref = y.as_array().to_owned();
@@ -73,14 +76,22 @@ pub fn calculate_tls_regression<'py>(
     let (slope, intercept) =
         calculate_slope_with_sign_correction(v_col, &x_array, &y_array, x_mean, y_mean)?;
 
-    // Calculate correlation coefficient
     let r_value = compute_r_value(&x_array, &y_array);
 
-    // Calculate predicted values
+    let (stderr, p_value, intercept_stderr) =
+        calculate_tls_inference(&x_array, &y_array, slope, intercept, x_mean);
+
     let y_pred = x_array.mapv(|v| slope * v + intercept);
 
-    // Return results to Python
-    Ok((y_pred.into_pyarray(py), slope, intercept, r_value))
+    Ok((
+        y_pred.into_pyarray(py),
+        slope,
+        intercept,
+        r_value,
+        p_value,
+        stderr,
+        intercept_stderr,
+    ))
 }
 
 /// Data centering and matrix preparation
@@ -208,6 +219,49 @@ fn calculate_slope_with_sign_correction(
 
     let intercept = y_mean - slope * x_mean;
     Ok((slope, intercept))
+}
+
+/// Compute standard error, p-value, and intercept standard error for TLS.
+///
+/// Uses vertical residuals with the OLS-equivalent formula, which is
+/// mathematically identical to orthogonal-residual inference when equal
+/// measurement error variance (λ=1) is assumed.
+fn calculate_tls_inference(
+    x_array: &Array1Ref,
+    y_array: &Array1Ref,
+    slope: f64,
+    intercept: f64,
+    x_mean: f64,
+) -> (f64, f64, f64) {
+    let n = x_array.len() as f64;
+
+    let mut res_terms = Vec::with_capacity(x_array.len());
+    let mut ss_x_terms = Vec::with_capacity(x_array.len());
+    for i in 0..x_array.len() {
+        let diff = y_array[i] - slope * x_array[i] - intercept;
+        res_terms.push(diff * diff);
+        let dx = x_array[i] - x_mean;
+        ss_x_terms.push(dx * dx);
+    }
+    let ss_res = kahan_sum(&res_terms);
+    let ss_xx = kahan_sum(&ss_x_terms);
+
+    if n <= 2.0 || ss_xx <= f64::EPSILON {
+        return (f64::NAN, f64::NAN, f64::NAN);
+    }
+
+    let s = (ss_res / (n - 2.0)).sqrt();
+    let stderr = s / ss_xx.sqrt();
+
+    let p_value = if stderr > 0.0 && stderr.is_finite() {
+        calculate_p_value_exact(slope.abs() / stderr, n - 2.0)
+    } else {
+        f64::NAN
+    };
+
+    let intercept_stderr = s * (1.0 / n + x_mean * x_mean / ss_xx).sqrt();
+
+    (stderr, p_value, intercept_stderr)
 }
 
 #[cfg(test)]
