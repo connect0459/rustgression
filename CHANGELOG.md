@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-28
+
+### Miscellaneous
+
+- **docs**: rewrite OLS and TLS descriptions with mathematical precision; remove redundant Usage section
+- **docs**: replace relative documentation links with full GitHub URLs for PyPI compatibility
+- **docs**: add CI status and MIT license badges to README
+
 ## [0.5.0] - 2026-05-28
 
 ### Added
