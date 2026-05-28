@@ -148,7 +148,11 @@ fn perform_svd_analysis(data_matrix: DMatrix<f64>) -> PyResult<SvdAnalysisResult
     })
 }
 
-/// Find optimal singular vector considering numerical stability
+/// Find the right singular vector corresponding to the minimum singular value.
+///
+/// TLS always requires the null-space direction (minimum singular value vector),
+/// even when that value is near zero (which indicates a near-perfect linear
+/// relationship — exactly the case where TLS is well-defined).
 fn find_optimal_singular_vector(
     v: &VMatrix,
     singular_values: &SingularValues,
@@ -158,29 +162,15 @@ fn find_optimal_singular_vector(
     nalgebra::Dyn,
     nalgebra::VecStorage<f64, nalgebra::Const<1>, nalgebra::Dyn>,
 > {
-    let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
-    let eps = f64::EPSILON * max_singular;
-
-    let min_singular_idx = (0..singular_values.len())
-        .enumerate()
-        .filter(|(_, val)| singular_values[*val] >= eps)
-        .min_by(|(_, a), (_, b)| {
-            singular_values[*a]
-                .partial_cmp(&singular_values[*b])
+    let min_idx = (0..singular_values.len())
+        .min_by(|&a, &b| {
+            singular_values[a]
+                .partial_cmp(&singular_values[b])
                 .unwrap_or(std::cmp::Ordering::Equal)
         })
-        .map(|(idx, _)| idx)
-        .unwrap_or_else(|| {
-            (0..singular_values.len())
-                .max_by(|&a, &b| {
-                    singular_values[a]
-                        .partial_cmp(&singular_values[b])
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                })
-                .unwrap_or(0)
-        });
+        .unwrap_or(singular_values.len().saturating_sub(1));
 
-    v.row(min_singular_idx).into()
+    v.row(min_idx).into()
 }
 
 /// Calculate slope and intercept with sign correction
@@ -708,20 +698,13 @@ mod tests {
         let v = svd.v_t.unwrap();
         let singular_values = svd.singular_values;
 
-        // Select minimum singular value index considering numerical stability
-        let max_singular = singular_values.iter().fold(0.0f64, |a, &b| a.max(b));
-        let eps = f64::EPSILON * max_singular;
-
         let min_singular_idx = (0..singular_values.len())
-            .enumerate()
-            .filter(|(_, val)| singular_values[*val] >= eps)
-            .min_by(|(_, a), (_, b)| {
-                singular_values[*a]
-                    .partial_cmp(&singular_values[*b])
+            .min_by(|&a, &b| {
+                singular_values[a]
+                    .partial_cmp(&singular_values[b])
                     .unwrap_or(std::cmp::Ordering::Equal)
             })
-            .map(|(idx, _)| idx)
-            .unwrap_or(0);
+            .unwrap_or(singular_values.len().saturating_sub(1));
 
         let v_col = v.row(min_singular_idx);
         let mut slope = -v_col[0] / v_col[1];
