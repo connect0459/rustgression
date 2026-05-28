@@ -1,6 +1,8 @@
 # rustgression
 
 [![PyPI Downloads](https://static.pepy.tech/badge/rustgression)](https://pepy.tech/projects/rustgression)
+[![CI](https://github.com/connect0459/rustgression/actions/workflows/ci.yml/badge.svg)](https://github.com/connect0459/rustgression/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 This project provides fast regression analysis (OLS, TLS) as a Python package.
 
