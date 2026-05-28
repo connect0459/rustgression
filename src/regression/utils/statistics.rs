@@ -216,7 +216,7 @@ mod tests {
             for (t_value, df) in test_cases {
                 let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    (0.0..=2.0).contains(&p_val),
+                    (0.0..=1.0).contains(&p_val),
                     "p-value out of range: {}",
                     p_val
                 );
@@ -228,7 +228,7 @@ mod tests {
             // Test with very small or invalid degrees of freedom
             let p_val = calculate_p_value_exact(1.0, 0.1);
             // Should return NaN for invalid df
-            assert!(p_val.is_nan() || (0.0..=2.0).contains(&p_val));
+            assert!(p_val.is_nan() || (0.0..=1.0).contains(&p_val));
         }
 
         #[test]
