@@ -156,5 +156,4 @@ To be updated
 - `tests/test_regressor.py` (add tests for new API)
 - `examples/scientific_example.py` (usage examples for new API)
 - `examples/simple_example.py` (usage examples for new API)
-- `docs/ja/development.md` (update API usage examples)
-- `docs/en/development.md` (update API usage examples)
+- `docs/development.md` (update API usage examples)

@@ -36,7 +36,7 @@ pre-commit run --all-files
 
 ## Development workflow
 
-See [`docs/en/development.md`](docs/en/development.md) for environment setup, test commands, and version management details.
+See [`docs/development.md`](docs/development.md) for environment setup, test commands, and version management details.
 
 Before opening a pull request, ensure all hooks and tests pass:
 
