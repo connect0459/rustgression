@@ -346,7 +346,7 @@ mod tests {
             for (name, t_value, df) in test_cases {
                 let p_val = calculate_p_value_exact(t_value, df);
                 assert!(
-                    (0.0..=2.0).contains(&p_val),
+                    (0.0..=1.0).contains(&p_val),
                     "{}: p-value out of range: {}",
                     name,
                     p_val

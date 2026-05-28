@@ -40,6 +40,58 @@ def high_condition_number_data():
     return x, y
 
 
+@pytest.fixture
+def longley_data():
+    """Longley dataset (J. W. Longley, 1967).
+
+    A classic stress fixture for regression solvers due to its large absolute
+    scale. Used as the gold-standard validation dataset in statsmodels' TestOLS.
+    """
+    x = np.array(
+        [
+            1947,
+            1948,
+            1949,
+            1950,
+            1951,
+            1952,
+            1953,
+            1954,
+            1955,
+            1956,
+            1957,
+            1958,
+            1959,
+            1960,
+            1961,
+            1962,
+        ],
+        dtype=float,
+    )
+    y = np.array(
+        [
+            60323,
+            61122,
+            60171,
+            61187,
+            63221,
+            63639,
+            64989,
+            63761,
+            66019,
+            67857,
+            68169,
+            66513,
+            68655,
+            69564,
+            69331,
+            70551,
+        ],
+        dtype=float,
+    )
+    return x, y
+
+
 class TestOlsDoubleValidation:
     """Double-Validation tests comparing OLS outputs against scipy.stats.linregress."""
 
@@ -80,6 +132,15 @@ class TestOlsDoubleValidation:
         self, high_condition_number_data
     ):
         x, y = high_condition_number_data
+        ref_slope, ref_intercept, ref_r_value, _, _ = stats.linregress(x, y)
+        ols = OlsRegressor(x, y)
+
+        assert abs(ols.slope() - ref_slope) < 1e-6
+        assert abs(ols.intercept() - ref_intercept) < 1e-6
+        assert abs(ols.r_value() - ref_r_value) < 1e-6
+
+    def test_ols_matches_scipy_on_longley_dataset(self, longley_data):
+        x, y = longley_data
         ref_slope, ref_intercept, ref_r_value, _, _ = stats.linregress(x, y)
         ols = OlsRegressor(x, y)
 
