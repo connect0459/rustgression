@@ -40,7 +40,3 @@ uv add rustgression
 - **[API Reference](https://github.com/connect0459/rustgression/blob/main/docs/api.md)**
 - **[Development Guide](https://github.com/connect0459/rustgression/blob/main/docs/development.md)**
 - **[Changelog](https://github.com/connect0459/rustgression/blob/main/CHANGELOG.md)**
-
-## Author
-
-[connect0459](https://github.com/connect0459)
