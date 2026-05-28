@@ -57,10 +57,10 @@ class TestTlsRegressor:
     @pytest.mark.parametrize(
         "x_data,y_data,expected_slope,expected_intercept",
         [
-            ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0], 0.5, 4.5),
-            ([0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 7.0, 9.0, 11.0, 13.0], 0.5, 8.0),
-            ([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 8.0, 6.0, 4.0, 2.0], -0.5, 7.5),
-            ([1.0, 2.0, 3.0], [5.0, 10.0, 15.0], 0.2, 9.6),
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 4.0, 6.0, 8.0, 10.0], 2.0, 0.0),
+            ([0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 7.0, 9.0, 11.0, 13.0], 2.0, 5.0),
+            ([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 8.0, 6.0, 4.0, 2.0], -2.0, 12.0),
+            ([1.0, 2.0, 3.0], [5.0, 10.0, 15.0], 5.0, 0.0),
         ],
     )
     def test_correctly_fits_various_linear_patterns(
@@ -72,19 +72,18 @@ class TestTlsRegressor:
 
         regressor = TlsRegressor(x, y)
 
-        # Test with new property method API
-        assert abs(regressor.slope() - expected_slope) < 0.1, (
+        assert abs(regressor.slope() - expected_slope) < 1e-10, (
             f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
         )
-        assert abs(regressor.intercept() - expected_intercept) < 0.1, (
+        assert abs(regressor.intercept() - expected_intercept) < 1e-10, (
             f"Intercept mismatch: expected {expected_intercept}, got {regressor.intercept()}"
         )
 
     def test_computes_exact_slope_and_intercept_for_two_data_points(self):
         """Test boundary conditions."""
-        # Minimum data points
+        # Minimum data points: y = 3x, so TLS slope=3, intercept=0
         x = np.array([1.0, 2.0])
         y = np.array([3.0, 6.0])
         regressor = TlsRegressor(x, y)
-        assert abs(regressor.slope() - 0.33333333333333326) < 1e-10
-        assert abs(regressor.intercept() - 4.0) < 1e-10
+        assert abs(regressor.slope() - 3.0) < 1e-10
+        assert abs(regressor.intercept() - 0.0) < 1e-10
