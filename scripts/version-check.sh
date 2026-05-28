@@ -96,10 +96,6 @@ echo "Expected version: $ARG_VERSION"
 INIT_VERSION=$(grep '^__version__ = ' rustgression/__init__.py | cut -d '"' -f2)
 echo "rustgression/__init__.py version: $INIT_VERSION"
 
-# Get test version from tests/test_imports.py
-TEST_VERSION=$(grep 'assert rustgression.__version__ == ' tests/test_imports.py | cut -d '"' -f2)
-echo "tests/test_imports.py test version: $TEST_VERSION"
-
 # Get version from Cargo.toml
 CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
 echo "Cargo.toml version: $CARGO_VERSION"
@@ -138,13 +134,6 @@ if [ "$ARG_VERSION" != "$INIT_VERSION" ]; then
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] rustgression/__init__.py"
-fi
-
-if [ "$ARG_VERSION" != "$TEST_VERSION" ]; then
-    error "[FAIL] tests/test_imports.py test version mismatch: expected=$ARG_VERSION, actual=$TEST_VERSION"
-    ERRORS=$((ERRORS + 1))
-else
-    success "[PASS] tests/test_imports.py"
 fi
 
 if [ "$ARG_VERSION" != "$CARGO_VERSION" ]; then

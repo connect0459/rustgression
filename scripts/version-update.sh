@@ -117,23 +117,19 @@ echo "Updating rustgression/__init__.py..."
 PYTHON_VERSION=$(echo "$NEW_VERSION" | sed 's/-alpha\./.a/' | sed 's/-beta\./.b/' | sed 's/-rc\./.rc/')
 sed -i.bak "s/__version__ = \".*\"/__version__ = \"$PYTHON_VERSION\"/" rustgression/__init__.py
 
-# 2. Update version test in tests/test_imports.py
-echo "Updating tests/test_imports.py..."
-sed -i.bak "s/assert rustgression.__version__ == \".*\"/assert rustgression.__version__ == \"$PYTHON_VERSION\"/" tests/test_imports.py
-
-# 3. Update version in Cargo.toml
+# 2. Update version in Cargo.toml
 echo "Updating Cargo.toml..."
 sed -i.bak "s/^version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml
 
-# 4. Update version in pyproject.toml (convert alpha/beta format)
+# 3. Update version in pyproject.toml (convert alpha/beta format)
 echo "Updating pyproject.toml..."
 sed -i.bak "s/^version = \".*\"/version = \"$PYTHON_VERSION\"/" pyproject.toml
 
-# 5. Update Cargo.lock (check project with cargo command)
+# 4. Update Cargo.lock (check project with cargo command)
 echo "Updating Cargo.lock..."
 cargo check --quiet
 
-# 6. Update uv.lock (sync project dependencies with uv command)
+# 5. Update uv.lock (sync project dependencies with uv command)
 echo "Updating uv.lock..."
 if command -v uv >/dev/null 2>&1; then
     uv lock
@@ -142,13 +138,12 @@ else
 fi
 
 # Remove backup files
-rm -f rustgression/__init__.py.bak tests/test_imports.py.bak Cargo.toml.bak pyproject.toml.bak
+rm -f rustgression/__init__.py.bak Cargo.toml.bak pyproject.toml.bak
 
 success "SUCCESS: Version update completed: $NEW_VERSION"
 echo ""
 echo "Updated files:"
 echo "- rustgression/__init__.py (Python format: $PYTHON_VERSION)"
-echo "- tests/test_imports.py (Python format: $PYTHON_VERSION)"
 echo "- Cargo.toml (Rust format: $NEW_VERSION)"
 echo "- pyproject.toml (Python format: $PYTHON_VERSION)"
 echo "- Cargo.lock"
