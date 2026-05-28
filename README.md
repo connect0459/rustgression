@@ -1,6 +1,8 @@
 # rustgression
 
 [![PyPI Downloads](https://static.pepy.tech/badge/rustgression)](https://pepy.tech/projects/rustgression)
+[![CI](https://github.com/connect0459/rustgression/actions/workflows/ci.yml/badge.svg)](https://github.com/connect0459/rustgression/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/connect0459/rustgression/blob/main/LICENSE)
 
 This project provides fast regression analysis (OLS, TLS) as a Python package.
 
@@ -14,8 +16,8 @@ This project provides fast regression analysis (OLS, TLS) as a Python package.
 `rustgression` provides high-performance regression analysis tools implemented in Rust as a Python package.
 It includes the following features.
 
-- **Ordinary Least Squares (OLS)**: Traditional least squares method. Minimizes errors only in the y-direction.
-- **Total Least Squares (TLS)**: Orthogonal regression. Considers errors in both variables (x-axis and y-axis).
+- **Ordinary Least Squares (OLS)**: Minimizes the sum of squared vertical residuals (errors in y only). Assumes x is measured without error.
+- **Total Least Squares (TLS)**: Minimizes the sum of squared orthogonal (perpendicular) distances from data points to the fitted line. Accounts for measurement errors in both x and y.
 
 This package targets Python version `3.11` and above.
 
@@ -33,58 +35,8 @@ Using uv:
 uv add rustgression
 ```
 
-## Usage
-
-```python
-import numpy as np
-from rustgression import OlsRegressor, TlsRegressor
-
-def generate_sample_data(size: int = 100, noise_std: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
-    """Generate sample data for regression example.
-
-    Args:
-        size: Number of data points
-        noise_std: Standard deviation of noise
-
-    Returns:
-        Tuple of (x, y) arrays
-    """
-    x = np.linspace(0, 10, size)
-    true_slope, true_intercept = 2.0, 1.0
-    y = true_slope * x + true_intercept + np.random.normal(0, noise_std, size)
-    return x, y
-
-def main():
-    # Generate sample data
-    x, y = generate_sample_data()
-
-    # Ordinary Least Squares (OLS) Regression
-    print("=== Ordinary Least Squares (OLS) Results ===")
-    ols_model = OlsRegressor(x, y)
-    print(f"Slope: {ols_model.slope():.4f}")
-    print(f"Intercept: {ols_model.intercept():.4f}")
-    print(f"R-value: {ols_model.r_value():.4f}")
-    print(f"P-value: {ols_model.p_value():.4e}")
-    print(f"Standard Error: {ols_model.stderr():.4f}")
-    print(f"Intercept Standard Error: {ols_model.intercept_stderr():.4f}\n")
-
-    # Total Least Squares (TLS) Regression
-    print("=== Total Least Squares (TLS) Results ===")
-    tls_model = TlsRegressor(x, y)
-    print(f"Slope: {tls_model.slope():.4f}")
-    print(f"Intercept: {tls_model.intercept():.4f}")
-    print(f"R-value: {tls_model.r_value():.4f}")
-
-if __name__ == "__main__":
-    main()
-```
-
 ## Documentation
 
-- **[API Reference](docs/api.md)**
-- **[Development Guide](docs/development.md)**
-- **[Changelog](CHANGELOG.md)**
-
-## Author
-
-[connect0459](https://github.com/connect0459)
+- **[API Reference](https://github.com/connect0459/rustgression/blob/main/docs/api.md)**
+- **[Development Guide](https://github.com/connect0459/rustgression/blob/main/docs/development.md)**
+- **[Changelog](https://github.com/connect0459/rustgression/blob/main/CHANGELOG.md)**

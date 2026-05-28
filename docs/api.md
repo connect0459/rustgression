@@ -91,5 +91,4 @@ Use **OLS** when only the dependent variable has errors (e.g., time-series predi
 
 ## More Examples
 
-- [Simple Example](../examples/simple_example.py)
-- [Scientific Example](../examples/scientific_example.py)
+Please see <https://github.com/connect0459/rustgression/tree/main/examples>.
