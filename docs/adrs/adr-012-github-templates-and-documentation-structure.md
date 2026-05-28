@@ -4,7 +4,11 @@
 
 - [x] Proposed
 - [x] Accepted
-- [ ] Deprecated
+- [x] Deprecated
+
+Deprecated in v0.5.0: multilingual documentation (`docs/en/`, `docs/ja/`) was consolidated into a
+single English structure (`docs/development.md`, `docs/api.md`). See the updated documentation tree
+in the Consequences section below.
 
 ## Context
 
@@ -40,12 +44,21 @@ Standardize GitHub templates and documentation structure to improve project visi
 ```txt
 docs/
 ├── adrs/           # Architecture Decision Records
-├── en/             # English documentation
+├── en/             # English documentation (deprecated — see note above)
 │   ├── README.md   # English user guide
 │   └── development.md  # English developer guide
-└── ja/             # Japanese documentation
+└── ja/             # Japanese documentation (deprecated — see note above)
     ├── README.md   # Japanese user guide
     └── development.md  # Japanese developer guide
+```
+
+As of v0.5.0, the documentation structure was simplified to:
+
+```txt
+docs/
+├── adrs/           # Architecture Decision Records
+├── api.md          # API reference (OlsRegressor, TlsRegressor)
+└── development.md  # Developer guide (environment setup, version management)
 ```
 
 ### 3. Improve Project Visibility
