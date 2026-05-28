@@ -84,7 +84,7 @@ print(f"Intercept Std Error: {model.intercept_stderr():.4f}")
 | :--- | :--- | :--- |
 | Error direction | Y only | Both X and Y |
 | Use case | Only dependent variable has measurement error | Both variables have measurement error |
-| Algorithm | Linear regression via scipy | SVD-based orthogonal regression |
+| Algorithm | Rust-backed linear regression | Rust-backed SVD orthogonal regression |
 
 Use **TLS** when both variables have measurement errors (e.g., sensor data, scientific measurements).
 Use **OLS** when only the dependent variable has errors (e.g., time-series prediction).
