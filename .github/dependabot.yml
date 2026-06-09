@@ -58,6 +58,7 @@ updates:
       timezone: "Asia/Tokyo"
     open-pull-requests-limit: 3
     labels:
+      - "ci"
       - "dependencies"
       - "github-actions"
     groups:
@@ -65,5 +66,5 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: "chore"
+      prefix: "ci"
       include: "scope"
