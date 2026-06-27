@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 import numpy as np
+from scipy.stats import t as t_dist
 
 T = TypeVar("T")
 
@@ -119,6 +120,8 @@ class BaseRegressor(ABC, Generic[T]):
         self._slope: float
         self._intercept: float
         self._r_value: float
+        self._stderr: float
+        self._intercept_stderr: float
 
         # Execute fitting
         self._fit()
@@ -179,6 +182,56 @@ class BaseRegressor(ABC, Generic[T]):
             The difference between observed and predicted values: y - predict(x).
         """
         return self.y - self.predict(self.x)
+
+    def confidence_interval(
+        self, alpha: float = 0.05
+    ) -> dict[str, tuple[float, float]]:
+        """Return confidence intervals for the slope and intercept.
+
+        Parameters
+        ----------
+        alpha : float, optional
+            Significance level. Defaults to 0.05 (95% CI).
+
+        Returns
+        -------
+        dict[str, tuple[float, float]]
+            A dict with keys ``"slope"`` and ``"intercept"``, each mapped to
+            a ``(lower, upper)`` tuple.
+        """
+        n = len(self.x)
+        t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
+        slope_lo = self._slope - t_crit * self._stderr
+        slope_hi = self._slope + t_crit * self._stderr
+        int_lo = self._intercept - t_crit * self._intercept_stderr
+        int_hi = self._intercept + t_crit * self._intercept_stderr
+        return {"slope": (slope_lo, slope_hi), "intercept": (int_lo, int_hi)}
+
+    def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> np.ndarray:
+        """Return prediction intervals for new observations.
+
+        Parameters
+        ----------
+        x_new : np.ndarray
+            New x values for which to compute prediction intervals.
+        alpha : float, optional
+            Significance level. Defaults to 0.05 (95% PI).
+
+        Returns
+        -------
+        np.ndarray
+            Array of shape ``(len(x_new), 2)`` where each row is
+            ``[lower, upper]``.
+        """
+        x_new = np.asarray(x_new, dtype=np.float64)
+        n = len(self.x)
+        x_mean = self.x.mean()
+        ss_xx = np.sum((self.x - x_mean) ** 2)
+        s = np.sqrt(np.sum(self.residuals() ** 2) / (n - 2))
+        t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
+        y_hat = self.predict(x_new)
+        se_pred = s * np.sqrt(1.0 + 1.0 / n + (x_new - x_mean) ** 2 / ss_xx)
+        return np.column_stack([y_hat - t_crit * se_pred, y_hat + t_crit * se_pred])
 
     def __repr__(self) -> str:
         """String representation of the regression model.
