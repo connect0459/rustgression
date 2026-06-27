@@ -159,6 +159,19 @@ class TestOlsMultiRegressor:
 
         assert isinstance(params, OlsMultiRegressionParams)
 
+    def test_get_params_coefficients_do_not_mutate_internal_state(
+        self, standard_noisy_data
+    ):
+        x_mat, y = standard_noisy_data
+        model = OlsMultiRegressor(x_mat, y)
+        intercept_before = model.intercept()
+
+        with pytest.warns(DeprecationWarning):
+            params = model.get_params()
+        params.coefficients[0] = 9999.0
+
+        assert abs(model.intercept() - intercept_before) < 1e-10
+
     def test_coefficients_returns_defensive_copy(self, standard_noisy_data):
         x_mat, y = standard_noisy_data
         model = OlsMultiRegressor(x_mat, y)
