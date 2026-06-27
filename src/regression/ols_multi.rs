@@ -124,13 +124,19 @@ fn compute_ols_multi_coefficients(
     let df2 = (n - p - 1) as f64;
     let ss_mod = ss_tot - ss_res;
 
-    let f_statistic = if df2 > 0.0 && ss_res > f64::EPSILON {
-        (ss_mod / df1) / (ss_res / df2)
-    } else {
+    let f_statistic = if df1 <= 0.0 || df2 <= 0.0 || ss_tot <= f64::EPSILON {
         f64::NAN
+    } else if ss_res <= f64::EPSILON {
+        f64::INFINITY
+    } else {
+        (ss_mod / df1) / (ss_res / df2)
     };
 
-    let p_value = if f_statistic.is_finite() && f_statistic >= 0.0 && df1 > 0.0 && df2 > 0.0 {
+    let p_value = if f_statistic.is_nan() {
+        f64::NAN
+    } else if f_statistic.is_infinite() {
+        0.0
+    } else if f_statistic >= 0.0 && df1 > 0.0 && df2 > 0.0 {
         match FisherSnedecor::new(df1, df2) {
             Ok(f_dist) => 1.0 - f_dist.cdf(f_statistic),
             Err(_) => f64::NAN,
@@ -366,7 +372,7 @@ mod tests {
             let result = perform_ols_multi(&x_rows, &y).unwrap();
 
             assert!(
-                result.p_value < 0.05 || result.p_value.is_nan(),
+                result.p_value < 0.05,
                 "p_value should be small for strong signal, got {}",
                 result.p_value
             );
