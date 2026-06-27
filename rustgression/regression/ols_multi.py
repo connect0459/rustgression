@@ -182,7 +182,7 @@ class OlsMultiRegressor:
             stacklevel=2,
         )
         return OlsMultiRegressionParams(
-            coefficients=self._coefficients,
+            coefficients=self._coefficients.copy(),
             r_squared=self._r_squared,
             f_statistic=self._f_statistic,
             p_value=self._p_value,
