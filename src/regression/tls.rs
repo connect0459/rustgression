@@ -730,10 +730,7 @@ mod tests {
         }
 
         #[test]
-        fn deming_stderr_exceeds_ols_formula_for_steep_slope_with_x_noise() {
-            // y = 10x + noise, noise in both x and y.
-            // TLS β > OLS β (attenuation correction), so Sxx* < Sxx,
-            // and Deming stderr > OLS-formula stderr.
+        fn stderr_is_larger_than_vertical_residual_approximation_when_x_has_measurement_noise() {
             let x_obs = make_array(vec![0.5, 1.8, 1.9, 3.3, 4.1, 5.2, 6.3, 7.1, 7.9, 9.4]);
             let y_obs = make_array(vec![
                 1.0, 18.0, 21.0, 29.0, 42.0, 51.0, 63.0, 69.0, 81.0, 92.0,
@@ -742,10 +739,9 @@ mod tests {
             let n = x_obs.len() as f64;
 
             let tls = perform_tls(x_obs.as_slice().unwrap(), y_obs.as_slice().unwrap());
-            let (deming_stderr, _, _) =
+            let (tls_stderr, _, _) =
                 calculate_tls_inference(&x_obs, &y_obs, tls.slope, tls.intercept, x_mean);
 
-            // Compute OLS formula stderr for comparison
             let ss_res: f64 = x_obs
                 .iter()
                 .zip(y_obs.iter())
@@ -756,13 +752,13 @@ mod tests {
                 .sum();
             let ss_xx: f64 = x_obs.iter().map(|&xi| (xi - x_mean).powi(2)).sum();
             let s = (ss_res / (n - 2.0)).sqrt();
-            let ols_formula_stderr = s / ss_xx.sqrt();
+            let vertical_residual_stderr = s / ss_xx.sqrt();
 
             assert!(
-                deming_stderr > ols_formula_stderr,
-                "Deming stderr ({:.4}) should exceed OLS-formula stderr ({:.4}) for steep slopes with x noise",
-                deming_stderr,
-                ols_formula_stderr
+                tls_stderr > vertical_residual_stderr,
+                "TLS stderr ({:.4}) should exceed vertical-residual stderr ({:.4})",
+                tls_stderr,
+                vertical_residual_stderr
             );
         }
     }

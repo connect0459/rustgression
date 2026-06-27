@@ -163,8 +163,10 @@ class TestTlsRegressorStderr:
             f"odrpack={res.sd_beta[1]:.4f}, relative_error={relative_error * 100:.1f}%"
         )
 
-    def test_stderr_increases_relative_to_ols_approximation_for_steep_slopes(self):
-        """Deming stderr must exceed OLS-formula stderr when slope is steep."""
+    def test_stderr_exceeds_vertical_residual_approximation_when_x_has_measurement_noise(
+        self,
+    ):
+        """TLS stderr must exceed vertical-residual-only approximation when both variables have noise."""
         rng = np.random.default_rng(seed=1)
         n = 60
         true_slope = 20.0
