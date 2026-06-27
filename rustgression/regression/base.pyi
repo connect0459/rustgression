@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 
 T = TypeVar("T")
 
-@dataclass
+@dataclass(frozen=True)
 class OlsMultiRegressionParams:
     """Data class to store parameters for multiple Ordinary Least Squares regression."""
 
@@ -18,7 +18,7 @@ class OlsMultiRegressionParams:
     f_statistic: float
     p_value: float
 
-@dataclass
+@dataclass(frozen=True)
 class OlsRegressionParams:
     """Data class to store parameters for Ordinary Least Squares (OLS) regression."""
 
@@ -29,7 +29,7 @@ class OlsRegressionParams:
     stderr: float
     intercept_stderr: float
 
-@dataclass
+@dataclass(frozen=True)
 class TlsRegressionParams:
     """Data class to store parameters for Total Least Squares (TLS) regression."""
 
