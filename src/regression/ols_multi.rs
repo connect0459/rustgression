@@ -92,13 +92,15 @@ fn compute_ols_multi_coefficients(
     let y_vec = DVector::from_column_slice(y_slice);
 
     let svd = x_aug.clone().svd(true, true);
+    let max_sv = svd.singular_values.max();
+    let rank_threshold = max_sv * (n.max(p + 1)) as f64 * f64::EPSILON;
     let min_sv = svd.singular_values.min();
-    if min_sv < 1e-10 {
+    if max_sv == 0.0 || min_sv < rank_threshold {
         return Err("Collinear predictors: X matrix is rank-deficient".to_string());
     }
 
     let beta = svd
-        .solve(&y_vec, 1e-10)
+        .solve(&y_vec, rank_threshold)
         .map_err(|e| format!("Failed to compute coefficients: {}", e))?;
 
     let y_pred_vec = &x_aug * &beta;
