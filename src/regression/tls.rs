@@ -1,7 +1,7 @@
 #![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 #[allow(unused_imports)] // kahan_sum and Array1 are used in tests
 use crate::regression::utils::{
-    calculate_p_value_exact, compute_r_value, kahan_sum, safe_divide, validate_finite_array,
+    calculate_slope_inference, compute_r_value, kahan_sum, safe_divide, validate_finite_array,
 };
 use nalgebra::{DMatrix, SVD};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
@@ -215,15 +215,11 @@ fn calculate_slope_with_sign_correction(
 /// Compute standard error, p-value, and intercept standard error for TLS
 /// using the Deming (orthogonal, λ=1) regression variance estimator.
 ///
-/// For equal measurement error variance (λ=1), the ODR covariance matrix
-/// is s² * (Xstar'Xstar)^{-1}, where:
-///   - xi* = xi + β·ri/(1+β²)  (foot of perpendicular from xi to the TLS line)
-///   - ri = yi - β·xi - α       (vertical residual)
-///   - s² = Σri² / (n-2)        (residual variance)
-///   - Sxx* = Σ(xi* - x̄)²     (x̄* = x̄ because Σri = 0 for TLS with intercept)
-///
-/// This yields slope_stderr = s / √Sxx* and intercept_stderr = s·√(1/n + x̄²/Sxx*),
-/// matching scipy.odr with equal weights.
+/// Computes xi* = xi + β·ri/(1+β²) (foot of perpendicular from each observed
+/// point to the TLS line) and Sxx* = Σ(xi* - x̄)².  Because Σri = 0 at the
+/// TLS solution, x̄* = x̄ exactly.  The resulting Sxx* is passed to the shared
+/// `calculate_slope_inference` helper, which applies the same robustness guards
+/// used by OLS.
 fn calculate_tls_inference(
     x_array: &Array1Ref,
     y_array: &Array1Ref,
@@ -246,22 +242,7 @@ fn calculate_tls_inference(
     let ss_res = kahan_sum(&res_terms);
     let ss_x_star = kahan_sum(&ss_x_star_terms);
 
-    if n <= 2.0 || ss_x_star <= f64::EPSILON {
-        return (f64::NAN, f64::NAN, f64::NAN);
-    }
-
-    let s = (ss_res / (n - 2.0)).sqrt();
-    let stderr = s / ss_x_star.sqrt();
-
-    let p_value = if stderr > 0.0 && stderr.is_finite() {
-        calculate_p_value_exact(slope.abs() / stderr, n - 2.0)
-    } else {
-        f64::NAN
-    };
-
-    let intercept_stderr = s * (1.0 / n + x_mean * x_mean / ss_x_star).sqrt();
-
-    (stderr, p_value, intercept_stderr)
+    calculate_slope_inference(n, ss_x_star, ss_res, slope, x_mean)
 }
 
 #[cfg(test)]
