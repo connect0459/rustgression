@@ -29,6 +29,10 @@ mod regression;
 #[pymodule]
 fn rustgression(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(regression::calculate_ols_regression, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        regression::calculate_ols_multi_regression,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(regression::calculate_tls_regression, m)?)?;
     Ok(())
 }

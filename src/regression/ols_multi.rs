@@ -50,9 +50,8 @@ pub fn calculate_ols_multi_regression<'py>(
     let x_flat = x_standard.as_slice().unwrap();
     validate_finite_array(x_flat, "x")?;
 
-    let result = compute_ols_multi_coefficients(x_flat, y_slice, n, p).map_err(|msg| {
-        pyo3::exceptions::PyValueError::new_err(msg)
-    })?;
+    let result = compute_ols_multi_coefficients(x_flat, y_slice, n, p)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
     Ok((
         result.y_pred.into_pyarray(py),
@@ -78,9 +77,7 @@ fn compute_ols_multi_coefficients(
     p: usize,
 ) -> Result<OlsMultiOutput, String> {
     if n <= p {
-        return Err(
-            "Number of observations n must exceed number of predictors p".to_string(),
-        );
+        return Err("Number of observations n must exceed number of predictors p".to_string());
     }
 
     let x_mat = DMatrix::from_row_slice(n, p, x_flat);
@@ -160,10 +157,7 @@ mod tests {
         p_value: f64,
     }
 
-    fn perform_ols_multi(
-        x_rows: &[Vec<f64>],
-        y: &[f64],
-    ) -> Result<OlsMultiTestResult, String> {
+    fn perform_ols_multi(x_rows: &[Vec<f64>], y: &[f64]) -> Result<OlsMultiTestResult, String> {
         let n = x_rows.len();
         let p = if n > 0 { x_rows[0].len() } else { 0 };
 
@@ -271,10 +265,7 @@ mod tests {
 
             let result = compute_ols_multi_coefficients(&x_flat, &y, 2, 3);
 
-            assert!(
-                result.is_err(),
-                "should return error when n <= p"
-            );
+            assert!(result.is_err(), "should return error when n <= p");
         }
 
         #[test]
@@ -292,8 +283,7 @@ mod tests {
                 .iter()
                 .enumerate()
                 .map(|(i, row)| {
-                    3.0 + 1.5 * row[0] + 0.8 * row[1]
-                        + if i % 2 == 0 { 0.1 } else { -0.1 }
+                    3.0 + 1.5 * row[0] + 0.8 * row[1] + if i % 2 == 0 { 0.1 } else { -0.1 }
                 })
                 .collect();
 
@@ -320,9 +310,7 @@ mod tests {
             let y: Vec<f64> = x_rows
                 .iter()
                 .enumerate()
-                .map(|(i, row)| {
-                    2.0 + row[0] + 0.5 * row[1] + if i % 2 == 0 { 0.1 } else { -0.1 }
-                })
+                .map(|(i, row)| 2.0 + row[0] + 0.5 * row[1] + if i % 2 == 0 { 0.1 } else { -0.1 })
                 .collect();
 
             let result = perform_ols_multi(&x_rows, &y).unwrap();
@@ -369,8 +357,7 @@ mod tests {
                 .iter()
                 .enumerate()
                 .map(|(i, row)| {
-                    10.0 + 2.5 * row[0] + 1.5 * row[1]
-                        + if i % 2 == 0 { 0.1 } else { -0.1 }
+                    10.0 + 2.5 * row[0] + 1.5 * row[1] + if i % 2 == 0 { 0.1 } else { -0.1 }
                 })
                 .collect();
 
