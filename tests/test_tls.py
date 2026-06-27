@@ -105,6 +105,88 @@ class TestTlsRegressor:
         assert regressor.residuals().shape == y.shape
 
 
+class TestTlsRegressorStderr:
+    """Tests that TLS standard errors match the Deming regression reference."""
+
+    @pytest.mark.parametrize(
+        "true_slope,noise",
+        [
+            (5.0, 1.0),
+            (10.0, 2.0),
+            (20.0, 3.0),
+        ],
+    )
+    def test_stderr_matches_odrpack_deming_reference(self, true_slope, noise):
+        """Slope stderr must agree with odrpack equal-weight ODR to within 1%."""
+        import odrpack
+
+        def lin(x, b):
+            return b[0] * x + b[1]
+
+        rng = np.random.default_rng(seed=1)
+        n = 60
+        x = np.linspace(0, 10, n)
+        xn = x + rng.normal(0, noise, n)
+        yn = true_slope * x + rng.normal(0, noise, n)
+
+        regressor = TlsRegressor(xn, yn)
+        res = odrpack.odr_fit(lin, xn, yn, beta0=[1.0, 0.0])
+
+        relative_error = abs(regressor.stderr() - res.sd_beta[0]) / res.sd_beta[0]
+        assert relative_error < 0.01, (
+            f"slope~{true_slope}: rustgression stderr={regressor.stderr():.4f}, "
+            f"odrpack={res.sd_beta[0]:.4f}, relative_error={relative_error * 100:.1f}%"
+        )
+
+    def test_intercept_stderr_matches_odrpack_deming_reference(self):
+        """Intercept stderr must agree with odrpack equal-weight ODR to within 1%."""
+        import odrpack
+
+        def lin(x, b):
+            return b[0] * x + b[1]
+
+        rng = np.random.default_rng(seed=42)
+        n = 60
+        x = np.linspace(0, 10, n)
+        noise = 2.0
+        xn = x + rng.normal(0, noise, n)
+        yn = 10.0 * x + rng.normal(0, noise, n)
+
+        regressor = TlsRegressor(xn, yn)
+        res = odrpack.odr_fit(lin, xn, yn, beta0=[1.0, 0.0])
+
+        relative_error = (
+            abs(regressor.intercept_stderr() - res.sd_beta[1]) / res.sd_beta[1]
+        )
+        assert relative_error < 0.01, (
+            f"intercept_stderr: rustgression={regressor.intercept_stderr():.4f}, "
+            f"odrpack={res.sd_beta[1]:.4f}, relative_error={relative_error * 100:.1f}%"
+        )
+
+    def test_stderr_increases_relative_to_ols_approximation_for_steep_slopes(self):
+        """Deming stderr must exceed OLS-formula stderr when slope is steep."""
+        rng = np.random.default_rng(seed=1)
+        n = 60
+        true_slope = 20.0
+        noise = 3.0
+        x = np.linspace(0, 10, n)
+        xn = x + rng.normal(0, noise, n)
+        yn = true_slope * x + rng.normal(0, noise, n)
+
+        regressor = TlsRegressor(xn, yn)
+
+        beta = regressor.slope()
+        residuals = yn - beta * xn - regressor.intercept()
+        ss_res = np.sum(residuals**2)
+        ss_xx = np.sum((xn - np.mean(xn)) ** 2)
+        s = np.sqrt(ss_res / (n - 2))
+        ols_formula_stderr = s / np.sqrt(ss_xx)
+
+        assert regressor.stderr() > ols_formula_stderr, (
+            "Deming stderr should exceed OLS-formula stderr for steep TLS slopes"
+        )
+
+
 class TestTlsRegressorIntervalsNotImplemented:
     """Tests that TLS interval methods raise NotImplementedError."""
 
