@@ -114,28 +114,30 @@ class TestOlsMultiRegressor:
         )
         y = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="rank-deficient"):
             OlsMultiRegressor(x_mat, y)
 
     def test_raises_value_error_when_observations_do_not_exceed_predictors(self):
-        x_mat = np.random.randn(3, 4)
-        y = np.random.randn(3)
+        rng = np.random.default_rng(0)
+        x_mat = rng.standard_normal((3, 4))
+        y = rng.standard_normal(3)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must exceed number of predictors"):
             OlsMultiRegressor(x_mat, y)
 
     def test_raises_value_error_when_n_equals_p(self):
-        x_mat = np.random.randn(3, 3)
-        y = np.random.randn(3)
+        rng = np.random.default_rng(0)
+        x_mat = rng.standard_normal((3, 3))
+        y = rng.standard_normal(3)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must exceed number of predictors"):
             OlsMultiRegressor(x_mat, y)
 
     def test_raises_value_error_for_1d_x_input(self):
         x = np.array([1.0, 2.0, 3.0])
         y = np.array([1.0, 2.0, 3.0])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must be a 2D array"):
             OlsMultiRegressor(x, y)
 
     def test_raises_value_error_when_feature_count_mismatches_at_predict_time(
@@ -143,9 +145,9 @@ class TestOlsMultiRegressor:
     ):
         x_mat, y = standard_noisy_data
         model = OlsMultiRegressor(x_mat, y)
-        x_wrong = np.random.randn(10, 3)
+        x_wrong = np.random.default_rng(0).standard_normal((10, 3))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Expected \d+ features"):
             model.predict(x_wrong)
 
     def test_get_params_returns_ols_multi_regression_params_instance(
@@ -265,7 +267,7 @@ class TestOlsMultiDoubleValidation:
         ref = LinearRegression().fit(x_mat, y)
         model = OlsMultiRegressor(x_mat, y)
 
-        assert abs(model.intercept() - ref.intercept_) < 1e-4
+        np.testing.assert_allclose(model.intercept(), ref.intercept_, rtol=1e-7)
         assert abs(model.coefficients()[1] - ref.coef_[0]) < 1e-6
         assert abs(model.coefficients()[2] - ref.coef_[1]) < 1e-4
 
