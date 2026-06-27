@@ -32,21 +32,15 @@ pub fn calculate_ols_multi_regression<'py>(
     x: PyReadonlyArray2<f64>,
     y: PyReadonlyArray1<f64>,
 ) -> PyResult<OlsMultiResult<'py>> {
-    let x_array = x.as_array().to_owned();
+    let x_view = x.as_array();
     let y_array = y.as_array().to_owned();
 
-    let (n, p) = x_array.dim();
-
-    if n <= p {
-        return Err(pyo3::exceptions::PyValueError::new_err(
-            "Number of observations n must exceed number of predictors p",
-        ));
-    }
+    let (n, p) = x_view.dim();
 
     let y_slice = y_array.as_slice().unwrap();
     validate_finite_array(y_slice, "y")?;
 
-    let x_standard = x_array.as_standard_layout();
+    let x_standard = x_view.as_standard_layout();
     let x_flat = x_standard.as_slice().unwrap();
     validate_finite_array(x_flat, "x")?;
 
@@ -190,8 +184,6 @@ mod tests {
 
         #[test]
         fn returns_correct_coefficients_for_two_predictor_synthetic_data() {
-            // y = 5 + 2*x1 + 3*x2
-            // 2x3 factorial design: x1 in {1,2,3}, x2 in {1,2} — orthogonal by design
             let x_rows = vec![
                 vec![1.0, 1.0],
                 vec![1.0, 2.0],
@@ -249,7 +241,6 @@ mod tests {
 
         #[test]
         fn returns_error_for_collinear_predictors() {
-            // x2 = 2 * x1 (perfect collinearity)
             let x_rows = vec![
                 vec![1.0, 2.0],
                 vec![2.0, 4.0],
@@ -269,7 +260,6 @@ mod tests {
 
         #[test]
         fn returns_error_when_observations_do_not_exceed_predictors() {
-            // n = 2, p = 3: n <= p
             let x_flat = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
             let y = vec![1.0, 2.0];
 
@@ -280,7 +270,6 @@ mod tests {
 
         #[test]
         fn returns_f_statistic_greater_than_zero_for_significant_predictors() {
-            // 4x5 factorial design: x1 in {1,2,3,4}, x2 in {1..5} — orthogonal, y with slight noise
             let x_rows: Vec<Vec<f64>> = [1.0_f64, 2.0, 3.0, 4.0]
                 .iter()
                 .flat_map(|&x1| {
@@ -308,7 +297,6 @@ mod tests {
 
         #[test]
         fn returns_p_value_in_valid_range() {
-            // Same 4x5 factorial design — guarantees independent predictors
             let x_rows: Vec<Vec<f64>> = [1.0_f64, 2.0, 3.0, 4.0]
                 .iter()
                 .flat_map(|&x1| {
@@ -354,7 +342,6 @@ mod tests {
 
         #[test]
         fn returns_low_p_value_for_data_with_strong_linear_signal() {
-            // 5x6 factorial design (30 points), strong signal-to-noise
             let x_rows: Vec<Vec<f64>> = [1.0_f64, 2.0, 3.0, 4.0, 5.0]
                 .iter()
                 .flat_map(|&x1| {
