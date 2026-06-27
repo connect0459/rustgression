@@ -81,8 +81,10 @@ class OlsMultiRegressor:
 
         Parameters
         ----------
-        x : np.ndarray, shape (m, p)
-            Predictor matrix for which to generate predictions.
+        x : np.ndarray, shape (p,) or (m, p)
+            Predictor input. A 1D array of shape (p,) is treated as a single
+            sample and returns a result of shape (1,). A 2D array of shape
+            (m, p) returns results of shape (m,).
 
         Returns
         -------
@@ -92,12 +94,16 @@ class OlsMultiRegressor:
         Raises
         ------
         ValueError
-            If x is not 2D or the number of features does not match the
-            number used during fitting.
+            If x cannot be interpreted as a 1D or 2D array, or if the number
+            of features does not match the number used during fitting.
         """
         x = np.asarray(x, dtype=np.float64)
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
         if x.ndim != 2:
-            raise ValueError("x must be a 2D array of shape (m, p).")
+            raise ValueError(
+                "x must be a 1D array of shape (p,) or 2D array of shape (m, p)."
+            )
         p_fit = len(self._coefficients) - 1
         if x.shape[1] != p_fit:
             raise ValueError(f"Expected {p_fit} features, got {x.shape[1]}.")
