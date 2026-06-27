@@ -1,7 +1,7 @@
 #![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 #[allow(unused_imports)] // kahan_sum and Array1 are used in tests
 use crate::regression::utils::{
-    calculate_p_value_exact, compute_r_value, kahan_sum, safe_divide, validate_finite_array,
+    calculate_slope_inference, compute_r_value, kahan_sum, safe_divide, validate_finite_array,
 };
 use nalgebra::{DMatrix, SVD};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
@@ -212,11 +212,14 @@ fn calculate_slope_with_sign_correction(
     Ok((slope, intercept))
 }
 
-/// Compute standard error, p-value, and intercept standard error for TLS.
+/// Compute standard error, p-value, and intercept standard error for TLS
+/// using the Deming (orthogonal, λ=1) regression variance estimator.
 ///
-/// Uses vertical residuals with the OLS-equivalent formula, which is
-/// mathematically identical to orthogonal-residual inference when equal
-/// measurement error variance (λ=1) is assumed.
+/// Computes xi* = xi + β·ri/(1+β²) (foot of perpendicular from each observed
+/// point to the TLS line) and Sxx* = Σ(xi* - x̄)².  Because Σri = 0 at the
+/// TLS solution, x̄* = x̄ exactly.  The resulting Sxx* is passed to the shared
+/// `calculate_slope_inference` helper, which applies the same robustness guards
+/// used by OLS.
 fn calculate_tls_inference(
     x_array: &Array1Ref,
     y_array: &Array1Ref,
@@ -225,34 +228,21 @@ fn calculate_tls_inference(
     x_mean: f64,
 ) -> (f64, f64, f64) {
     let n = x_array.len() as f64;
+    let one_plus_slope_sq = 1.0 + slope * slope;
 
     let mut res_terms = Vec::with_capacity(x_array.len());
-    let mut ss_x_terms = Vec::with_capacity(x_array.len());
+    let mut ss_x_star_terms = Vec::with_capacity(x_array.len());
     for i in 0..x_array.len() {
-        let diff = y_array[i] - slope * x_array[i] - intercept;
-        res_terms.push(diff * diff);
-        let dx = x_array[i] - x_mean;
-        ss_x_terms.push(dx * dx);
+        let ri = y_array[i] - slope * x_array[i] - intercept;
+        res_terms.push(ri * ri);
+        let x_star = x_array[i] + slope * ri / one_plus_slope_sq;
+        let dx_star = x_star - x_mean;
+        ss_x_star_terms.push(dx_star * dx_star);
     }
     let ss_res = kahan_sum(&res_terms);
-    let ss_xx = kahan_sum(&ss_x_terms);
+    let ss_x_star = kahan_sum(&ss_x_star_terms);
 
-    if n <= 2.0 || ss_xx <= f64::EPSILON {
-        return (f64::NAN, f64::NAN, f64::NAN);
-    }
-
-    let s = (ss_res / (n - 2.0)).sqrt();
-    let stderr = s / ss_xx.sqrt();
-
-    let p_value = if stderr > 0.0 && stderr.is_finite() {
-        calculate_p_value_exact(slope.abs() / stderr, n - 2.0)
-    } else {
-        f64::NAN
-    };
-
-    let intercept_stderr = s * (1.0 / n + x_mean * x_mean / ss_xx).sqrt();
-
-    (stderr, p_value, intercept_stderr)
+    calculate_slope_inference(n, ss_x_star, ss_res, slope, x_mean)
 }
 
 #[cfg(test)]
@@ -672,6 +662,91 @@ mod tests {
                 let _ = result.intercept;
                 let _ = result.r_value;
             }
+        }
+    }
+
+    mod deming_inference {
+        use super::*;
+
+        fn make_array(v: Vec<f64>) -> Array1Ref {
+            numpy::ndarray::Array1::from_vec(v)
+        }
+
+        #[test]
+        fn returns_nan_for_minimal_data() {
+            let x = make_array(vec![1.0, 2.0]);
+            let y = make_array(vec![2.0, 4.0]);
+            let slope = 2.0;
+            let intercept = 0.0;
+            let x_mean = 1.5;
+
+            let (stderr, p_value, intercept_stderr) =
+                calculate_tls_inference(&x, &y, slope, intercept, x_mean);
+
+            assert!(stderr.is_nan(), "stderr should be NaN for n=2");
+            assert!(p_value.is_nan(), "p_value should be NaN for n=2");
+            assert!(
+                intercept_stderr.is_nan(),
+                "intercept_stderr should be NaN for n=2"
+            );
+        }
+
+        #[test]
+        fn returns_finite_values_for_valid_noisy_data() {
+            let x = make_array(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]);
+            let y = make_array(vec![0.3, 1.1, 1.8, 3.2, 3.9, 5.1, 6.2, 6.8, 8.1, 9.2]);
+            let x_mean = x.mean().unwrap();
+
+            let tls = perform_tls(x.as_slice().unwrap(), y.as_slice().unwrap());
+            let (stderr, p_value, intercept_stderr) =
+                calculate_tls_inference(&x, &y, tls.slope, tls.intercept, x_mean);
+
+            assert!(stderr.is_finite(), "stderr should be finite");
+            assert!(p_value.is_finite(), "p_value should be finite");
+            assert!(
+                intercept_stderr.is_finite(),
+                "intercept_stderr should be finite"
+            );
+            assert!((0.0..=1.0).contains(&p_value), "p_value must be in [0, 1]");
+        }
+
+        #[test]
+        fn stderr_is_larger_than_vertical_residual_approximation_when_x_has_measurement_noise() {
+            // x_obs has large noise relative to the true x spacing (noise ≈ 1.5 per unit),
+            // so TLS attenuation-correction is strong and the ratio is well above 1.0.
+            let x_obs = make_array(vec![
+                2.5, 0.2, 4.2, 2.6, 6.6, 4.9, 8.9, 6.7, 10.7, 8.5, 12.2, 10.2,
+            ]);
+            let y_obs = make_array(vec![
+                9.0, 21.0, 29.0, 41.0, 51.0, 59.0, 71.0, 80.0, 89.0, 101.0, 109.0, 121.0,
+            ]);
+            let x_mean = x_obs.mean().unwrap();
+            let n = x_obs.len() as f64;
+
+            let tls = perform_tls(x_obs.as_slice().unwrap(), y_obs.as_slice().unwrap());
+            let (tls_stderr, _, _) =
+                calculate_tls_inference(&x_obs, &y_obs, tls.slope, tls.intercept, x_mean);
+
+            let ss_res: f64 = x_obs
+                .iter()
+                .zip(y_obs.iter())
+                .map(|(&xi, &yi)| {
+                    let r = yi - tls.slope * xi - tls.intercept;
+                    r * r
+                })
+                .sum();
+            let ss_xx: f64 = x_obs.iter().map(|&xi| (xi - x_mean).powi(2)).sum();
+            let s = (ss_res / (n - 2.0)).sqrt();
+            let vertical_residual_stderr = s / ss_xx.sqrt();
+
+            let ratio = tls_stderr / vertical_residual_stderr;
+            assert!(
+                ratio > 1.05,
+                "TLS stderr ratio ({:.3}) should exceed 1.05; tls={:.4}, vr={:.4}",
+                ratio,
+                tls_stderr,
+                vertical_residual_stderr
+            );
         }
     }
 

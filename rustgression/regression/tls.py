@@ -19,12 +19,10 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
     variables.
 
     Note on goodness-of-fit metrics: residuals() returns *vertical* residuals
-    (y - predict(x)), not orthogonal residuals, consistent with the
-    vertical-residual inference used for p_value() and stderr().
-    Consequently, r_squared() returns the squared Pearson correlation
-    coefficient and does NOT satisfy r_squared() == 1 - SS_res / SS_tot
-    for TLS; combining both metrics for a classical R² check will not
-    produce consistent results.
+    (y - predict(x)), not orthogonal residuals.  r_squared() returns the
+    squared Pearson correlation coefficient and does NOT satisfy
+    r_squared() == 1 - SS_res / SS_tot for TLS; combining both metrics for
+    a classical R² check will not produce consistent results.
 
     """
 
@@ -73,8 +71,9 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
     def p_value(self) -> float:
         """Return the two-tailed p-value for the slope.
 
-        Computed via a t-test with n-2 degrees of freedom, assuming equal
-        measurement error variance (λ=1) in both x and y.
+        Computed via a t-test with n-2 degrees of freedom using the Deming
+        (orthogonal, λ=1) slope variance estimator, which matches equal-weight
+        ODR (scipy.odr / odrpack).
 
         Returns
         -------
@@ -86,9 +85,10 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
     def stderr(self) -> float:
         """Return the standard error of the slope.
 
-        Derived from vertical residuals, which is equivalent to
-        orthogonal-residual inference under equal measurement error
-        variance (λ=1).
+        Uses the Deming (orthogonal, λ=1) variance estimator: the effective
+        sum of squares Sxx* = Σ(xi* - x̄)², where xi* is the foot of the
+        perpendicular from each observed point to the TLS line.  This matches
+        equal-weight ODR (scipy.odr / odrpack) to within ~1%.
 
         Returns
         -------

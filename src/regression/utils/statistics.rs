@@ -1,4 +1,5 @@
 use crate::regression::utils::math::kahan_sum;
+use crate::regression::utils::validation::safe_divide;
 use numpy::ndarray::Array1;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
@@ -68,6 +69,46 @@ pub fn calculate_p_value_exact(t_value: f64, df: f64) -> f64 {
             f64::NAN
         }
     }
+}
+
+/// Compute slope stderr, p-value, and intercept stderr from pre-computed sums.
+///
+/// Shared by OLS (`ss_effective = Sxx`) and TLS (`ss_effective = Sxx*`).
+/// Applies the same finite-value guards as OLS to keep NaN behaviour consistent
+/// across both estimators.
+pub fn calculate_slope_inference(
+    n: f64,
+    ss_effective: f64,
+    ss_res: f64,
+    slope: f64,
+    x_mean: f64,
+) -> (f64, f64, f64) {
+    let stderr = if n > 2.0 && ss_effective > f64::EPSILON {
+        let sd_res = (ss_res / (n - 2.0)).sqrt();
+        if sd_res.is_finite() && ss_effective > 0.0 {
+            safe_divide(sd_res, ss_effective.sqrt(), "standard error calculation")
+                .unwrap_or(f64::NAN)
+        } else {
+            f64::NAN
+        }
+    } else {
+        f64::NAN
+    };
+
+    let p_value = if n > 2.0 && stderr != 0.0 {
+        calculate_p_value_exact(slope.abs() / stderr, n - 2.0)
+    } else {
+        f64::NAN
+    };
+
+    let intercept_stderr = if n > 2.0 && ss_effective > 0.0 {
+        let sd_res = (ss_res / (n - 2.0)).sqrt();
+        sd_res * ((1.0 / n) + (x_mean * x_mean) / ss_effective).sqrt()
+    } else {
+        f64::NAN
+    };
+
+    (stderr, p_value, intercept_stderr)
 }
 
 #[cfg(test)]

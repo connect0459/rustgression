@@ -1,7 +1,7 @@
 #![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 
 use crate::regression::utils::{
-    calculate_p_value_exact, kahan_sum, safe_divide, validate_finite_array,
+    calculate_slope_inference, kahan_sum, safe_divide, validate_finite_array,
 };
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
@@ -66,7 +66,7 @@ pub fn calculate_ols_regression<'py>(
     let ss_res = calculate_residual_sum_of_squares(&x_array, &y_array, slope, intercept);
 
     let (stderr, p_value, intercept_stderr) =
-        calculate_standard_errors(n, ss_xx, ss_res, slope, x_mean);
+        calculate_slope_inference(n, ss_xx, ss_res, slope, x_mean);
 
     // Calculate predicted values
     let y_pred: Array1Ref = x_array.mapv(|v| slope * v + intercept);
@@ -138,42 +138,6 @@ fn calculate_residual_sum_of_squares(
         residual_terms.push(diff * diff);
     }
     kahan_sum(&residual_terms)
-}
-
-/// Calculate standard error, p-value, and intercept standard error
-fn calculate_standard_errors(
-    n: f64,
-    ss_xx: f64,
-    ss_res: f64,
-    slope: f64,
-    x_mean: f64,
-) -> (f64, f64, f64) {
-    let stderr = if n > 2.0 && ss_xx > f64::EPSILON {
-        let sd_res = (ss_res / (n - 2.0)).sqrt();
-        if sd_res.is_finite() && ss_xx > 0.0 {
-            safe_divide(sd_res, ss_xx.sqrt(), "standard error calculation").unwrap_or(f64::NAN)
-        } else {
-            f64::NAN
-        }
-    } else {
-        f64::NAN
-    };
-
-    let p_value = if n > 2.0 && stderr != 0.0 {
-        let t_stat = slope.abs() / stderr;
-        calculate_p_value_exact(t_stat, n - 2.0)
-    } else {
-        f64::NAN
-    };
-
-    let intercept_stderr = if n > 2.0 && ss_xx > 0.0 {
-        let sd_res = (ss_res / (n - 2.0)).sqrt();
-        sd_res * ((1.0 / n) + (x_mean * x_mean) / ss_xx).sqrt()
-    } else {
-        f64::NAN
-    };
-
-    (stderr, p_value, intercept_stderr)
 }
 
 #[cfg(test)]
@@ -325,7 +289,7 @@ mod tests {
     }
 
     mod calculate_p_value_exact {
-        use super::*;
+        use crate::regression::utils::statistics::calculate_p_value_exact;
 
         #[test]
         fn returns_valid_p_value_for_large_degrees_of_freedom() {
