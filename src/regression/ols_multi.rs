@@ -1,4 +1,4 @@
-use crate::regression::utils::validation::validate_finite_array;
+use crate::regression::utils::{kahan_sum, validation::validate_finite_array};
 use nalgebra::{DMatrix, DVector};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
@@ -107,12 +107,14 @@ fn compute_ols_multi_coefficients(
     let y_pred: Vec<f64> = y_pred_vec.iter().cloned().collect();
 
     let y_mean = y_slice.iter().sum::<f64>() / n as f64;
-    let ss_tot: f64 = y_slice.iter().map(|&yi| (yi - y_mean).powi(2)).sum();
-    let ss_res: f64 = y_slice
+    let ss_tot_terms: Vec<f64> = y_slice.iter().map(|&yi| (yi - y_mean).powi(2)).collect();
+    let ss_tot = kahan_sum(&ss_tot_terms);
+    let ss_res_terms: Vec<f64> = y_slice
         .iter()
         .zip(y_pred.iter())
         .map(|(&yi, &yp)| (yi - yp).powi(2))
-        .sum();
+        .collect();
+    let ss_res = kahan_sum(&ss_res_terms);
 
     let r_squared = if ss_tot > f64::EPSILON {
         1.0 - ss_res / ss_tot
