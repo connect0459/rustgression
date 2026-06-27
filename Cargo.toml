@@ -11,8 +11,11 @@ license = "MIT"
 name = "rustgression"
 crate-type = ["cdylib"]
 
+[features]
+extension-module = ["pyo3/extension-module"]
+
 [dependencies]
-pyo3 = { version = "0.26", features = ["extension-module"] }
+pyo3 = { version = "0.26" }
 numpy = "0.26"
 nalgebra = "0.35"
 statrs = "0.18"
