@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from rustgression import (
+    OlsMultiRegressor,
     OlsRegressor,
     TlsRegressor,
     create_regressor,
@@ -29,7 +30,7 @@ def sample_data():
 class TestCreateRegressor:
     """Tests for the factory function for creating regressors."""
 
-    def test_creates_ols_and_tls_regressors_by_method_name(self, sample_data):
+    def test_creates_ols_tls_and_ols_multi_regressors_by_method_name(self, sample_data):
         """Test normal regressor creation."""
         x, y = sample_data
 
@@ -38,6 +39,10 @@ class TestCreateRegressor:
 
         tls = create_regressor(x, y, "tls")
         assert isinstance(tls, TlsRegressor)
+
+        x_2d = x.reshape(-1, 1)
+        ols_multi = create_regressor(x_2d, y, "ols_multi")
+        assert isinstance(ols_multi, OlsMultiRegressor)
 
     def test_creates_ols_regressor_when_no_method_is_specified(self, sample_data):
         """Test default regressor creation."""

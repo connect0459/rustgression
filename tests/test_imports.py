@@ -63,7 +63,7 @@ class TestImportErrorHandling:
 class TestModuleInitialization:
     """Test module initialization scenarios."""
 
-    def test_rust_imports_exposes_ols_and_tls_functions_in_all(self):
+    def test_rust_imports_exposes_all_regression_functions_in_all(self):
         """Test successful import of Rust module."""
         # Test that the functions are available and callable
         # This avoids the PyO3 reinitialization issue by not reimporting
@@ -76,15 +76,24 @@ class TestModuleInitialization:
         assert hasattr(
             rustgression.regression._rust_imports, "calculate_tls_regression"
         )
+        assert hasattr(
+            rustgression.regression._rust_imports, "calculate_ols_multi_regression"
+        )
         assert hasattr(rustgression.regression._rust_imports, "__all__")
 
         # Check that __all__ contains the expected functions
-        expected_functions = {"calculate_ols_regression", "calculate_tls_regression"}
+        expected_functions = {
+            "calculate_ols_multi_regression",
+            "calculate_ols_regression",
+            "calculate_tls_regression",
+        }
         assert set(rustgression.regression._rust_imports.__all__) == expected_functions
 
     def test_all_public_symbols_are_importable_from_package(self):
         """Test that all expected components are available."""
         from rustgression import (
+            OlsMultiRegressionParams,
+            OlsMultiRegressor,
             OlsRegressionParams,
             OlsRegressor,
             TlsRegressionParams,
@@ -93,6 +102,8 @@ class TestModuleInitialization:
         )
 
         # Check that all components are importable
+        assert OlsMultiRegressionParams is not None
+        assert OlsMultiRegressor is not None
         assert OlsRegressor is not None
         assert TlsRegressor is not None
         assert OlsRegressionParams is not None
@@ -108,11 +119,13 @@ class TestModuleInitialization:
         assert hasattr(rustgression, "__version__")
         assert rustgression.__version__ == importlib.metadata.version("rustgression")
 
-    def test_all_attribute_contains_exactly_five_public_names(self):
+    def test_all_attribute_contains_all_public_names(self):
         """Test __all__ attribute contains expected items."""
         import rustgression
 
         expected_items = {
+            "OlsMultiRegressionParams",
+            "OlsMultiRegressor",
             "OlsRegressionParams",
             "OlsRegressor",
             "TlsRegressionParams",

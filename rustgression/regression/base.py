@@ -11,7 +11,29 @@ import numpy as np
 T = TypeVar("T")
 
 
-@dataclass
+@dataclass(frozen=True)
+class OlsMultiRegressionParams:
+    """Data class to store parameters for multiple Ordinary Least Squares regression.
+
+    Attributes
+    ----------
+    coefficients : np.ndarray
+        Shape (p+1,) array with intercept at index 0 followed by p slope coefficients.
+    r_squared : float
+        The coefficient of determination (R²) indicating goodness of fit.
+    f_statistic : float
+        The F-statistic for the overall model significance test.
+    p_value : float
+        The p-value for the F-statistic.
+    """
+
+    coefficients: np.ndarray
+    r_squared: float
+    f_statistic: float
+    p_value: float
+
+
+@dataclass(frozen=True)
 class OlsRegressionParams:
     """Data class to store parameters for Ordinary Least Squares (OLS) regression.
 
@@ -39,7 +61,7 @@ class OlsRegressionParams:
     intercept_stderr: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class TlsRegressionParams:
     """Data class to store parameters for Total Least Squares (TLS) regression.
 

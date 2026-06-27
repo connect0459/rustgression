@@ -8,7 +8,11 @@ import sys
 # Fix Rust module import
 try:
     # Import Rust functions from parent module
-    from ..rustgression import calculate_ols_regression, calculate_tls_regression
+    from ..rustgression import (
+        calculate_ols_multi_regression,
+        calculate_ols_regression,
+        calculate_tls_regression,
+    )
 except ImportError:
     try:
         # Try alternative import method
@@ -18,6 +22,7 @@ except ImportError:
             # Dynamically import module
             rust_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(rust_module)
+            calculate_ols_multi_regression = rust_module.calculate_ols_multi_regression
             calculate_ols_regression = rust_module.calculate_ols_regression
             calculate_tls_regression = rust_module.calculate_tls_regression
         else:
@@ -26,4 +31,8 @@ except ImportError:
         print(f"Failed to import Rust functions: {e}", file=sys.stderr)
         raise
 
-__all__ = ["calculate_ols_regression", "calculate_tls_regression"]
+__all__ = [
+    "calculate_ols_multi_regression",
+    "calculate_ols_regression",
+    "calculate_tls_regression",
+]

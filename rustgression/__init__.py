@@ -56,6 +56,8 @@ except ImportError as e:
 # Next, import Python wrapper
 try:
     from .regression import (
+        OlsMultiRegressionParams,
+        OlsMultiRegressor,
         OlsRegressionParams,
         OlsRegressor,
         TlsRegressionParams,
@@ -64,6 +66,8 @@ try:
     )
 
     __all__ = [
+        "OlsMultiRegressionParams",
+        "OlsMultiRegressor",
         "OlsRegressionParams",
         "OlsRegressor",
         "TlsRegressionParams",
