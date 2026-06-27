@@ -712,9 +712,13 @@ mod tests {
 
         #[test]
         fn stderr_is_larger_than_vertical_residual_approximation_when_x_has_measurement_noise() {
-            let x_obs = make_array(vec![0.5, 1.8, 1.9, 3.3, 4.1, 5.2, 6.3, 7.1, 7.9, 9.4]);
+            // x_obs has large noise relative to the true x spacing (noise ≈ 1.5 per unit),
+            // so TLS attenuation-correction is strong and the ratio is well above 1.0.
+            let x_obs = make_array(vec![
+                2.5, 0.2, 4.2, 2.6, 6.6, 4.9, 8.9, 6.7, 10.7, 8.5, 12.2, 10.2,
+            ]);
             let y_obs = make_array(vec![
-                1.0, 18.0, 21.0, 29.0, 42.0, 51.0, 63.0, 69.0, 81.0, 92.0,
+                9.0, 21.0, 29.0, 41.0, 51.0, 59.0, 71.0, 80.0, 89.0, 101.0, 109.0, 121.0,
             ]);
             let x_mean = x_obs.mean().unwrap();
             let n = x_obs.len() as f64;
@@ -735,9 +739,11 @@ mod tests {
             let s = (ss_res / (n - 2.0)).sqrt();
             let vertical_residual_stderr = s / ss_xx.sqrt();
 
+            let ratio = tls_stderr / vertical_residual_stderr;
             assert!(
-                tls_stderr > vertical_residual_stderr,
-                "TLS stderr ({:.4}) should exceed vertical-residual stderr ({:.4})",
+                ratio > 1.05,
+                "TLS stderr ratio ({:.3}) should exceed 1.05; tls={:.4}, vr={:.4}",
+                ratio,
                 tls_stderr,
                 vertical_residual_stderr
             );

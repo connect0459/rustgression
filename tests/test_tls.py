@@ -105,6 +105,16 @@ class TestTlsRegressor:
         assert regressor.residuals().shape == y.shape
 
 
+def _odrpack_linear_fit(xn, yn):
+    """Fit linear ODR with equal weights; returns the odrpack result."""
+    import odrpack
+
+    def lin(x, b):
+        return b[0] * x + b[1]
+
+    return odrpack.odr_fit(lin, xn, yn, beta0=[1.0, 0.0])
+
+
 class TestTlsRegressorStderr:
     """Tests that TLS standard errors match the Deming regression reference."""
 
@@ -118,11 +128,6 @@ class TestTlsRegressorStderr:
     )
     def test_stderr_matches_odrpack_deming_reference(self, true_slope, noise):
         """Slope stderr must agree with odrpack equal-weight ODR to within 1%."""
-        import odrpack
-
-        def lin(x, b):
-            return b[0] * x + b[1]
-
         rng = np.random.default_rng(seed=1)
         n = 60
         x = np.linspace(0, 10, n)
@@ -130,7 +135,7 @@ class TestTlsRegressorStderr:
         yn = true_slope * x + rng.normal(0, noise, n)
 
         regressor = TlsRegressor(xn, yn)
-        res = odrpack.odr_fit(lin, xn, yn, beta0=[1.0, 0.0])
+        res = _odrpack_linear_fit(xn, yn)
 
         relative_error = abs(regressor.stderr() - res.sd_beta[0]) / res.sd_beta[0]
         assert relative_error < 0.01, (
@@ -140,11 +145,6 @@ class TestTlsRegressorStderr:
 
     def test_intercept_stderr_matches_odrpack_deming_reference(self):
         """Intercept stderr must agree with odrpack equal-weight ODR to within 1%."""
-        import odrpack
-
-        def lin(x, b):
-            return b[0] * x + b[1]
-
         rng = np.random.default_rng(seed=42)
         n = 60
         x = np.linspace(0, 10, n)
@@ -153,7 +153,7 @@ class TestTlsRegressorStderr:
         yn = 10.0 * x + rng.normal(0, noise, n)
 
         regressor = TlsRegressor(xn, yn)
-        res = odrpack.odr_fit(lin, xn, yn, beta0=[1.0, 0.0])
+        res = _odrpack_linear_fit(xn, yn)
 
         relative_error = (
             abs(regressor.intercept_stderr() - res.sd_beta[1]) / res.sd_beta[1]
@@ -182,10 +182,12 @@ class TestTlsRegressorStderr:
         ss_res = np.sum(residuals**2)
         ss_xx = np.sum((xn - np.mean(xn)) ** 2)
         s = np.sqrt(ss_res / (n - 2))
-        ols_formula_stderr = s / np.sqrt(ss_xx)
+        vertical_residual_stderr = s / np.sqrt(ss_xx)
 
-        assert regressor.stderr() > ols_formula_stderr, (
-            "Deming stderr should exceed OLS-formula stderr for steep TLS slopes"
+        ratio = regressor.stderr() / vertical_residual_stderr
+        assert ratio > 1.10, (
+            f"TLS stderr should be at least 10% larger than vertical-residual "
+            f"approximation (got ratio {ratio:.3f})"
         )
 
 
