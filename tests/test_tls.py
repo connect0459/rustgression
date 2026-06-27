@@ -103,3 +103,20 @@ class TestTlsRegressor:
         x, y = sample_data
         regressor = TlsRegressor(x, y)
         assert regressor.residuals().shape == y.shape
+
+
+class TestTlsRegressorIntervalsNotImplemented:
+    """Tests that TLS interval methods raise NotImplementedError."""
+
+    def test_confidence_interval_raises_not_implemented_error(self, sample_data):
+        x, y = sample_data
+        regressor = TlsRegressor(x, y)
+        with pytest.raises(NotImplementedError):
+            regressor.confidence_interval()
+
+    def test_prediction_interval_raises_not_implemented_error(self, sample_data):
+        x, y = sample_data
+        regressor = TlsRegressor(x, y)
+        x_new = np.linspace(0, 10, 5)
+        with pytest.raises(NotImplementedError):
+            regressor.prediction_interval(x_new)
