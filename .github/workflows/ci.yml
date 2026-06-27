@@ -144,6 +144,8 @@ jobs:
         shell: bash
         run: |
           echo "Running Rust unit tests..."
+          export PYO3_PYTHON="$(uv run python -c 'import sys; print(sys.executable)')"
+          echo "PYO3_PYTHON=$PYO3_PYTHON"
           cargo test
           echo "Rust tests passed!"
 
