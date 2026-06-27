@@ -156,12 +156,17 @@ class BaseRegressor(ABC, Generic[T]):
         pass
 
     def r_squared(self) -> float:
-        """Return the coefficient of determination (R²).
+        """Return the squared Pearson correlation coefficient.
+
+        For OLS, this is mathematically equivalent to the coefficient of
+        determination (R²), i.e. 1 - SS_res / SS_tot.  For TLS the
+        identity does not hold in general because TLS minimises orthogonal
+        distances while residuals() returns vertical residuals.
 
         Returns
         -------
         float
-            The square of the correlation coefficient.
+            The square of the Pearson correlation coefficient.
         """
         return self._r_value**2
 

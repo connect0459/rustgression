@@ -16,6 +16,14 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
     approach is more appropriate when measurement errors exist in both
     variables.
 
+    Note on goodness-of-fit metrics: residuals() returns *vertical* residuals
+    (y - predict(x)), not orthogonal residuals, consistent with the
+    vertical-residual inference used for p_value() and stderr().
+    Consequently, r_squared() returns the squared Pearson correlation
+    coefficient and does NOT satisfy r_squared() == 1 - SS_res / SS_tot
+    for TLS; combining both metrics for a classical R² check will not
+    produce consistent results.
+
     """
 
     def _fit(self) -> None:
@@ -96,6 +104,21 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
             The standard error of the intercept estimate.
         """
         return self._intercept_stderr
+
+    def r_squared(self) -> float:
+        """Return the squared Pearson correlation coefficient.
+
+        For TLS, this is the squared Pearson correlation between x and y
+        and does NOT equal 1 - SS_res / SS_tot (the classical coefficient
+        of determination), because TLS minimises orthogonal distances while
+        residuals() returns vertical residuals.
+
+        Returns
+        -------
+        float
+            The square of the Pearson correlation coefficient.
+        """
+        return self._r_value**2
 
     def get_params(self) -> TlsRegressionParams:
         """Retrieve regression parameters.
