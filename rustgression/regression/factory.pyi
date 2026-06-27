@@ -6,10 +6,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .ols import OlsRegressor
+from .ols_multi import OlsMultiRegressor
 from .tls import TlsRegressor
 
 def create_regressor(
     x: NDArray[np.floating],
     y: NDArray[np.floating],
-    method: Literal["ols", "tls"] = "ols",
-) -> OlsRegressor | TlsRegressor: ...
+    method: Literal["ols", "tls", "ols_multi"] = "ols",
+) -> OlsRegressor | TlsRegressor | OlsMultiRegressor: ...

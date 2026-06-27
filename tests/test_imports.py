@@ -92,6 +92,8 @@ class TestModuleInitialization:
     def test_all_public_symbols_are_importable_from_package(self):
         """Test that all expected components are available."""
         from rustgression import (
+            OlsMultiRegressionParams,
+            OlsMultiRegressor,
             OlsRegressionParams,
             OlsRegressor,
             TlsRegressionParams,
@@ -100,6 +102,8 @@ class TestModuleInitialization:
         )
 
         # Check that all components are importable
+        assert OlsMultiRegressionParams is not None
+        assert OlsMultiRegressor is not None
         assert OlsRegressor is not None
         assert TlsRegressor is not None
         assert OlsRegressionParams is not None
@@ -115,11 +119,13 @@ class TestModuleInitialization:
         assert hasattr(rustgression, "__version__")
         assert rustgression.__version__ == importlib.metadata.version("rustgression")
 
-    def test_all_attribute_contains_exactly_five_public_names(self):
+    def test_all_attribute_contains_all_public_names(self):
         """Test __all__ attribute contains expected items."""
         import rustgression
 
         expected_items = {
+            "OlsMultiRegressionParams",
+            "OlsMultiRegressor",
             "OlsRegressionParams",
             "OlsRegressor",
             "TlsRegressionParams",
