@@ -110,4 +110,5 @@ dev = [
   "scikit-learn>=1.0.0",
   "scipy>=1.15.2",
   "setuptools==82.0.1",
+  "statsmodels>=0.14.0",
 ]
