@@ -37,8 +37,9 @@ class OlsMultiRegressor:
         Raises
         ------
         ValueError
-            If x is not 2D, arrays have mismatched lengths, or fewer than 2
-            observations are provided.
+            If x is not 2D, arrays have mismatched lengths, fewer than 2
+            observations are provided, or the number of observations does not
+            exceed the number of predictors (n <= p).
         """
         self.x = np.asarray(x, dtype=np.float64)
         self.y = np.asarray(y, dtype=np.float64).flatten()
@@ -51,6 +52,12 @@ class OlsMultiRegressor:
 
         if self.x.shape[0] < 2:
             raise ValueError("At least two data points are required for regression.")
+
+        n, p = self.x.shape
+        if n <= p:
+            raise ValueError(
+                f"Number of observations ({n}) must exceed number of predictors ({p})."
+            )
 
         self._coefficients: np.ndarray
         self._r_squared: float
@@ -70,7 +77,7 @@ class OlsMultiRegressor:
         self._p_value = float(p_value)
 
     def predict(self, x: np.ndarray) -> np.ndarray:
-        """Predict response values for a 2D predictor matrix.
+        """Predict response values for a predictor matrix.
 
         Parameters
         ----------
@@ -81,10 +88,19 @@ class OlsMultiRegressor:
         -------
         np.ndarray, shape (m,)
             Predicted response values.
+
+        Raises
+        ------
+        ValueError
+            If x is not 2D or the number of features does not match the
+            number used during fitting.
         """
         x = np.asarray(x, dtype=np.float64)
         if x.ndim != 2:
             raise ValueError("x must be a 2D array of shape (m, p).")
+        p_fit = len(self._coefficients) - 1
+        if x.shape[1] != p_fit:
+            raise ValueError(f"Expected {p_fit} features, got {x.shape[1]}.")
         intercept = self._coefficients[0]
         slopes = self._coefficients[1:]
         return x @ slopes + intercept
