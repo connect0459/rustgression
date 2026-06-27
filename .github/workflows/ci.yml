@@ -52,7 +52,7 @@ jobs:
 
       - name: Cache Cargo registry
         if: steps.filter.outputs.code == 'true'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index/
@@ -64,7 +64,7 @@ jobs:
 
       - name: Set up Rust
         if: steps.filter.outputs.code == 'true'
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         # automatically reads rust-toolchain.toml to set up the toolchain
 
       # Set up Rust build dependencies for Linux (Ubuntu)
