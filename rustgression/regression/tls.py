@@ -4,6 +4,8 @@ Total Least Squares (TLS) regression implementation.
 
 import warnings
 
+import numpy as np
+
 from ._rust_imports import calculate_tls_regression
 from .base import BaseRegressor, TlsRegressionParams
 
@@ -104,6 +106,36 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
             The standard error of the intercept estimate.
         """
         return self._intercept_stderr
+
+    @staticmethod
+    def _interval_not_supported(method_name: str) -> None:
+        raise NotImplementedError(
+            f"{method_name}() is not supported for TlsRegressor. "
+            "TLS confidence and prediction intervals require bootstrap or "
+            "jackknife inference."
+        )
+
+    def confidence_interval(
+        self, alpha: float = 0.05
+    ) -> dict[str, tuple[float, float]]:
+        """Not implemented for TLS.
+
+        Raises
+        ------
+        NotImplementedError
+            TLS confidence intervals require bootstrap or jackknife inference.
+        """
+        self._interval_not_supported("confidence_interval")
+
+    def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> np.ndarray:
+        """Not implemented for TLS.
+
+        Raises
+        ------
+        NotImplementedError
+            TLS prediction intervals require bootstrap or jackknife inference.
+        """
+        self._interval_not_supported("prediction_interval")
 
     def r_squared(self) -> float:
         """Return the squared Pearson correlation coefficient.
