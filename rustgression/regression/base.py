@@ -155,6 +155,26 @@ class BaseRegressor(ABC, Generic[T]):
         """
         pass
 
+    def r_squared(self) -> float:
+        """Return the coefficient of determination (R²).
+
+        Returns
+        -------
+        float
+            The square of the correlation coefficient.
+        """
+        return self._r_value**2
+
+    def residuals(self) -> np.ndarray:
+        """Return the vertical residuals of the fitted model.
+
+        Returns
+        -------
+        np.ndarray
+            The difference between observed and predicted values: y - predict(x).
+        """
+        return self.y - self.predict(self.x)
+
     def __repr__(self) -> str:
         """String representation of the regression model.
 
