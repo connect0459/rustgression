@@ -209,6 +209,13 @@ class TestOlsRegressorConfidenceInterval:
         width_90 = ci_90["slope"][1] - ci_90["slope"][0]
         assert width_95 > width_90
 
+    def test_raises_for_exactly_two_data_points(self):
+        x = np.array([1.0, 2.0])
+        y = np.array([2.0, 4.0])
+        regressor = OlsRegressor(x, y)
+        with pytest.raises(ValueError):
+            regressor.confidence_interval()
+
 
 class TestOlsRegressorPredictionInterval:
     """Tests for OlsRegressor.prediction_interval()."""
@@ -271,3 +278,24 @@ class TestOlsRegressorPredictionInterval:
         width_mean = pi_mean[0, 1] - pi_mean[0, 0]
         width_extreme = pi_extreme[0, 1] - pi_extreme[0, 0]
         assert width_extreme > width_mean
+
+    def test_raises_for_exactly_two_data_points(self):
+        x = np.array([1.0, 2.0])
+        y = np.array([2.0, 4.0])
+        regressor = OlsRegressor(x, y)
+        with pytest.raises(ValueError):
+            regressor.prediction_interval(np.array([1.5]))
+
+    def test_raises_for_constant_x_values(self):
+        x = np.array([3.0, 3.0, 3.0])
+        y = np.array([1.0, 2.0, 3.0])
+        with pytest.raises(ValueError):
+            regressor = OlsRegressor(x, y)
+            regressor.prediction_interval(np.array([3.0]))
+
+    def test_accepts_2d_x_new_and_returns_shape_n_by_2(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        x_new_row = np.array([[1.0, 5.0, 9.0]])
+        pi = regressor.prediction_interval(x_new_row)
+        assert pi.shape == (3, 2)

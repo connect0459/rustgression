@@ -200,6 +200,11 @@ class BaseRegressor(ABC, Generic[T]):
             a ``(lower, upper)`` tuple.
         """
         n = len(self.x)
+        if n < 3:
+            raise ValueError(
+                "confidence_interval() requires at least 3 data points "
+                "(needs n - 2 >= 1 degrees of freedom)."
+            )
         t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
         slope_lo = self._slope - t_crit * self._stderr
         slope_hi = self._slope + t_crit * self._stderr
@@ -223,10 +228,19 @@ class BaseRegressor(ABC, Generic[T]):
             Array of shape ``(len(x_new), 2)`` where each row is
             ``[lower, upper]``.
         """
-        x_new = np.asarray(x_new, dtype=np.float64)
+        x_new = np.asarray(x_new, dtype=np.float64).ravel()
         n = len(self.x)
+        if n < 3:
+            raise ValueError(
+                "prediction_interval() requires at least 3 data points "
+                "(needs n - 2 >= 1 degrees of freedom)."
+            )
         x_mean = self.x.mean()
         ss_xx = np.sum((self.x - x_mean) ** 2)
+        if ss_xx == 0.0:
+            raise ValueError(
+                "prediction_interval() requires at least two distinct x values."
+            )
         s = np.sqrt(np.sum(self.residuals() ** 2) / (n - 2))
         t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
         y_hat = self.predict(x_new)
