@@ -97,7 +97,7 @@ class OlsMultiRegressor:
         np.ndarray, shape (p+1,)
             Array with intercept at index 0 followed by p slope coefficients.
         """
-        return self._coefficients
+        return self._coefficients.copy()
 
     def intercept(self) -> float:
         """Return the intercept of the regression model.
