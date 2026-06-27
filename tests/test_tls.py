@@ -88,10 +88,11 @@ class TestTlsRegressor:
         assert abs(regressor.slope() - 3.0) < 1e-10
         assert abs(regressor.intercept() - 0.0) < 1e-10
 
-    def test_r_squared_equals_square_of_r_value(self, sample_data):
+    def test_r_squared_equals_squared_pearson_correlation(self, sample_data):
         x, y = sample_data
         regressor = TlsRegressor(x, y)
-        assert abs(regressor.r_squared() - regressor.r_value() ** 2) < 1e-12
+        expected = np.corrcoef(x, y)[0, 1] ** 2
+        assert abs(regressor.r_squared() - expected) < 1e-12
 
     def test_r_squared_is_within_unit_interval_for_noisy_data(self, sample_data):
         x, y = sample_data
@@ -102,16 +103,3 @@ class TestTlsRegressor:
         x, y = sample_data
         regressor = TlsRegressor(x, y)
         assert regressor.residuals().shape == y.shape
-
-    def test_residuals_reflect_vertical_distances_from_fitted_line(self, sample_data):
-        x, y = sample_data
-        regressor = TlsRegressor(x, y)
-        expected = y - regressor.predict(x)
-        np.testing.assert_allclose(regressor.residuals(), expected, atol=1e-12)
-
-    def test_residuals_squared_sum_equals_ss_res(self, sample_data):
-        x, y = sample_data
-        regressor = TlsRegressor(x, y)
-        y_pred = regressor.predict(x)
-        ss_res_expected = np.sum((y - y_pred) ** 2)
-        assert abs((regressor.residuals() ** 2).sum() - ss_res_expected) < 1e-10

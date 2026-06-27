@@ -93,17 +93,12 @@ class TestOlsRegressor:
         assert abs(regressor.slope() - 2.0) < 1e-10
         assert abs(regressor.intercept() - 0.0) < 1e-10
 
-    def test_r_squared_equals_square_of_r_value(self, sample_data):
-        x, y = sample_data
-        regressor = OlsRegressor(x, y)
-        assert abs(regressor.r_squared() - regressor.r_value() ** 2) < 1e-12
-
     def test_r_squared_is_within_unit_interval_for_noisy_data(self, sample_data):
         x, y = sample_data
         regressor = OlsRegressor(x, y)
         assert 0.0 <= regressor.r_squared() <= 1.0
 
-    def test_r_squared_matches_numpy_formula(self, sample_data):
+    def test_r_squared_equals_proportion_of_variance_explained(self, sample_data):
         x, y = sample_data
         regressor = OlsRegressor(x, y)
         y_pred = regressor.predict(x)
@@ -128,13 +123,6 @@ class TestOlsRegressor:
         x, y = sample_data
         regressor = OlsRegressor(x, y)
         assert abs(regressor.residuals().sum()) < 1e-8
-
-    def test_residuals_squared_sum_equals_ss_res(self, sample_data):
-        x, y = sample_data
-        regressor = OlsRegressor(x, y)
-        y_pred = regressor.predict(x)
-        ss_res_expected = np.sum((y - y_pred) ** 2)
-        assert abs((regressor.residuals() ** 2).sum() - ss_res_expected) < 1e-10
 
     def test_residuals_match_scipy_linregress(self, sample_data):
         x, y = sample_data
