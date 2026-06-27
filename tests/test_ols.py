@@ -4,6 +4,7 @@ Tests for Ordinary Least Squares (OLS) regression.
 
 import numpy as np
 import pytest
+from scipy import stats
 
 from rustgression import OlsRegressionParams, OlsRegressor
 
@@ -91,3 +92,55 @@ class TestOlsRegressor:
         regressor = OlsRegressor(x, y)
         assert abs(regressor.slope() - 2.0) < 1e-10
         assert abs(regressor.intercept() - 0.0) < 1e-10
+
+    def test_r_squared_equals_square_of_r_value(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        assert abs(regressor.r_squared() - regressor.r_value() ** 2) < 1e-12
+
+    def test_r_squared_is_within_unit_interval_for_noisy_data(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        assert 0.0 <= regressor.r_squared() <= 1.0
+
+    def test_r_squared_matches_numpy_formula(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        y_pred = regressor.predict(x)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        expected = 1.0 - ss_res / ss_tot
+        assert abs(regressor.r_squared() - expected) < 1e-10
+
+    def test_r_squared_matches_scipy_linregress(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        scipy_result = stats.linregress(x, y)
+        expected = scipy_result.rvalue**2
+        assert abs(regressor.r_squared() - expected) < 1e-10
+
+    def test_residuals_shape_matches_y(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        assert regressor.residuals().shape == y.shape
+
+    def test_residuals_sum_to_zero(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        assert abs(regressor.residuals().sum()) < 1e-8
+
+    def test_residuals_squared_sum_equals_ss_res(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        y_pred = regressor.predict(x)
+        ss_res_expected = np.sum((y - y_pred) ** 2)
+        assert abs((regressor.residuals() ** 2).sum() - ss_res_expected) < 1e-10
+
+    def test_residuals_match_scipy_linregress(self, sample_data):
+        x, y = sample_data
+        regressor = OlsRegressor(x, y)
+        scipy_result = stats.linregress(x, y)
+        expected_residuals = y - (scipy_result.slope * x + scipy_result.intercept)
+        np.testing.assert_allclose(
+            regressor.residuals(), expected_residuals, atol=1e-10
+        )
