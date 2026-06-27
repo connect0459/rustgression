@@ -122,9 +122,13 @@ class BaseRegressor(ABC, Generic[T]):
         self._r_value: float
         self._stderr: float
         self._intercept_stderr: float
+        self._x_mean: float
+        self._ss_xx: float
 
         # Execute fitting
         self._fit()
+        self._x_mean = float(self.x.mean())
+        self._ss_xx = float(np.sum((self.x - self._x_mean) ** 2))
 
     @abstractmethod
     def _fit(self) -> None:
@@ -183,6 +187,9 @@ class BaseRegressor(ABC, Generic[T]):
         """
         return self.y - self.predict(self.x)
 
+    def _t_critical(self, alpha: float) -> float:
+        return float(t_dist.ppf(1.0 - alpha / 2.0, df=len(self.x) - 2))
+
     def confidence_interval(
         self, alpha: float = 0.05
     ) -> dict[str, tuple[float, float]]:
@@ -199,13 +206,12 @@ class BaseRegressor(ABC, Generic[T]):
             A dict with keys ``"slope"`` and ``"intercept"``, each mapped to
             a ``(lower, upper)`` tuple.
         """
-        n = len(self.x)
-        if n < 3:
+        if len(self.x) < 3:
             raise ValueError(
                 "confidence_interval() requires at least 3 data points "
                 "(needs n - 2 >= 1 degrees of freedom)."
             )
-        t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
+        t_crit = self._t_critical(alpha)
         slope_lo = self._slope - t_crit * self._stderr
         slope_hi = self._slope + t_crit * self._stderr
         int_lo = self._intercept - t_crit * self._intercept_stderr
@@ -235,16 +241,14 @@ class BaseRegressor(ABC, Generic[T]):
                 "prediction_interval() requires at least 3 data points "
                 "(needs n - 2 >= 1 degrees of freedom)."
             )
-        x_mean = self.x.mean()
-        ss_xx = np.sum((self.x - x_mean) ** 2)
-        if ss_xx == 0.0:
+        if self._ss_xx == 0.0:
             raise ValueError(
                 "prediction_interval() requires at least two distinct x values."
             )
         s = np.sqrt(np.sum(self.residuals() ** 2) / (n - 2))
-        t_crit = t_dist.ppf(1.0 - alpha / 2.0, df=n - 2)
+        t_crit = self._t_critical(alpha)
         y_hat = self.predict(x_new)
-        se_pred = s * np.sqrt(1.0 + 1.0 / n + (x_new - x_mean) ** 2 / ss_xx)
+        se_pred = s * np.sqrt(1.0 + 1.0 / n + (x_new - self._x_mean) ** 2 / self._ss_xx)
         return np.column_stack([y_hat - t_crit * se_pred, y_hat + t_crit * se_pred])
 
     def __repr__(self) -> str:
