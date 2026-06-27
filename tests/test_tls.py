@@ -87,3 +87,19 @@ class TestTlsRegressor:
         regressor = TlsRegressor(x, y)
         assert abs(regressor.slope() - 3.0) < 1e-10
         assert abs(regressor.intercept() - 0.0) < 1e-10
+
+    def test_r_squared_equals_squared_pearson_correlation(self, sample_data):
+        x, y = sample_data
+        regressor = TlsRegressor(x, y)
+        expected = np.corrcoef(x, y)[0, 1] ** 2
+        assert abs(regressor.r_squared() - expected) < 1e-12
+
+    def test_r_squared_is_within_unit_interval_for_noisy_data(self, sample_data):
+        x, y = sample_data
+        regressor = TlsRegressor(x, y)
+        assert 0.0 <= regressor.r_squared() <= 1.0
+
+    def test_residuals_shape_matches_y(self, sample_data):
+        x, y = sample_data
+        regressor = TlsRegressor(x, y)
+        assert regressor.residuals().shape == y.shape
