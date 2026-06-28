@@ -122,13 +122,11 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept()) < 1e-12
         assert abs(regressor.r_value() - 1.0) < 1e-10
 
-    def test_matches_scipy_for_inputs_with_sub_epsilon_x_variance(self):
-        """OLS must succeed when ss_xx < f64::EPSILON but the regression is well-defined.
+    def test_matches_scipy_slope_and_r_value_for_small_magnitude_inputs(self):
+        """OLS must produce finite, accurate results for well-defined data at small absolute scale.
 
-        x=[1e-8, 2e-8, 3e-8] yields ss_xx ≈ 2e-16, which is below f64::EPSILON
-        (≈ 2.22e-16). The regression relationship is mathematically exact (slope=2,
-        intercept=0), so the implementation must not reject it based on an absolute
-        magnitude threshold.
+        The relationship is exact (slope=2, intercept=0), so both slope and
+        r_value must agree with scipy.stats.linregress to numerical tolerance.
         """
         x = np.array([1e-8, 2e-8, 3e-8])
         y = np.array([2e-8, 4e-8, 6e-8])
@@ -140,8 +138,8 @@ class TestRegressorEdgeCases:
         assert abs(regressor.intercept() - ref.intercept) < 1e-20
         assert abs(regressor.r_value() - ref.rvalue) < 1e-10
 
-    def test_slope_is_scale_invariant_for_sub_epsilon_and_normal_scale_inputs(self):
-        """OLS slope must be the same regardless of the absolute scale of the data."""
+    def test_slope_is_invariant_to_input_scale(self):
+        """OLS slope must be scale-equivariant: scaling x and y must not change the slope."""
         x_small = np.array([1e-8, 2e-8, 3e-8])
         y_small = np.array([2e-8, 4e-8, 6e-8])
         x_normal = x_small * 1e8
@@ -151,3 +149,18 @@ class TestRegressorEdgeCases:
         slope_normal = OlsRegressor(x_normal, y_normal).slope()
 
         assert abs(slope_small - slope_normal) < 1e-10
+
+    def test_r_value_is_accurate_when_product_of_variances_would_underflow(self):
+        """OLS r_value must be finite and accurate even at extreme small scale.
+
+        At extreme small scale, computing the product of two variance terms before
+        taking the square root can underflow to zero, producing NaN. Computing
+        individual square roots first avoids this.
+        """
+        x = np.array([1e-150, 2e-150, 3e-150])
+        y = np.array([2e-150, 4e-150, 6e-150])
+        ref = stats.linregress(x, y)
+
+        regressor = OlsRegressor(x, y)
+
+        assert abs(regressor.r_value() - ref.rvalue) < 1e-10
