@@ -92,9 +92,9 @@ compare_versions() {
 echo "Checking version consistency..."
 echo "Expected version: $ARG_VERSION"
 
-# Get version from rustgression/__init__.py
-INIT_VERSION=$(grep '^__version__ = ' rustgression/__init__.py | cut -d '"' -f2)
-echo "rustgression/__init__.py version: $INIT_VERSION"
+# Get version from src-py/rustgression/__init__.py
+INIT_VERSION=$(grep '^__version__ = ' src-py/rustgression/__init__.py | cut -d '"' -f2)
+echo "src-py/rustgression/__init__.py version: $INIT_VERSION"
 
 # Get version from Cargo.toml
 CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
@@ -130,10 +130,10 @@ if [ -n "$CURRENT_CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CURRENT_CARGO_VERSIO
 fi
 
 if [ "$ARG_VERSION" != "$INIT_VERSION" ]; then
-    error "[FAIL] rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
+    error "[FAIL] src-py/rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
-    success "[PASS] rustgression/__init__.py"
+    success "[PASS] src-py/rustgression/__init__.py"
 fi
 
 if [ "$ARG_VERSION" != "$CARGO_VERSION" ]; then
