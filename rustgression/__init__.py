@@ -43,7 +43,7 @@ __version__ = "0.5.1"
 
 # Check availability of Rust module (actual import is done in _rust_imports.py)
 try:
-    from .rustgression import calculate_ols_regression
+    from .rustgression import NumericalWarning, calculate_ols_regression
 
     # Do nothing on successful import (actual usage is done in other modules)
     del calculate_ols_regression
@@ -66,6 +66,7 @@ try:
     )
 
     __all__ = [
+        "NumericalWarning",
         "OlsMultiRegressionParams",
         "OlsMultiRegressor",
         "OlsRegressionParams",

@@ -92,6 +92,7 @@ class TestModuleInitialization:
     def test_all_public_symbols_are_importable_from_package(self):
         """Test that all expected components are available."""
         from rustgression import (
+            NumericalWarning,
             OlsMultiRegressionParams,
             OlsMultiRegressor,
             OlsRegressionParams,
@@ -102,6 +103,7 @@ class TestModuleInitialization:
         )
 
         # Check that all components are importable
+        assert NumericalWarning is not None
         assert OlsMultiRegressionParams is not None
         assert OlsMultiRegressor is not None
         assert OlsRegressor is not None
@@ -124,6 +126,7 @@ class TestModuleInitialization:
         import rustgression
 
         expected_items = {
+            "NumericalWarning",
             "OlsMultiRegressionParams",
             "OlsMultiRegressor",
             "OlsRegressionParams",
