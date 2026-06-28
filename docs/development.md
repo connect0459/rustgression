@@ -98,7 +98,7 @@ This script automatically updates the following files.
 
 - `Cargo.toml` - Rust package version
 - `pyproject.toml` - Python package version
-- `rustgression/__init__.py` - Package version constant
+- `src-py/rustgression/__init__.py` - Package version constant
 - `Cargo.lock` - Dependency lock file
 
 ### Version Verification

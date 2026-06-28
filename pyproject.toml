@@ -30,12 +30,12 @@ requires = ["maturin<2.0,>=1.0"]
 build-backend = "maturin"
 
 [tool.maturin]
-python-source = "."
+python-source = "src-py"
 features = ["extension-module"]
 bindings = "pyo3"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests-py"]
 python_files = ["test_*.py"]
 addopts = "-v"
 
@@ -44,7 +44,7 @@ addopts = "-v"
 line-length = 88
 
 # Source roots for import/module resolution
-src = ["rustgression", "tests"]
+src = ["src-py/rustgression", "tests-py"]
 
 # Files and directories to exclude
 exclude = [".git", ".venv", "__pycache__", "build", "dist"]

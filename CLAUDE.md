@@ -51,7 +51,7 @@ This is a Rust-Python hybrid project that implements fast Total Least Squares (T
 
 ### Key Files
 
-- `rustgression/__init__.py` - Python package version and imports
+- `src-py/rustgression/__init__.py` - Python package version and imports
 - `Cargo.toml` - Rust package configuration
 - `pyproject.toml` - Python package configuration
 - `scripts/version-update.sh` - Version update script with alpha/beta support
