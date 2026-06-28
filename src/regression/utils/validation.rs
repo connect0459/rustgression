@@ -84,7 +84,7 @@ pub fn validate_finite_array(py: Python<'_>, array: &[f64], name: &str) -> PyRes
                     "Subnormal number detected in {} array at index {}: {}",
                     name, i, value
                 ),
-            );
+            )?;
         }
     }
     Ok(())

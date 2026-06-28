@@ -142,7 +142,7 @@ fn perform_svd_analysis(py: Python<'_>, data_matrix: DMatrix<f64>) -> PyResult<S
                 "Matrix condition number is very large ({}), results may be unreliable",
                 condition_number
             ),
-        );
+        )?;
     }
 
     Ok(SvdAnalysisResult {

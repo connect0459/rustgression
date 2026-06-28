@@ -6,11 +6,9 @@ pyo3::create_exception!(
     pyo3::exceptions::PyUserWarning
 );
 
-pub fn emit_numerical_warning(py: Python<'_>, message: &str) {
-    let _ = (|| -> PyResult<()> {
-        let warnings = PyModule::import(py, "warnings")?;
-        let warning_type = py.get_type::<NumericalWarning>();
-        warnings.call_method1("warn", (message, warning_type))?;
-        Ok(())
-    })();
+pub fn emit_numerical_warning(py: Python<'_>, message: &str) -> PyResult<()> {
+    let warnings = PyModule::import(py, "warnings")?;
+    let warning_type = py.get_type::<NumericalWarning>();
+    warnings.call_method1("warn", (message, warning_type))?;
+    Ok(())
 }
