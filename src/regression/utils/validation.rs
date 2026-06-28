@@ -20,13 +20,6 @@ where
                 )));
             }
         }
-        // Subnormal number detection
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            eprintln!(
-                "Warning: Subnormal number detected in {} array at index {}: {}",
-                name, i, value
-            );
-        }
     }
     Ok(())
 }
@@ -79,10 +72,22 @@ where
 /// -------
 /// PyResult<()>
 ///     Ok(()) on success, error if problems found
-pub fn validate_finite_array(array: &[f64], name: &str) -> PyResult<()> {
+pub fn validate_finite_array(py: Python<'_>, array: &[f64], name: &str) -> PyResult<()> {
     validate_finite_array_impl(array, name, |msg| {
         pyo3::exceptions::PyValueError::new_err(msg)
-    })
+    })?;
+    for (i, &value) in array.iter().enumerate() {
+        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
+            crate::warnings::emit_numerical_warning(
+                py,
+                &format!(
+                    "Subnormal number detected in {} array at index {}: {}",
+                    name, i, value
+                ),
+            );
+        }
+    }
+    Ok(())
 }
 
 /// Safe division with zero division and non-finite value checks
