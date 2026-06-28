@@ -43,7 +43,7 @@ __version__ = "0.5.1"
 
 # Check availability of Rust module (actual import is done in _rust_imports.py)
 try:
-    from .rustgression import NumericalWarning, calculate_ols_regression
+    from .rustgression import calculate_ols_regression
 
     # Do nothing on successful import (actual usage is done in other modules)
     del calculate_ols_regression
@@ -53,7 +53,8 @@ except ImportError as e:
     print(f"Error importing Rust module: {e}", file=sys.stderr)
     print("Rust extension was not properly compiled or installed.", file=sys.stderr)
 
-# Next, import Python wrapper
+# Next, import Python wrapper and public Rust symbols together so that
+# __all__ is only populated when every advertised name is actually bound.
 try:
     from .regression import (
         OlsMultiRegressionParams,
@@ -64,6 +65,7 @@ try:
         TlsRegressor,
         create_regressor,
     )
+    from .rustgression import NumericalWarning
 
     __all__ = [
         "NumericalWarning",
