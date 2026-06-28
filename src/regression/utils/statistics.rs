@@ -1,5 +1,4 @@
 use crate::regression::utils::math::kahan_sum;
-use crate::regression::utils::validation::safe_divide;
 use numpy::ndarray::Array1;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use std::f64;
@@ -83,11 +82,11 @@ pub fn calculate_slope_inference(
     slope: f64,
     x_mean: f64,
 ) -> (f64, f64, f64) {
-    let stderr = if n > 2.0 && ss_effective > f64::EPSILON {
+    let stderr = if n > 2.0 && ss_effective > 0.0 {
         let sd_res = (ss_res / (n - 2.0)).sqrt();
-        if sd_res.is_finite() && ss_effective > 0.0 {
-            safe_divide(sd_res, ss_effective.sqrt(), "standard error calculation")
-                .unwrap_or(f64::NAN)
+        if sd_res.is_finite() {
+            let result = sd_res / ss_effective.sqrt();
+            if result.is_finite() { result } else { f64::NAN }
         } else {
             f64::NAN
         }
@@ -95,7 +94,7 @@ pub fn calculate_slope_inference(
         f64::NAN
     };
 
-    let p_value = if n > 2.0 && stderr != 0.0 {
+    let p_value = if n > 2.0 && stderr.is_finite() && stderr != 0.0 {
         calculate_p_value_exact(slope.abs() / stderr, n - 2.0)
     } else {
         f64::NAN
