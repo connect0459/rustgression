@@ -53,7 +53,8 @@ except ImportError as e:
     print(f"Error importing Rust module: {e}", file=sys.stderr)
     print("Rust extension was not properly compiled or installed.", file=sys.stderr)
 
-# Next, import Python wrapper
+# Next, import Python wrapper and public Rust symbols together so that
+# __all__ is only populated when every advertised name is actually bound.
 try:
     from .regression import (
         OlsMultiRegressionParams,
@@ -64,8 +65,10 @@ try:
         TlsRegressor,
         create_regressor,
     )
+    from .rustgression import NumericalWarning
 
     __all__ = [
+        "NumericalWarning",
         "OlsMultiRegressionParams",
         "OlsMultiRegressor",
         "OlsRegressionParams",

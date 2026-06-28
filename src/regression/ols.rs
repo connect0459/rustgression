@@ -45,8 +45,8 @@ pub fn calculate_ols_regression<'py>(
     // IEEE 754 edge case validation
     let x_slice = x_array.as_slice().unwrap();
     let y_slice = y_array.as_slice().unwrap();
-    validate_finite_array(x_slice, "x")?;
-    validate_finite_array(y_slice, "y")?;
+    validate_finite_array(py, x_slice, "x")?;
+    validate_finite_array(py, y_slice, "y")?;
 
     // Calculate means
     let x_mean = x_array.mean().unwrap();

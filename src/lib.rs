@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod regression;
+pub mod warnings;
 
 /// Rust module for performing regression analysis.
 ///
@@ -34,5 +35,9 @@ fn rustgression(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(regression::calculate_tls_regression, m)?)?;
+    m.add(
+        "NumericalWarning",
+        m.py().get_type::<warnings::NumericalWarning>(),
+    )?;
     Ok(())
 }

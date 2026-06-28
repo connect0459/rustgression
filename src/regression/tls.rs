@@ -58,8 +58,8 @@ pub fn calculate_tls_regression<'py>(
     // IEEE 754 edge case validation
     let x_slice = x_array.as_slice().unwrap();
     let y_slice = y_array.as_slice().unwrap();
-    validate_finite_array(x_slice, "x")?;
-    validate_finite_array(y_slice, "y")?;
+    validate_finite_array(py, x_slice, "x")?;
+    validate_finite_array(py, y_slice, "y")?;
 
     // Minimum data point check
     if x_array.len() < 2 {
@@ -70,7 +70,7 @@ pub fn calculate_tls_regression<'py>(
 
     let (data_matrix, x_mean, y_mean) = prepare_centered_data(&x_array, &y_array);
 
-    let svd_result = perform_svd_analysis(data_matrix)?;
+    let svd_result = perform_svd_analysis(py, data_matrix)?;
 
     let v_col = find_optimal_singular_vector(&svd_result.v_matrix, &svd_result.singular_values);
 
@@ -113,7 +113,7 @@ fn prepare_centered_data(x_array: &Array1Ref, y_array: &Array1Ref) -> (DMatrix<f
 }
 
 /// SVD analysis and numerical stability check
-fn perform_svd_analysis(data_matrix: DMatrix<f64>) -> PyResult<SvdAnalysisResult> {
+fn perform_svd_analysis(py: Python<'_>, data_matrix: DMatrix<f64>) -> PyResult<SvdAnalysisResult> {
     let svd = SVD::new(data_matrix.clone(), true, true);
 
     let v = if let Some(v) = svd.v_t {
@@ -136,10 +136,13 @@ fn perform_svd_analysis(data_matrix: DMatrix<f64>) -> PyResult<SvdAnalysisResult
     };
 
     if condition_number > 1e12 {
-        eprintln!(
-            "Warning: Matrix condition number is very large ({}), results may be unreliable",
-            condition_number
-        );
+        crate::warnings::emit_numerical_warning(
+            py,
+            &format!(
+                "Matrix condition number is very large ({}), results may be unreliable",
+                condition_number
+            ),
+        )?;
     }
 
     Ok(SvdAnalysisResult {

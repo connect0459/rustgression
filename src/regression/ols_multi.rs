@@ -38,11 +38,11 @@ pub fn calculate_ols_multi_regression<'py>(
     let (n, p) = x_view.dim();
 
     let y_slice = y_array.as_slice().unwrap();
-    validate_finite_array(y_slice, "y")?;
+    validate_finite_array(py, y_slice, "y")?;
 
     let x_standard = x_view.as_standard_layout();
     let x_flat = x_standard.as_slice().unwrap();
-    validate_finite_array(x_flat, "x")?;
+    validate_finite_array(py, x_flat, "x")?;
 
     let result = compute_ols_multi_coefficients(x_flat, y_slice, n, p)
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
