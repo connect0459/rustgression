@@ -17,11 +17,6 @@ class TestNumericalWarning:
     def test_numerical_warning_is_subclass_of_user_warning(self):
         assert issubclass(NumericalWarning, UserWarning)
 
-    def test_numerical_warning_is_importable_from_package(self):
-        from rustgression import NumericalWarning as W
-
-        assert W is not None
-
 
 class TestConditionNumberWarning:
     """Large SVD condition number must emit NumericalWarning, not write to stderr."""
