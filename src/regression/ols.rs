@@ -1,6 +1,8 @@
 #![allow(unsafe_op_in_unsafe_fn)] // PyO3 internal operations require unsafe
 
-use crate::regression::utils::{calculate_slope_inference, kahan_sum, validate_finite_array};
+use crate::regression::utils::{
+    calculate_slope_inference, compute_r_value, kahan_sum, validate_finite_array,
+};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use std::f64;
@@ -50,8 +52,7 @@ pub fn calculate_ols_regression<'py>(
     let x_mean = x_array.mean().unwrap();
     let y_mean = y_array.mean().unwrap();
 
-    let (ss_xx, ss_xy, ss_yy) =
-        calculate_variance_covariance_terms(&x_array, &y_array, x_mean, y_mean);
+    let (ss_xx, ss_xy) = calculate_variance_covariance_terms(&x_array, &y_array, x_mean, y_mean);
 
     if ss_xx <= 0.0 {
         return Err(pyo3::exceptions::PyValueError::new_err(
@@ -68,7 +69,7 @@ pub fn calculate_ols_regression<'py>(
     // Calculate intercept
     let intercept = y_mean - slope * x_mean;
 
-    let r_value = calculate_correlation_coefficient(ss_xx, ss_xy, ss_yy);
+    let r_value = compute_r_value(&x_array, &y_array);
 
     let ss_res = calculate_residual_sum_of_squares(&x_array, &y_array, slope, intercept);
 
@@ -96,10 +97,9 @@ fn calculate_variance_covariance_terms(
     y_array: &Array1Ref,
     x_mean: f64,
     y_mean: f64,
-) -> (f64, f64, f64) {
+) -> (f64, f64) {
     let mut x_squared_terms = Vec::with_capacity(x_array.len());
     let mut xy_terms = Vec::with_capacity(x_array.len());
-    let mut y_squared_terms = Vec::with_capacity(x_array.len());
 
     for i in 0..x_array.len() {
         let x_diff = x_array[i] - x_mean;
@@ -107,23 +107,12 @@ fn calculate_variance_covariance_terms(
 
         x_squared_terms.push(x_diff * x_diff);
         xy_terms.push(x_diff * y_diff);
-        y_squared_terms.push(y_diff * y_diff);
     }
 
     let ss_xx = kahan_sum(&x_squared_terms);
     let ss_xy = kahan_sum(&xy_terms);
-    let ss_yy = kahan_sum(&y_squared_terms);
 
-    (ss_xx, ss_xy, ss_yy)
-}
-
-/// Calculate correlation coefficient using safe operations
-fn calculate_correlation_coefficient(ss_xx: f64, ss_xy: f64, ss_yy: f64) -> f64 {
-    if ss_xx > 0.0 && ss_yy > 0.0 {
-        ss_xy / (ss_xx * ss_yy).sqrt()
-    } else {
-        0.0
-    }
+    (ss_xx, ss_xy)
 }
 
 /// Calculate residual sum of squares using Kahan summation
