@@ -66,8 +66,12 @@ pub fn calculate_ols_regression<'py>(
         )));
     }
 
-    // Calculate intercept
     let intercept = y_mean - slope * x_mean;
+    if !intercept.is_finite() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "Intercept calculation resulted in non-finite value",
+        ));
+    }
 
     let r_value = compute_r_value(&x_array, &y_array);
 
