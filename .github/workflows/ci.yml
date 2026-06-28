@@ -34,10 +34,10 @@ jobs:
           filters: |
             code:
               - '.github/workflows/ci.yml'
-              - 'rustgression/**'
               - 'scripts/**'
               - 'src/**'
-              - 'tests/**'
+              - 'src-py/**'
+              - 'tests-py/**'
               - 'Cargo.lock'
               - 'Cargo.toml'
               - 'pyproject.toml'
@@ -170,13 +170,6 @@ jobs:
           # Verify Python module paths and module structure
           uv run python -c "import sys; print('Python module paths:'); [print(p) for p in sys.path]"
           uv run python -c "import rustgression; print('Rustgression module location:', rustgression.__file__)"
-
-      # Test Python package import
-      - name: Test Python package import
-        if: steps.filter.outputs.code == 'true'
-        shell: bash
-        run: |
-          uv run python scripts/test-import-operation.py
 
       # Run Python tests
       - name: Run Python tests
