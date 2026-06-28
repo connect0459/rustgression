@@ -6,7 +6,7 @@
 - [uv](https://docs.astral.sh/uv/) — Python package manager
 - [just](https://just.systems/) — command runner
 
-On Linux, the following system libraries are required before running `just setup` (scipy depends on them):
+On Linux, the following system packages are required before running `just setup` (scipy depends on them):
 
 ```bash
 sudo apt-get update
