@@ -2,46 +2,38 @@
 
 ## Prerequisites
 
-- [pre-commit](https://pre-commit.com/) — git hook manager
-- [Docker](https://www.docker.com/) *(optional)* — isolated dev container
-- Rust toolchain + [uv](https://docs.astral.sh/uv/) *(if not using Docker)*
+- [just](https://just.systems/) — command runner
+- [rustup](https://rustup.rs/) — Rust toolchain manager
+- [uv](https://docs.astral.sh/uv/) — Python package manager
 
 ## Setup
 
 ```sh
 git clone https://github.com/connect0459/rustgression
 cd rustgression
+just setup
 ```
 
-**With Docker (recommended):**
-
-```sh
-docker compose up -d
-```
-
-**Without Docker:** install the Rust toolchain and uv locally, then run commands directly (omit the `docker compose exec -w /workspace rustgression-dev` prefix).
-
-### pre-commit hooks
-
-```sh
-pip install pre-commit   # or: brew install pre-commit
-pre-commit install
-```
-
-To run all hooks manually:
-
-```sh
-pre-commit run --all-files
-```
+`just setup` installs Python dependencies and installs pre-commit hooks.
+Run `just build` before first use and after any Rust source changes.
 
 ## Development workflow
 
-See [`docs/development.md`](docs/development.md) for environment setup, test commands, and version management details.
+See [docs/development.md](docs/development.md) for environment setup, test commands, and version management details.
 
-Before opening a pull request, ensure all hooks and tests pass:
+Before opening a pull request, ensure linters and tests pass:
 
 ```sh
-pre-commit run --all-files
+just lint
+just test
+```
+
+Pre-commit hooks installed by `just setup` run additional hygiene checks
+(trailing whitespace, end-of-file, YAML/TOML validation, markdown lint)
+automatically on each `git commit`. To run them across all files manually:
+
+```sh
+uv run pre-commit run --all-files
 ```
 
 ## Testing guidelines
@@ -54,7 +46,7 @@ This project follows **Red → Green → Refactor** (Detroit-school TDD):
 
 ## Commit format
 
-Follow the conventions defined in [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
+Follow the conventions defined in [docs/COMMIT_CONVENTIONS.md](docs/COMMIT_CONVENTIONS.md).
 
 ```text
 <type>(<scope>): <subject>
@@ -81,7 +73,7 @@ chore(deps-dev): bump pytest from 7.x to 8.x
 
 1. Fork the repository and create a branch: `feature/xxx`, `fix/xxx`, `docs/xxx`.
 2. Follow the Red → Green → Refactor cycle.
-3. Run `pre-commit run --all-files` and ensure all tests pass.
+3. Run `just lint` and `just test`, and ensure all pass.
 4. Open a pull request — CI runs Rust and Python test suites automatically.
 
 ## Code style
