@@ -4,6 +4,7 @@ Test cases for edge cases and error handling to improve coverage.
 
 import numpy as np
 import pytest
+from scipy import stats
 
 from rustgression import OlsRegressor, TlsRegressor
 
@@ -120,3 +121,33 @@ class TestRegressorEdgeCases:
         assert abs(regressor.slope() - 2.0) < 1e-10
         assert abs(regressor.intercept()) < 1e-12
         assert abs(regressor.r_value() - 1.0) < 1e-10
+
+    def test_matches_scipy_for_inputs_with_sub_epsilon_x_variance(self):
+        """OLS must succeed when ss_xx < f64::EPSILON but the regression is well-defined.
+
+        x=[1e-8, 2e-8, 3e-8] yields ss_xx ≈ 2e-16, which is below f64::EPSILON
+        (≈ 2.22e-16). The regression relationship is mathematically exact (slope=2,
+        intercept=0), so the implementation must not reject it based on an absolute
+        magnitude threshold.
+        """
+        x = np.array([1e-8, 2e-8, 3e-8])
+        y = np.array([2e-8, 4e-8, 6e-8])
+        ref = stats.linregress(x, y)
+
+        regressor = OlsRegressor(x, y)
+
+        assert abs(regressor.slope() - ref.slope) < 1e-6
+        assert abs(regressor.intercept() - ref.intercept) < 1e-20
+        assert abs(regressor.r_value() - ref.rvalue) < 1e-10
+
+    def test_slope_is_scale_invariant_for_sub_epsilon_and_normal_scale_inputs(self):
+        """OLS slope must be the same regardless of the absolute scale of the data."""
+        x_small = np.array([1e-8, 2e-8, 3e-8])
+        y_small = np.array([2e-8, 4e-8, 6e-8])
+        x_normal = x_small * 1e8
+        y_normal = y_small * 1e8
+
+        slope_small = OlsRegressor(x_small, y_small).slope()
+        slope_normal = OlsRegressor(x_normal, y_normal).slope()
+
+        assert abs(slope_small - slope_normal) < 1e-10
