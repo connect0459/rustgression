@@ -1,11 +1,16 @@
 use pyo3::prelude::*;
 use std::f64;
 
-/// Internal implementation for finite array validation
-fn validate_finite_array_impl<E, F>(array: &[f64], name: &str, error_fn: F) -> Result<(), E>
+/// Internal implementation for finite array validation.
+///
+/// Returns the number of subnormal (non-zero, below f64::MIN_POSITIVE) values
+/// found in the array, so the PyO3 wrapper can emit a single aggregate warning
+/// without repeating the scan.
+fn validate_finite_array_impl<E, F>(array: &[f64], name: &str, error_fn: F) -> Result<usize, E>
 where
     F: Fn(String) -> E,
 {
+    let mut subnormal_count = 0usize;
     for (i, &value) in array.iter().enumerate() {
         if !value.is_finite() {
             if value.is_nan() {
@@ -20,8 +25,11 @@ where
                 )));
             }
         }
+        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
+            subnormal_count += 1;
+        }
     }
-    Ok(())
+    Ok(subnormal_count)
 }
 
 /// Internal implementation for safe division
@@ -73,19 +81,17 @@ where
 /// PyResult<()>
 ///     Ok(()) on success, error if problems found
 pub fn validate_finite_array(py: Python<'_>, array: &[f64], name: &str) -> PyResult<()> {
-    validate_finite_array_impl(array, name, |msg| {
+    let subnormal_count = validate_finite_array_impl(array, name, |msg| {
         pyo3::exceptions::PyValueError::new_err(msg)
     })?;
-    for (i, &value) in array.iter().enumerate() {
-        if value != 0.0 && value.abs() < f64::MIN_POSITIVE {
-            crate::warnings::emit_numerical_warning(
-                py,
-                &format!(
-                    "Subnormal number detected in {} array at index {}: {}",
-                    name, i, value
-                ),
-            )?;
-        }
+    if subnormal_count > 0 {
+        crate::warnings::emit_numerical_warning(
+            py,
+            &format!(
+                "{} subnormal value(s) detected in {} array; results may lose precision",
+                subnormal_count, name
+            ),
+        )?;
     }
     Ok(())
 }
@@ -118,7 +124,7 @@ mod tests {
     type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     // Test-specific versions of functions that don't depend on PyO3
-    fn validate_finite_array_test(array: &[f64], name: &str) -> TestResult<()> {
+    fn validate_finite_array_test(array: &[f64], name: &str) -> TestResult<usize> {
         validate_finite_array_impl(array, name, |msg| msg.into())
     }
 
@@ -166,11 +172,27 @@ mod tests {
         }
 
         #[test]
-        fn accepts_subnormal_numbers_without_error() {
-            // Test with very small numbers (subnormal)
-            let array = [1.0, 1e-320, 3.0]; // 1e-320 is subnormal
+        fn detects_subnormal_values_and_reports_count_without_error() {
+            let array = [1.0, 1e-320, 3.0]; // 1e-320 is a subnormal f64
             let result = validate_finite_array_test(&array, "test");
-            assert!(result.is_ok()); // Should succeed but print warning
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 1);
+        }
+
+        #[test]
+        fn counts_multiple_subnormal_elements_independently() {
+            let array = [1e-320, 2e-320, 3.0, 4e-320];
+            let result = validate_finite_array_test(&array, "test");
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 3);
+        }
+
+        #[test]
+        fn reports_zero_subnormal_count_for_normal_values() {
+            let array = [1.0, 2.0, 3.0];
+            let result = validate_finite_array_test(&array, "test");
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 0);
         }
 
         #[test]
