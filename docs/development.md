@@ -1,119 +1,115 @@
 # Development Environment
 
-## Installing apt Packages
+## Prerequisites
 
-The following dependencies are required to run Rust:
+- [rustup](https://rustup.rs/) — Rust toolchain manager (`rust-toolchain.toml` pins the version automatically)
+- [uv](https://docs.astral.sh/uv/) — Python package manager
+- [just](https://just.systems/) — command runner
 
-- cmake
-- BLAS and LAPACK development libraries
-- Fortran compiler
-
-For Debian-based OS, install using the following commands.
+On Linux, the following system packages are required before running `just setup` (scipy depends on them):
 
 ```bash
 sudo apt-get update
 sudo apt-get install cmake libblas-dev liblapack-dev gfortran
 ```
 
-## Setting Up Python Environment
+On macOS, the Accelerate framework provides these dependencies automatically.
 
-Place `pyproject.toml` in the project root and install with the following command.
+## Setup
+
+After cloning, run once:
 
 ```bash
-uv sync --frozen
+just setup
 ```
 
-## Testing the Created Package
-
-Use `maturin` to perform a clean build from Rust. Install the necessary dependencies and build with the following commands.
+This installs Python dependencies and installs pre-commit hooks.
+Before running tests or importing the package, build the Rust extension:
 
 ```bash
-# Confirm installation of necessary tools
-uv add maturin
-# Clean build
-uv run maturin develop
+just build
 ```
 
-## Docker Development Environment
+Run this again whenever Rust source changes.
 
-You can set up a development environment using Docker Compose. With volume mounting, file changes on the host are reflected in real-time.
-
-### Starting the Development Environment
+## Running Tests and Linters
 
 ```bash
-# Start container in background
+# Python tests only
+uv run pytest
+
+# Rust tests only
+cargo test
+
+# Both
+just test
+
+# Rust and Python linters, check-only (matches CI lint gates)
+just lint
+```
+
+## Running Examples
+
+```bash
+just run-examples
+```
+
+## Docker (Optional)
+
+A Docker environment is available as an alternative to the local setup. It is useful on Linux where
+installing BLAS/LAPACK/gfortran locally is inconvenient. The image builds the Rust toolchain and
+all system dependencies at image-build time.
+
+Start the container and work from inside:
+
+```bash
+# Build and start container
 docker compose up -d
 
-# Or start with logs displayed
-docker compose up
+# Enter the container
+docker compose exec rustgression-dev bash
+
+# Run commands from inside the container (same as local)
+just test
+just lint
 ```
 
-### Running Commands in the Container
+To reset the environment:
 
 ```bash
-# Run tests
-docker compose exec -w /workspace rustgression-dev uv run pytest
+# Rebuild image after Dockerfile changes
+docker compose up --build -d
 
-# Run linting
-docker compose exec -w /workspace rustgression-dev uv run ruff check
-
-# Rebuild the package (after file changes)
-docker compose exec -w /workspace rustgression-dev uv run maturin develop
-```
-
-### Development Environment Management
-
-```bash
-# Stop container
-docker compose stop
-
-# Stop and remove container
-docker compose down
-
-# Rebuild image and recreate container
-docker compose up --build
-
-# Complete removal including volumes
+# Remove container and volumes (full reset)
 docker compose down -v
 ```
 
 ## Version Management
 
-### Version Update Procedure
-
-Use the `scripts/version-update.sh` script to manage project versions consistently.
+Use `scripts/version-update.sh` to update all version files consistently:
 
 ```bash
-# Regular version updates (e.g., 0.2.0 → 0.2.1)
-docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.2.1
+# Regular version update (e.g., 0.2.0 → 0.2.1)
+./scripts/version-update.sh 0.2.1
 
 # Alpha release
-docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-alpha.1
+./scripts/version-update.sh 0.3.0-alpha.1
 
 # Beta release
-docker compose exec -w /workspace rustgression-dev ./scripts/version-update.sh 0.3.0-beta.1
+./scripts/version-update.sh 0.3.0-beta.1
 ```
 
-This script automatically updates the following files.
+This script updates the following files:
 
-- `Cargo.toml` - Rust package version
-- `pyproject.toml` - Python package version
-- `src-py/rustgression/__init__.py` - Package version constant
-- `Cargo.lock` - Dependency lock file
+- `Cargo.toml` — Rust package version
+- `pyproject.toml` — Python package version
+- `src-py/rustgression/__init__.py` — Package version constant
+- `Cargo.lock` — Dependency lock file
 
-### Version Verification
-
-Check version consistency across all files.
+Check version consistency across all files:
 
 ```bash
-docker compose exec -w /workspace rustgression-dev ./scripts/version-check.sh 0.2.1
+./scripts/version-check.sh 0.2.1
 ```
 
-### Important Notes
-
-- Always run tests after version updates
-- Verify version consistency before releases
-- Follow Semantic Versioning (SemVer):
-  - MAJOR: Breaking changes
-  - MINOR: Backward-compatible feature additions
-  - PATCH: Backward-compatible bug fixes
+Always run tests after version updates and verify consistency before releases.

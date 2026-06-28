@@ -18,31 +18,54 @@ This project may be released publicly. All of the following must be written in *
 
 Follow the project commit conventions defined in [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
 
+## Development Setup
+
+After cloning, run once:
+
+```bash
+just setup
+```
+
+This installs Python dependencies and installs pre-commit hooks.
+Before running tests or importing the package, build the Rust extension:
+
+```bash
+just build
+```
+
+Run this again whenever Rust source changes.
+
 ## Test Commands
 
 ### Python Tests
 
 ```bash
-docker compose exec -w /workspace rustgression-dev uv run pytest
+uv run pytest
 ```
 
 ### Rust Tests
 
 ```bash
-docker compose exec -w /workspace rustgression-dev cargo test
+cargo test
+```
+
+### Both
+
+```bash
+just test
 ```
 
 ### Rust Coverage
 
 ```bash
 # Install cargo-llvm-cov (first time only)
-docker compose exec -w /workspace rustgression-dev cargo install cargo-llvm-cov
+cargo install cargo-llvm-cov
 
 # Generate coverage report (HTML)
-docker compose exec -w /workspace rustgression-dev cargo llvm-cov --html
+cargo llvm-cov --html
 
 # Generate coverage report (lcov format)
-docker compose exec -w /workspace rustgression-dev cargo llvm-cov --lcov --output-path lcov.info
+cargo llvm-cov --lcov --output-path lcov.info
 ```
 
 ## Project Information
