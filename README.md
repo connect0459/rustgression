@@ -38,5 +38,5 @@ uv add rustgression
 ## Documentation
 
 - **[API Reference](https://github.com/connect0459/rustgression/blob/main/docs/api.md)**
-- **[Development Guide](https://github.com/connect0459/rustgression/blob/main/docs/development.md)**
+- **[Contributing Guide](https://github.com/connect0459/rustgression/blob/main/CONTRIBUTING.md)**
 - **[Changelog](https://github.com/connect0459/rustgression/blob/main/CHANGELOG.md)**

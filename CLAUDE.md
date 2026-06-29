@@ -16,7 +16,7 @@ This project may be released publicly. All of the following must be written in *
 
 ## Commit Conventions
 
-Follow the project commit conventions defined in [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
+Follow the project commit conventions defined in the [Commit format](CONTRIBUTING.md#commit-format) section of `CONTRIBUTING.md`.
 
 ## Development Setup
 
