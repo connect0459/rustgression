@@ -6,29 +6,13 @@
 
 set -e
 
-# Color definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Color functions
-error() {
-    echo -e "${RED}$1${NC}"
-}
-
-warning() {
-    echo -e "${YELLOW}$1${NC}"
-}
-
-success() {
-    echo -e "${GREEN}$1${NC}"
-}
-
-info() {
-    echo -e "${BLUE}$1${NC}"
-}
+_VERSION_UTILS="$(dirname "$0")/libs/version-utils.sh"
+if [ ! -f "$_VERSION_UTILS" ]; then
+    echo "Error: required library not found: $_VERSION_UTILS" >&2
+    exit 1
+fi
+# shellcheck source=libs/version-utils.sh
+source "$_VERSION_UTILS"
 
 # Specify version as argument
 if [ $# -ne 1 ]; then
@@ -46,56 +30,7 @@ if ! [[ $ARG_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc
     exit 1
 fi
 
-PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
-
-# Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
-compare_versions() {
-    local v1=$1
-    local v2=$2
-
-    # Extract version parts (major.minor.patch) and prerelease
-    local v1_base=$(echo "$v1" | cut -d'-' -f1)
-    local v2_base=$(echo "$v2" | cut -d'-' -f1)
-    local v1_pre=$(echo "$v1" | cut -d'-' -f2- | sed "s/^$v1_base\$//")
-    local v2_pre=$(echo "$v2" | cut -d'-' -f2- | sed "s/^$v2_base\$//")
-
-    # Split version parts
-    IFS='.' read -r v1_major v1_minor v1_patch <<< "$v1_base"
-    IFS='.' read -r v2_major v2_minor v2_patch <<< "$v2_base"
-
-    # Compare major.minor.patch
-    if [ "$v1_major" -gt "$v2_major" ]; then return 0; fi
-    if [ "$v1_major" -lt "$v2_major" ]; then return 1; fi
-    if [ "$v1_minor" -gt "$v2_minor" ]; then return 0; fi
-    if [ "$v1_minor" -lt "$v2_minor" ]; then return 1; fi
-    if [ "$v1_patch" -gt "$v2_patch" ]; then return 0; fi
-    if [ "$v1_patch" -lt "$v2_patch" ]; then return 1; fi
-
-    # If base versions are equal, compare prerelease
-    # No prerelease (stable) > prerelease
-    if [ -z "$v1_pre" ] && [ -n "$v2_pre" ]; then return 0; fi
-    if [ -n "$v1_pre" ] && [ -z "$v2_pre" ]; then return 1; fi
-
-    # Both have prerelease or both stable
-    if [ -z "$v1_pre" ] && [ -z "$v2_pre" ]; then return 0; fi  # Equal
-
-    # Compare prerelease types and numbers
-    # alpha < beta < rc
-    local v1_pre_type=$(echo "$v1_pre" | cut -d'.' -f1)
-    local v2_pre_type=$(echo "$v2_pre" | cut -d'.' -f1)
-    local v1_pre_num=$(echo "$v1_pre" | cut -d'.' -f2)
-    local v2_pre_num=$(echo "$v2_pre" | cut -d'.' -f2)
-
-    if [ "$v1_pre_type" != "$v2_pre_type" ]; then
-        case "$v1_pre_type-$v2_pre_type" in
-            alpha-beta|alpha-rc|beta-rc) return 1 ;;
-            beta-alpha|rc-alpha|rc-beta) return 0 ;;
-        esac
-    fi
-
-    # Same prerelease type, compare numbers
-    if [ "$v1_pre_num" -ge "$v2_pre_num" ]; then return 0; else return 1; fi
-}
+PYTHON_VERSION=$(to_python_version "$ARG_VERSION")
 
 echo "Checking version consistency..."
 echo "Expected version: $ARG_VERSION"
@@ -122,6 +57,8 @@ echo "Cargo.lock version: $CARGO_LOCK_VERSION"
 # Get version from uv.lock (rustgression package version)
 UV_LOCK_VERSION=$(grep -A 10 '^\[\[package\]\]' uv.lock | grep -A 10 'name = "rustgression"' | grep '^version = ' | head -1 | cut -d '"' -f2)
 echo "uv.lock version: $UV_LOCK_VERSION"
+
+CHANGELOG_FILE="CHANGELOG.md"
 
 # Check version consistency
 echo ""
@@ -173,6 +110,31 @@ if [ "$PYTHON_VERSION" != "$UV_LOCK_VERSION" ]; then
 else
     success "[PASS] uv.lock"
 fi
+
+case "$ARG_VERSION" in
+    *-alpha.*|*-beta.*|*-rc.*)
+        info "[SKIP] $CHANGELOG_FILE (pre-release version)"
+        ;;
+    *)
+        if [ ! -f "$CHANGELOG_FILE" ]; then
+            error "[FAIL] $CHANGELOG_FILE not found"
+            ERRORS=$((ERRORS + 1))
+        else
+            ESCAPED_VERSION=$(printf '%s' "$ARG_VERSION" | sed 's/\./\\./g')
+            if grep -q "^## \[$ESCAPED_VERSION\]" "$CHANGELOG_FILE"; then
+                success "[PASS] $CHANGELOG_FILE"
+            else
+                GREP_EXIT=$?
+                if [ "$GREP_EXIT" -eq 1 ]; then
+                    error "[FAIL] $CHANGELOG_FILE has no entry for version $ARG_VERSION"
+                else
+                    error "[FAIL] $CHANGELOG_FILE could not be read"
+                fi
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+        ;;
+esac
 
 echo ""
 
