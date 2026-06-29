@@ -1,5 +1,26 @@
 # Changelog
 
+<!--
+When cutting a new release, update THREE places in this file:
+
+1. Rename [Unreleased] to [X.Y.Z] with today's date (above).
+2. Update the reference links at the very bottom of this file:
+    - Change [Unreleased] to compare the new tag against HEAD.
+    - Add [X.Y.Z] comparing the new tag against the previous tag.
+3. After the PR is merged, create a GitHub Release (this creates the remote
+   tag). Pull main first so HEAD is the merge commit, then use `--target main`
+   or pass the full 40-character SHA — the GitHub API rejects abbreviated SHAs:
+
+    ```console
+    git checkout main && git pull origin main
+    gh release create vX.Y.Z --title "vX.Y.Z" \
+      --notes-file path/to/gh-release-draft.md \
+      --target main
+    ```
+
+see: <https://github.com/connect0459/rustgression/pull/200>
+-->
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
@@ -83,3 +104,16 @@ Initial public release.
 ## [0.2.0] - 2025-07-31
 
 Initial public release.
+
+---
+
+[Unreleased]: <https://github.com/connect0459/rustgression/compare/v0.5.1...HEAD>
+[0.5.1]: <https://github.com/connect0459/rustgression/compare/v0.5.0...v0.5.1>
+[0.5.0]: <https://github.com/connect0459/rustgression/compare/v0.4.1...v0.5.0>
+[0.4.1]: <https://github.com/connect0459/rustgression/compare/v0.4.0...v0.4.1>
+[0.4.0]: <https://github.com/connect0459/rustgression/compare/v0.3.1...v0.4.0>
+[0.3.1]: <https://github.com/connect0459/rustgression/compare/v0.3.0...v0.3.1>
+[0.3.0]: <https://github.com/connect0459/rustgression/compare/v0.2.2...v0.3.0>
+[0.2.2]: <https://github.com/connect0459/rustgression/compare/v0.2.1...v0.2.2>
+[0.2.1]: <https://github.com/connect0459/rustgression/compare/v0.2.0...v0.2.1>
+[0.2.0]: <https://github.com/connect0459/rustgression/releases/tag/v0.2.0>
