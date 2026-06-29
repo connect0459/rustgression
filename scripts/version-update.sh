@@ -33,8 +33,13 @@ fi
 CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | cut -d '"' -f2 | tr -d '\r')
 if [ -n "$CURRENT_CARGO_VERSION" ]; then
     if [ "$NEW_VERSION" = "$CURRENT_CARGO_VERSION" ]; then
-        info "Already at version $NEW_VERSION; nothing to do."
-        exit 0
+        _EXPECTED_PY=$(to_python_version "$NEW_VERSION")
+        _ACTUAL_PY_INIT=$(grep '^__version__ = ' src-py/rustgression/__init__.py | cut -d '"' -f2 | tr -d '\r')
+        _ACTUAL_PYPROJECT=$(grep '^version = ' pyproject.toml | head -1 | cut -d '"' -f2 | tr -d '\r')
+        if [ "$_ACTUAL_PY_INIT" = "$_EXPECTED_PY" ] && [ "$_ACTUAL_PYPROJECT" = "$_EXPECTED_PY" ]; then
+            info "Already at version $NEW_VERSION; nothing to do."
+            exit 0
+        fi
     fi
     if ! compare_versions "$NEW_VERSION" "$CURRENT_CARGO_VERSION"; then
         warning "WARNING: Version downgrade detected!"
