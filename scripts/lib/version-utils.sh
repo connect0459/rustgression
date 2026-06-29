@@ -23,10 +23,10 @@ compare_versions() {
     local v1=$1
     local v2=$2
 
-    local v1_base=$(echo "$v1" | cut -d'-' -f1)
-    local v2_base=$(echo "$v2" | cut -d'-' -f1)
-    local v1_pre=$(echo "$v1" | cut -d'-' -f2- | sed "s/^$v1_base\$//")
-    local v2_pre=$(echo "$v2" | cut -d'-' -f2- | sed "s/^$v2_base\$//")
+    local v1_base=${v1%%-*}
+    local v2_base=${v2%%-*}
+    local v1_pre=${v1#"$v1_base"}; v1_pre=${v1_pre#-}
+    local v2_pre=${v2#"$v2_base"}; v2_pre=${v2_pre#-}
 
     IFS='.' read -r v1_major v1_minor v1_patch <<< "$v1_base"
     IFS='.' read -r v2_major v2_minor v2_patch <<< "$v2_base"
@@ -43,15 +43,16 @@ compare_versions() {
 
     if [ -z "$v1_pre" ] && [ -z "$v2_pre" ]; then return 0; fi
 
-    local v1_pre_type=$(echo "$v1_pre" | cut -d'.' -f1)
-    local v2_pre_type=$(echo "$v2_pre" | cut -d'.' -f1)
-    local v1_pre_num=$(echo "$v1_pre" | cut -d'.' -f2)
-    local v2_pre_num=$(echo "$v2_pre" | cut -d'.' -f2)
+    local v1_pre_type=${v1_pre%%.*}
+    local v2_pre_type=${v2_pre%%.*}
+    local v1_pre_num=${v1_pre##*.}
+    local v2_pre_num=${v2_pre##*.}
 
     if [ "$v1_pre_type" != "$v2_pre_type" ]; then
         case "$v1_pre_type-$v2_pre_type" in
             alpha-beta|alpha-rc|beta-rc) return 1 ;;
             beta-alpha|rc-alpha|rc-beta) return 0 ;;
+            *) return 1 ;;
         esac
     fi
 
