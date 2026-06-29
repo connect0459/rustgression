@@ -33,13 +33,13 @@ jobs:
         with:
           filters: |
             code:
-              - '.github/workflows/ci.yml'
-              - '.python-version'
               - 'examples/**'
               - 'scripts/**'
               - 'src/**'
               - 'src-py/**'
               - 'tests-py/**'
+              - '.github/workflows/ci.yml'
+              - '.python-version'
               - 'Cargo.lock'
               - 'Cargo.toml'
               - 'pyproject.toml'
