@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **OlsMultiRegressor**: new class for multi-predictor OLS regression backed by a Rust
   implementation (`calculate_ols_multi_regression`); supports `predict()`, `r_squared()`,
-  `f_statistic()`, `p_value()`, and `get_params()`; also accessible via `create_regressor("ols_multi")`
+  `f_statistic()`, `p_value()`, and `get_params()`; also accessible via `create_regressor(x, y, method="ols_multi")`
 - **BaseRegressor**: `r_squared()` — returns the coefficient of determination (R²)
 - **BaseRegressor**: `residuals()` — returns vertical residuals `y − ŷ`
 - **OlsRegressor**: `confidence_interval(alpha)` — t-based confidence intervals for slope and intercept
