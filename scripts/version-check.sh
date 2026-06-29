@@ -40,8 +40,7 @@ fi
 
 ARG_VERSION=$1
 
-# Derive the Python format of the version (e.g. 0.7.0-alpha.1 -> 0.7.0a1)
-PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/' | sed 's/-beta\./b/' | sed 's/-rc\./rc/')
+PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
 
 # Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
 compare_versions() {
@@ -125,11 +124,10 @@ echo "Version consistency check results:"
 ERRORS=0
 
 # Check for potential version downgrade
-CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
-if [ -n "$CURRENT_CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CURRENT_CARGO_VERSION" ]; then
-    if ! compare_versions "$ARG_VERSION" "$CURRENT_CARGO_VERSION"; then
+if [ -n "$CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CARGO_VERSION" ]; then
+    if ! compare_versions "$ARG_VERSION" "$CARGO_VERSION"; then
         warning "WARNING: Potential version downgrade detected!"
-        warning "  Current Cargo.toml version: $CURRENT_CARGO_VERSION"
+        warning "  Current Cargo.toml version: $CARGO_VERSION"
         warning "  Expected version:           $ARG_VERSION"
         echo ""
     fi
