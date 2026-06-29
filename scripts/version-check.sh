@@ -145,12 +145,16 @@ case "$ARG_VERSION" in
             ERRORS=$((ERRORS + 1))
         else
             ESCAPED_VERSION=$(printf '%s' "$ARG_VERSION" | sed 's/\./\\./g')
-            CHANGELOG_ENTRY=$(grep -c "^## \[$ESCAPED_VERSION\]" "$CHANGELOG_FILE" || true)
-            if [ "$CHANGELOG_ENTRY" -eq 0 ]; then
-                error "[FAIL] $CHANGELOG_FILE has no entry for version $ARG_VERSION"
-                ERRORS=$((ERRORS + 1))
-            else
+            if grep -q "^## \[$ESCAPED_VERSION\]" "$CHANGELOG_FILE"; then
                 success "[PASS] $CHANGELOG_FILE"
+            else
+                GREP_EXIT=$?
+                if [ "$GREP_EXIT" -eq 1 ]; then
+                    error "[FAIL] $CHANGELOG_FILE has no entry for version $ARG_VERSION"
+                else
+                    error "[FAIL] $CHANGELOG_FILE could not be read"
+                fi
+                ERRORS=$((ERRORS + 1))
             fi
         fi
         ;;
