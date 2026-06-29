@@ -6,10 +6,8 @@
 
 This project provides fast regression analysis (OLS, TLS) as a Python package.
 
-- **WebSite**: <https://pypi.org/project/rustgression/>
-- **Documentation**: <https://github.com/connect0459/rustgression/blob/main/README.md>
-- **Source code**: <https://github.com/connect0459/rustgression>
-- **Bug reports and security issues**: <https://github.com/connect0459/rustgression/issues>
+- **Homepage**: <https://github.com/connect0459/rustgression>
+- **Bug Tracker**: <https://github.com/connect0459/rustgression/issues>
 
 ## Overview
 
@@ -37,6 +35,6 @@ uv add rustgression
 
 ## Documentation
 
-- **[API Reference](https://github.com/connect0459/rustgression/blob/main/docs/api.md)**
-- **[Contributing Guide](https://github.com/connect0459/rustgression/blob/main/CONTRIBUTING.md)**
-- **[Changelog](https://github.com/connect0459/rustgression/blob/main/CHANGELOG.md)**
+- [API Reference](https://github.com/connect0459/rustgression/blob/main/docs/api.md)
+- [Contributing Guide](https://github.com/connect0459/rustgression/blob/main/CONTRIBUTING.md)
+- [Changelog](https://github.com/connect0459/rustgression/blob/main/CHANGELOG.md)
