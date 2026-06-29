@@ -163,9 +163,7 @@ class TestRegressorEdgeCases:
         """
         x = np.array([1e-150, 2e-150, 3e-150])
         y = np.array([2e-150, 4e-150, 6e-150])
-        with pytest.warns(RuntimeWarning):
-            ref = stats.linregress(x, y)
 
         regressor = OlsRegressor(x, y)
 
-        assert abs(regressor.r_value() - ref.rvalue) < 1e-10
+        assert abs(regressor.r_value() - 1.0) < 1e-10
