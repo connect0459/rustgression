@@ -40,6 +40,9 @@ fi
 
 ARG_VERSION=$1
 
+# Derive the Python format of the version (e.g. 0.7.0-alpha.1 -> 0.7.0a1)
+PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/' | sed 's/-beta\./b/' | sed 's/-rc\./rc/')
+
 # Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
 compare_versions() {
     local v1=$1
@@ -91,6 +94,9 @@ compare_versions() {
 
 echo "Checking version consistency..."
 echo "Expected version: $ARG_VERSION"
+if [ "$ARG_VERSION" != "$PYTHON_VERSION" ]; then
+    echo "Expected Python version: $PYTHON_VERSION"
+fi
 
 # Get version from src-py/rustgression/__init__.py
 INIT_VERSION=$(grep '^__version__ = ' src-py/rustgression/__init__.py | cut -d '"' -f2)
@@ -129,8 +135,8 @@ if [ -n "$CURRENT_CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CURRENT_CARGO_VERSIO
     fi
 fi
 
-if [ "$ARG_VERSION" != "$INIT_VERSION" ]; then
-    error "[FAIL] src-py/rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
+if [ "$PYTHON_VERSION" != "$INIT_VERSION" ]; then
+    error "[FAIL] src-py/rustgression/__init__.py version mismatch: expected=$PYTHON_VERSION, actual=$INIT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] src-py/rustgression/__init__.py"
@@ -143,8 +149,8 @@ else
     success "[PASS] Cargo.toml"
 fi
 
-if [ "$ARG_VERSION" != "$PYPROJECT_VERSION" ]; then
-    error "[FAIL] pyproject.toml version mismatch: expected=$ARG_VERSION, actual=$PYPROJECT_VERSION"
+if [ "$PYTHON_VERSION" != "$PYPROJECT_VERSION" ]; then
+    error "[FAIL] pyproject.toml version mismatch: expected=$PYTHON_VERSION, actual=$PYPROJECT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] pyproject.toml"
@@ -157,8 +163,8 @@ else
     success "[PASS] Cargo.lock"
 fi
 
-if [ "$ARG_VERSION" != "$UV_LOCK_VERSION" ]; then
-    error "[FAIL] uv.lock version mismatch: expected=$ARG_VERSION, actual=$UV_LOCK_VERSION"
+if [ "$PYTHON_VERSION" != "$UV_LOCK_VERSION" ]; then
+    error "[FAIL] uv.lock version mismatch: expected=$PYTHON_VERSION, actual=$UV_LOCK_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] uv.lock"
