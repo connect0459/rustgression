@@ -8,20 +8,6 @@ import pytest
 from rustgression import NumericalWarning, OlsRegressor, TlsRegressor
 
 
-@pytest.fixture
-def sample_data():
-    """Generate sample data for testing.
-
-    Returns:
-        tuple: A tuple containing the input features (x) and the target values (y).
-    """
-    np.random.seed(42)
-    x = np.linspace(0, 10, 100)
-    # y = 2x + 1 + noise
-    y = 2 * x + 1 + np.random.normal(0, 0.5, 100)
-    return x, y
-
-
 class TestMethodComparison:
     """Tests for comparing OLS and TLS regression methods."""
 
