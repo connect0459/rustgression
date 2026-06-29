@@ -1,28 +1,40 @@
 ---
 name: Bug Report
-about: Report a bug here
+about: Report a bug
 ---
 
-## Bug Summary (Required)
+## [Required] Bug Summary
 
-## Relevant Page/Location (Required)
+## [Required] Affected Component
 
-## Occurrence Period (Required)
+- [ ] Rust core
+- [ ] Python bindings
+- [ ] Documentation
+- [ ] Other
 
-## Environment (If known)
+## [Required] Minimal Reproduction
 
-- Environment:
-- Device:
-- Version (For app only):
+```python
+# Paste the smallest Python snippet that demonstrates the bug
+```
 
-## Steps to Reproduce (If known)
+## [Required] Expected Behavior
 
-1. Step 1
-2. Step 2
-3. Step 3
+<!-- What should happen according to the docs or TLS specification? -->
 
-## Expected Behavior (Required)
+## [Required] Actual Behavior
 
-## Impact if Not Fixed (Required)
+## Environment
 
-## Attachments/Links
+- rustgression version:
+- Python version (`python --version`):
+- Rust version (`rustc --version`):
+- OS:
+
+## Relevant References
+
+<!-- Link to the relevant spec section or documentation, if applicable -->
+
+## Impact
+
+<!-- How does this affect users of the library? -->
