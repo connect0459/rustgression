@@ -34,6 +34,8 @@ jobs:
           filters: |
             code:
               - '.github/workflows/ci.yml'
+              - '.python-version'
+              - 'examples/**'
               - 'scripts/**'
               - 'src/**'
               - 'src-py/**'
@@ -111,8 +113,8 @@ jobs:
           uv run python --version
           rustc --version
 
-          # Sync dependencies from pyproject.toml (including main and dev dependencies)
-          uv sync --frozen
+          # Sync dependencies from pyproject.toml (including main, dev, and examples dependencies)
+          uv sync --frozen --extra examples
 
       # Rust lint and format checks
       - name: Lint and format Rust
@@ -184,6 +186,18 @@ jobs:
 
           # Run tests
           uv run pytest
+
+      # Run examples as smoke tests for the public API
+      - name: Run examples
+        if: steps.filter.outputs.code == 'true'
+        shell: bash
+        run: |
+          echo "Running examples..."
+          for f in examples/*.py; do
+            echo "Running $f..."
+            uv run python "$f"
+          done
+          echo "All examples passed!"
 
       # Success message when no relevant changes are detected
       - name: Skip CI checks (no relevant changes)
