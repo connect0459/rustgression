@@ -6,12 +6,12 @@
 
 set -e
 
-_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
+_VERSION_UTILS="$(dirname "$0")/libs/version-utils.sh"
 if [ ! -f "$_VERSION_UTILS" ]; then
     echo "Error: required library not found: $_VERSION_UTILS" >&2
     exit 1
 fi
-# shellcheck source=lib/version-utils.sh
+# shellcheck source=libs/version-utils.sh
 source "$_VERSION_UTILS"
 
 # Specify version as argument
