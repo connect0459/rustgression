@@ -24,8 +24,8 @@ OlsRegressor(x: np.ndarray, y: np.ndarray)
 | `intercept_stderr()` | `float` | Standard error of the intercept |
 | `predict(x)` | `np.ndarray` | Predicted y values for input x |
 | `residuals()` | `np.ndarray` | Vertical residuals (y − ŷ) |
-| `confidence_interval(alpha=0.05)` | `dict[str, tuple[float, float]]` | 95% CI for slope and intercept |
-| `prediction_interval(x_new, alpha=0.05)` | `np.ndarray` | Prediction intervals for new x values |
+| `confidence_interval(alpha=0.05)` | `dict[str, tuple[float, float]]` | (1−alpha)×100% CI for slope and intercept |
+| `prediction_interval(x_new, alpha=0.05)` | `np.ndarray`, shape `(n, 2)` | Prediction intervals; each row is `[lower, upper]` |
 
 ### Example
 
