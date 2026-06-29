@@ -16,7 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Check version consistency
@@ -99,8 +98,6 @@ jobs:
       - name: Build wheels
         shell: bash
         run: |
-          echo "Building wheels for ${{ matrix.os }}..."
-
           # Sync dependencies from pyproject.toml (including main and dev dependencies)
           uv sync --frozen
 
