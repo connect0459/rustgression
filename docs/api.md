@@ -154,16 +154,51 @@ x_new = np.array([[1.0, -0.5], [0.0, 2.0]])
 print(f"Predictions: {model.predict(x_new)}")
 ```
 
-## OLS vs TLS
+## create_regressor
 
-| | OLS | TLS |
-| :--- | :--- | :--- |
-| Error direction | Y only | Both X and Y |
-| Use case | Only dependent variable has measurement error | Both variables have measurement error |
-| Algorithm | Rust-backed linear regression | Rust-backed SVD orthogonal regression |
+Factory function that instantiates a regression model by method name.
+
+```python
+create_regressor(
+    x: np.ndarray,
+    y: np.ndarray,
+    method: Literal["ols", "tls", "ols_multi"] = "ols",
+) -> OlsRegressor | TlsRegressor | OlsMultiRegressor
+```
+
+| `method` | Returns |
+| :--- | :--- |
+| `"ols"` | `OlsRegressor` |
+| `"tls"` | `TlsRegressor` |
+| `"ols_multi"` | `OlsMultiRegressor` |
+
+Raises `ValueError` if an unknown method string is provided.
+
+### Example
+
+```python
+import numpy as np
+from rustgression import create_regressor
+
+x = np.linspace(0, 10, 100)
+y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
+
+ols_model = create_regressor(x, y, method="ols")
+tls_model = create_regressor(x, y, method="tls")
+```
+
+## OLS vs TLS vs Multi-OLS
+
+| | OLS | TLS | Multi-OLS |
+| :--- | :--- | :--- | :--- |
+| Variables | 1 predictor | 1 predictor | p predictors |
+| Error direction | Y only | Both X and Y | Y only |
+| Use case | One predictor, errors only in y | Both variables have measurement error | Multiple predictors, errors only in y |
+| Algorithm | Rust-backed linear regression | Rust-backed SVD orthogonal regression | Rust-backed multiple linear regression |
 
 Use **TLS** when both variables have measurement errors (e.g., sensor data, scientific measurements).
 Use **OLS** when only the dependent variable has errors (e.g., time-series prediction).
+Use **Multi-OLS** when you have multiple independent variables and errors only in y.
 
 ## More Examples
 
