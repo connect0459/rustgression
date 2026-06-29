@@ -88,5 +88,5 @@ fi
 echo ""
 info "Next steps:"
 info "1. Review changes: git diff"
-info "2. Run tests: cargo test && python -m pytest"
+info "2. Run tests: cargo test && uv run pytest"
 info "3. Commit changes: git add . && git commit -m \"chore: bump version to $NEW_VERSION\""
