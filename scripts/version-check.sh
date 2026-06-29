@@ -171,7 +171,11 @@ fi
 echo ""
 
 if [ $ERRORS -eq 0 ]; then
-    success "SUCCESS: All versions match: $ARG_VERSION"
+    if [ "$ARG_VERSION" != "$PYTHON_VERSION" ]; then
+        success "SUCCESS: All versions match (Rust: $ARG_VERSION / Python: $PYTHON_VERSION)"
+    else
+        success "SUCCESS: All versions match: $ARG_VERSION"
+    fi
     exit 0
 else
     error "ERROR: Found $ERRORS version inconsistencies"
