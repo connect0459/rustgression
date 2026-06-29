@@ -40,6 +40,12 @@ fi
 
 ARG_VERSION=$1
 
+if ! [[ $ARG_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
+    error "Error: Version must be in semver format"
+    echo "Examples: 1.0.0, 1.0.0-alpha.1, 1.0.0-beta.2, 1.0.0-rc.1"
+    exit 1
+fi
+
 PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
 
 # Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
