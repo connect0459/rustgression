@@ -114,7 +114,7 @@ echo "Updating version to $NEW_VERSION..."
 
 # 1. Update __version__ in src-py/rustgression/__init__.py (convert alpha/beta format)
 echo "Updating src-py/rustgression/__init__.py..."
-PYTHON_VERSION=$(echo "$NEW_VERSION" | sed 's/-alpha\./.a/' | sed 's/-beta\./.b/' | sed 's/-rc\./.rc/')
+PYTHON_VERSION=$(echo "$NEW_VERSION" | sed 's/-alpha\./a/' | sed 's/-beta\./b/' | sed 's/-rc\./rc/')
 sed -i.bak "s/__version__ = \".*\"/__version__ = \"$PYTHON_VERSION\"/" src-py/rustgression/__init__.py
 
 # 2. Update version in Cargo.toml
