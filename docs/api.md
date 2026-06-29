@@ -2,7 +2,8 @@
 
 ## OlsRegressor
 
-Ordinary Least Squares regression implementation.
+Ordinary Least Squares regression. Minimizes the sum of squared residuals in the
+y-direction (Σ(yᵢ − ŷᵢ)²). Assumes errors exist only in the dependent variable y.
 
 ### Constructor
 
@@ -16,10 +17,15 @@ OlsRegressor(x: np.ndarray, y: np.ndarray)
 | :--- | :--- | :--- |
 | `slope()` | `float` | Slope of the regression line |
 | `intercept()` | `float` | Y-intercept of the regression line |
-| `r_value()` | `float` | Correlation coefficient |
+| `r_value()` | `float` | Pearson correlation coefficient |
+| `r_squared()` | `float` | Coefficient of determination (R²) |
 | `p_value()` | `float` | P-value for the slope |
 | `stderr()` | `float` | Standard error of the slope |
 | `intercept_stderr()` | `float` | Standard error of the intercept |
+| `predict(x)` | `np.ndarray` | Predicted y values for input x |
+| `residuals()` | `np.ndarray` | Vertical residuals (y − ŷ) |
+| `confidence_interval(alpha=0.05)` | `dict[str, tuple[float, float]]` | 95% CI for slope and intercept |
+| `prediction_interval(x_new, alpha=0.05)` | `np.ndarray` | Prediction intervals for new x values |
 
 ### Example
 
@@ -34,14 +40,33 @@ model = OlsRegressor(x, y)
 print(f"Slope: {model.slope():.4f}")
 print(f"Intercept: {model.intercept():.4f}")
 print(f"R-value: {model.r_value():.4f}")
+print(f"R²: {model.r_squared():.4f}")
 print(f"P-value: {model.p_value():.4e}")
 print(f"Std Error: {model.stderr():.4f}")
 print(f"Intercept Std Error: {model.intercept_stderr():.4f}")
+
+ci = model.confidence_interval()
+print(f"Slope 95% CI: {ci['slope']}")
+print(f"Intercept 95% CI: {ci['intercept']}")
+
+pi = model.prediction_interval(np.array([5.0, 10.0]))
+print(f"Prediction intervals: {pi}")
 ```
 
 ## TlsRegressor
 
-Total Least Squares (orthogonal) regression implementation.
+Total Least Squares (orthogonal) regression. Minimizes the sum of squared orthogonal
+distances from each point to the regression line (Σdᵢ²). Assumes measurement errors
+exist in both x and y.
+
+> **Note on r_squared():** Returns the squared Pearson correlation coefficient
+> (r²), which does **not** equal 1 − SS\_res / SS\_tot for TLS. TLS minimises
+> orthogonal distances while `residuals()` returns vertical residuals, so the
+> classical coefficient-of-determination identity does not hold.
+>
+> **Raises RuntimeError:** When the null-vector y-component falls below the
+> numerical stability threshold, a `RuntimeError` is raised rather than
+> returning silently incorrect output.
 
 ### Constructor
 
@@ -55,10 +80,15 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 | :--- | :--- | :--- |
 | `slope()` | `float` | Slope of the regression line |
 | `intercept()` | `float` | Y-intercept of the regression line |
-| `r_value()` | `float` | Correlation coefficient |
-| `p_value()` | `float` | P-value for the slope |
-| `stderr()` | `float` | Standard error of the slope |
+| `r_value()` | `float` | Pearson correlation coefficient |
+| `r_squared()` | `float` | Squared Pearson correlation (see note above) |
+| `p_value()` | `float` | P-value for the slope (Deming/ODR estimator) |
+| `stderr()` | `float` | Standard error of the slope (Deming/ODR estimator) |
 | `intercept_stderr()` | `float` | Standard error of the intercept |
+| `predict(x)` | `np.ndarray` | Predicted y values for input x |
+| `residuals()` | `np.ndarray` | Vertical residuals (y − ŷ) |
+| `confidence_interval(alpha=0.05)` | — | **Not implemented** — raises `NotImplementedError` |
+| `prediction_interval(x_new, alpha=0.05)` | — | **Not implemented** — raises `NotImplementedError` |
 
 ### Example
 
