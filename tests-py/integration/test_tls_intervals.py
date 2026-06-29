@@ -17,7 +17,7 @@ def linear_data():
 
 
 class TestTlsRegressorConfidenceInterval:
-    """Tests for TlsRegressor.confidence_interval() via bootstrap."""
+    """Tests for TlsRegressor.confidence_interval()."""
 
     def test_returns_dict_with_slope_and_intercept_keys(self, linear_data):
         x, y = linear_data
@@ -89,7 +89,21 @@ class TestTlsRegressorConfidenceInterval:
         with pytest.raises(ValueError):
             regressor.confidence_interval()
 
-    def test_produces_reproducible_results_for_same_random_state(self, linear_data):
+    def test_raises_for_alpha_at_or_outside_boundary(self, linear_data):
+        x, y = linear_data
+        regressor = TlsRegressor(x, y)
+        with pytest.raises(ValueError):
+            regressor.confidence_interval(alpha=0.0)
+        with pytest.raises(ValueError):
+            regressor.confidence_interval(alpha=1.0)
+
+    def test_raises_for_n_bootstrap_less_than_one(self, linear_data):
+        x, y = linear_data
+        regressor = TlsRegressor(x, y)
+        with pytest.raises(ValueError):
+            regressor.confidence_interval(n_bootstrap=0)
+
+    def test_results_are_consistent_given_identical_inputs(self, linear_data):
         x, y = linear_data
         regressor = TlsRegressor(x, y)
         ci_a = regressor.confidence_interval(n_bootstrap=200, random_state=42)
@@ -99,7 +113,7 @@ class TestTlsRegressorConfidenceInterval:
 
 
 class TestTlsRegressorPredictionInterval:
-    """Tests for TlsRegressor.prediction_interval() via residual bootstrap."""
+    """Tests for TlsRegressor.prediction_interval()."""
 
     def test_returns_array_of_shape_n_by_2(self, linear_data):
         x, y = linear_data
@@ -145,6 +159,21 @@ class TestTlsRegressorPredictionInterval:
         with pytest.raises(ValueError):
             regressor.prediction_interval(np.array([1.5]))
 
+    def test_raises_for_alpha_at_or_outside_boundary(self, linear_data):
+        x, y = linear_data
+        regressor = TlsRegressor(x, y)
+        x_new = np.array([5.0])
+        with pytest.raises(ValueError):
+            regressor.prediction_interval(x_new, alpha=0.0)
+        with pytest.raises(ValueError):
+            regressor.prediction_interval(x_new, alpha=1.0)
+
+    def test_raises_for_n_bootstrap_less_than_one(self, linear_data):
+        x, y = linear_data
+        regressor = TlsRegressor(x, y)
+        with pytest.raises(ValueError):
+            regressor.prediction_interval(np.array([5.0]), n_bootstrap=0)
+
     def test_accepts_2d_x_new_and_returns_shape_n_by_2(self, linear_data):
         x, y = linear_data
         regressor = TlsRegressor(x, y)
@@ -152,7 +181,7 @@ class TestTlsRegressorPredictionInterval:
         pi = regressor.prediction_interval(x_new_row, n_bootstrap=200, random_state=0)
         assert pi.shape == (3, 2)
 
-    def test_produces_reproducible_results_for_same_random_state(self, linear_data):
+    def test_results_are_consistent_given_identical_inputs(self, linear_data):
         x, y = linear_data
         regressor = TlsRegressor(x, y)
         x_new = np.array([2.0, 5.0, 8.0])
