@@ -2,8 +2,7 @@
 Total Least Squares (TLS) regression implementation.
 """
 
-import warnings
-from typing import NoReturn
+import warnings as _warnings
 
 import numpy as np
 
@@ -108,33 +107,135 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         """
         return self._intercept_stderr
 
-    @staticmethod
-    def _interval_not_supported(method_name: str) -> NoReturn:
-        raise NotImplementedError(
-            f"{method_name}() is not supported for TlsRegressor. "
-            "TLS confidence and prediction intervals require bootstrap or "
-            "jackknife inference."
-        )
+    def confidence_interval(
+        self,
+        alpha: float = 0.05,
+        n_bootstrap: int = 1000,
+        random_state: int | np.random.Generator | None = None,
+    ) -> dict[str, tuple[float, float]]:
+        """Return bootstrap confidence intervals for slope and intercept.
 
-    def confidence_interval(self, alpha: float = 0.05) -> NoReturn:
-        """Not implemented for TLS.
+        Parameters
+        ----------
+        alpha : float, optional
+            Significance level. Defaults to 0.05 (95% CI).
+        n_bootstrap : int, optional
+            Number of bootstrap resamples. Defaults to 1000.
+        random_state : int, numpy.random.Generator, or None, optional
+            Seed or generator for reproducible results.
+
+        Returns
+        -------
+        dict[str, tuple[float, float]]
+            A dict with keys ``"slope"`` and ``"intercept"``, each mapped to
+            a ``(lower, upper)`` tuple.
 
         Raises
         ------
-        NotImplementedError
-            TLS confidence intervals require bootstrap or jackknife inference.
+        ValueError
+            If fewer than 3 data points are available.
         """
-        self._interval_not_supported(self.confidence_interval.__name__)
+        n = len(self.x)
+        if n < 3:
+            raise ValueError(
+                "confidence_interval() requires at least 3 data points "
+                "(needs at least 1 degree of freedom)."
+            )
 
-    def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> NoReturn:
-        """Not implemented for TLS.
+        rng = np.random.default_rng(random_state)
+        boot_slopes = np.empty(n_bootstrap)
+        boot_intercepts = np.empty(n_bootstrap)
+
+        for i in range(n_bootstrap):
+            idx = rng.integers(0, n, size=n)
+            try:
+                with _warnings.catch_warnings():
+                    _warnings.simplefilter("ignore")
+                    _, slope_b, intercept_b, *_ = calculate_tls_regression(
+                        self.x[idx], self.y[idx]
+                    )
+                boot_slopes[i] = slope_b
+                boot_intercepts[i] = intercept_b
+            except Exception:
+                boot_slopes[i] = np.nan
+                boot_intercepts[i] = np.nan
+
+        lo = 100.0 * alpha / 2.0
+        hi = 100.0 - lo
+        return {
+            "slope": (
+                float(np.nanpercentile(boot_slopes, lo)),
+                float(np.nanpercentile(boot_slopes, hi)),
+            ),
+            "intercept": (
+                float(np.nanpercentile(boot_intercepts, lo)),
+                float(np.nanpercentile(boot_intercepts, hi)),
+            ),
+        }
+
+    def prediction_interval(
+        self,
+        x_new: np.ndarray,
+        alpha: float = 0.05,
+        n_bootstrap: int = 1000,
+        random_state: int | np.random.Generator | None = None,
+    ) -> np.ndarray:
+        """Return residual-bootstrap prediction intervals for new observations.
+
+        Parameters
+        ----------
+        x_new : np.ndarray
+            New x values for which to compute prediction intervals.
+        alpha : float, optional
+            Significance level. Defaults to 0.05 (95% PI).
+        n_bootstrap : int, optional
+            Number of bootstrap resamples. Defaults to 1000.
+        random_state : int, numpy.random.Generator, or None, optional
+            Seed or generator for reproducible results.
+
+        Returns
+        -------
+        np.ndarray
+            Array of shape ``(len(x_new), 2)`` where each row is
+            ``[lower, upper]``.
 
         Raises
         ------
-        NotImplementedError
-            TLS prediction intervals require bootstrap or jackknife inference.
+        ValueError
+            If fewer than 3 data points are available.
         """
-        self._interval_not_supported(self.prediction_interval.__name__)
+        x_new = np.asarray(x_new, dtype=np.float64).ravel()
+        n = len(self.x)
+        if n < 3:
+            raise ValueError(
+                "prediction_interval() requires at least 3 data points "
+                "(needs at least 1 degree of freedom)."
+            )
+
+        rng = np.random.default_rng(random_state)
+        original_residuals = self.residuals()
+        m = len(x_new)
+        boot_preds = np.empty((n_bootstrap, m))
+
+        for i in range(n_bootstrap):
+            idx = rng.integers(0, n, size=n)
+            try:
+                with _warnings.catch_warnings():
+                    _warnings.simplefilter("ignore")
+                    _, slope_b, intercept_b, *_ = calculate_tls_regression(
+                        self.x[idx], self.y[idx]
+                    )
+                y_line = slope_b * x_new + intercept_b
+                eps = original_residuals[rng.integers(0, n, size=m)]
+                boot_preds[i] = y_line + eps
+            except Exception:
+                boot_preds[i] = np.nan
+
+        lo = 100.0 * alpha / 2.0
+        hi = 100.0 - lo
+        lower = np.nanpercentile(boot_preds, lo, axis=0)
+        upper = np.nanpercentile(boot_preds, hi, axis=0)
+        return np.column_stack([lower, upper])
 
     def r_squared(self) -> float:
         """Return the squared Pearson correlation coefficient.
@@ -164,7 +265,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         TlsRegressionParams
             A data class containing the regression parameters.
         """
-        warnings.warn(
+        _warnings.warn(
             "get_params() is deprecated and will be removed in v1.0.0. "
             "Use property methods instead: slope(), intercept(), r_value(), "
             "p_value(), stderr(), intercept_stderr()",
