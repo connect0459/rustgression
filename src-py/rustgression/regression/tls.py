@@ -124,7 +124,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         NotImplementedError
             TLS confidence intervals require bootstrap or jackknife inference.
         """
-        self._interval_not_supported("confidence_interval")
+        self._interval_not_supported(self.confidence_interval.__name__)
 
     def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> NoReturn:
         """Not implemented for TLS.
@@ -134,7 +134,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         NotImplementedError
             TLS prediction intervals require bootstrap or jackknife inference.
         """
-        self._interval_not_supported("prediction_interval")
+        self._interval_not_supported(self.prediction_interval.__name__)
 
     def r_squared(self) -> float:
         """Return the squared Pearson correlation coefficient.
