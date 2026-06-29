@@ -103,9 +103,20 @@ model = TlsRegressor(x, y)
 print(f"Slope: {model.slope():.4f}")
 print(f"Intercept: {model.intercept():.4f}")
 print(f"R-value: {model.r_value():.4f}")
+print(f"R² (squared Pearson r): {model.r_squared():.4f}")
 print(f"P-value: {model.p_value():.4e}")
 print(f"Std Error: {model.stderr():.4f}")
 print(f"Intercept Std Error: {model.intercept_stderr():.4f}")
+
+# predict and residuals are supported for TLS
+print(f"Predictions: {model.predict(np.array([5.0, 10.0]))}")
+print(f"Residuals (first 5): {model.residuals()[:5]}")
+
+# confidence_interval and prediction_interval raise NotImplementedError for TLS
+try:
+    model.confidence_interval()
+except NotImplementedError as e:
+    print(f"Not supported: {e}")
 ```
 
 ## OlsMultiRegressor
