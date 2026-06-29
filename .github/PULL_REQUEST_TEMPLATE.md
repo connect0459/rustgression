@@ -56,6 +56,6 @@ without this information.
 - [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/ci.yml)
 - [ ] **Code Comments**: Code comments and doc-comments are in sync with the changes
 - [ ] **Reference Docs**: `docs/api.md` is updated for any public API change
-- [ ] **Version Update** (for release PRs): Executed `./scripts/version-update.sh <new-version>` to update all version files consistently
+- [ ] **Version Update** (for release PRs): Executed `just version-update <new-version>` to update all version files consistently
 
 > **Important**: This checklist ensures quality. Please verify all items before requesting review.
