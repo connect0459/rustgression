@@ -3,6 +3,7 @@ Total Least Squares (TLS) regression implementation.
 """
 
 import warnings
+from typing import NoReturn
 
 import numpy as np
 
@@ -108,16 +109,14 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         return self._intercept_stderr
 
     @staticmethod
-    def _interval_not_supported(method_name: str) -> None:
+    def _interval_not_supported(method_name: str) -> NoReturn:
         raise NotImplementedError(
             f"{method_name}() is not supported for TlsRegressor. "
             "TLS confidence and prediction intervals require bootstrap or "
             "jackknife inference."
         )
 
-    def confidence_interval(
-        self, alpha: float = 0.05
-    ) -> dict[str, tuple[float, float]]:
+    def confidence_interval(self, alpha: float = 0.05) -> NoReturn:
         """Not implemented for TLS.
 
         Raises
@@ -127,7 +126,7 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         """
         self._interval_not_supported("confidence_interval")
 
-    def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> np.ndarray:
+    def prediction_interval(self, x_new: np.ndarray, alpha: float = 0.05) -> NoReturn:
         """Not implemented for TLS.
 
         Raises
