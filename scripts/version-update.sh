@@ -38,8 +38,13 @@ fi
 
 NEW_VERSION=$1
 
+_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
+if [ ! -f "$_VERSION_UTILS" ]; then
+    echo "Error: required library not found: $_VERSION_UTILS" >&2
+    exit 1
+fi
 # shellcheck source=lib/version-utils.sh
-source "$(dirname "$0")/lib/version-utils.sh"
+source "$_VERSION_UTILS"
 
 # Check version format (semver format, supports prerelease)
 if ! [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
