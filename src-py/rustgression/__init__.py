@@ -2,29 +2,40 @@
 rustgression
 ===========
 
-A Python package that implements fast Total Least Squares (TLS) regression.
+A Python package for fast OLS and TLS regression using a Rust backend.
 
-This package provides high-performance TLS (orthogonal) regression analysis using a backend implemented in Rust. It supports both ordinary least squares (OLS) regression and TLS regression.
+This package provides high-performance regression analysis with a backend
+implemented in Rust. It supports ordinary least squares (OLS) regression
+for single and multiple predictors, and Total Least Squares (TLS) orthogonal
+regression.
 
 Main Features
 -------------
 - Fast Rust backend
-- Total Least Squares (TLS) regression
-- Ordinary Least Squares (OLS) regression
+- Ordinary Least Squares (OLS) single-predictor regression
+- Ordinary Least Squares (OLS) multi-predictor regression
+- Total Least Squares (TLS) orthogonal regression
 - User-friendly Python interface
 
 Classes
 -------
 - OlsRegressor
-    Class for performing regression analysis using ordinary least squares.
+    Single-predictor OLS regression.
+
+- OlsMultiRegressor
+    Multi-predictor OLS regression.
+
+- OlsMultiRegressionParams
+    Result dataclass returned by OlsMultiRegressor.get_params().
 
 - TlsRegressor
-    Class for performing regression analysis using Total Least Squares.
+    Total Least Squares (orthogonal) regression.
 
 Functions
 ---------
 - create_regressor
-    Factory function for creating a regression analyzer.
+    Factory function for creating a regressor (supports "ols", "tls",
+    "ols_multi").
 
 References
 ----------
@@ -33,9 +44,13 @@ Computational Aspects and Analysis. SIAM.
 
 Examples
 --------
+>>> import numpy as np
 >>> import rustgression
->>> regressor = rustgression.create_regressor()
->>> result = regressor.fit(X, y)
+>>> x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+>>> y = np.array([2.1, 4.0, 5.9, 8.1, 10.0])
+>>> regressor = rustgression.create_regressor(x, y)
+>>> regressor.slope()
+2.0...
 """
 
 # Package version
