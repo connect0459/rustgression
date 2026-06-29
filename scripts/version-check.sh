@@ -123,8 +123,12 @@ echo "Cargo.lock version: $CARGO_LOCK_VERSION"
 UV_LOCK_VERSION=$(grep -A 10 '^\[\[package\]\]' uv.lock | grep -A 10 'name = "rustgression"' | grep '^version = ' | head -1 | cut -d '"' -f2)
 echo "uv.lock version: $UV_LOCK_VERSION"
 
-# Check whether CHANGELOG.md contains an entry for the target version
-CHANGELOG_ENTRY=$(grep -c "^## \[$ARG_VERSION\]" CHANGELOG.md || true)
+# Check whether CHANGELOG.md contains an entry for the target version.
+# Pre-release versions are not recorded in CHANGELOG.md; skip the check.
+case "$ARG_VERSION" in
+    *-alpha.*|*-beta.*|*-rc.*) CHANGELOG_SKIP=1 ;;
+    *) CHANGELOG_SKIP=0; CHANGELOG_ENTRY=$(grep -c "^## \[$ARG_VERSION\]" CHANGELOG.md || true) ;;
+esac
 
 # Check version consistency
 echo ""
@@ -177,7 +181,9 @@ else
     success "[PASS] uv.lock"
 fi
 
-if [ "$CHANGELOG_ENTRY" -eq 0 ]; then
+if [ "$CHANGELOG_SKIP" -eq 1 ]; then
+    info "[SKIP] CHANGELOG.md (pre-release version)"
+elif [ "$CHANGELOG_ENTRY" -eq 0 ]; then
     error "[FAIL] CHANGELOG.md has no entry for version $ARG_VERSION"
     ERRORS=$((ERRORS + 1))
 else
