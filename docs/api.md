@@ -108,6 +108,52 @@ print(f"Std Error: {model.stderr():.4f}")
 print(f"Intercept Std Error: {model.intercept_stderr():.4f}")
 ```
 
+## OlsMultiRegressor
+
+Multiple Ordinary Least Squares regression. Fits a model of the form
+y = b₀ + b₁x₁ + … + bₚxₚ by minimizing the sum of squared residuals in y.
+
+### Constructor
+
+```python
+OlsMultiRegressor(x: np.ndarray, y: np.ndarray)
+```
+
+`x` must be a 2D array of shape `(n, p)` where n is the number of observations
+and p is the number of predictor variables. `y` is a 1D response vector of length n.
+
+### Methods
+
+| Method | Return type | Description |
+| :--- | :--- | :--- |
+| `coefficients()` | `np.ndarray` | Shape `(p+1,)` — intercept at index 0, then p slopes |
+| `intercept()` | `float` | Intercept term (b₀) |
+| `r_squared()` | `float` | Coefficient of determination (R²) |
+| `f_statistic()` | `float` | F-statistic for overall model significance |
+| `p_value()` | `float` | P-value associated with the F-statistic |
+| `predict(x)` | `np.ndarray` | Predicted y values; accepts shape `(p,)` or `(m, p)` |
+
+### Example
+
+```python
+import numpy as np
+from rustgression import OlsMultiRegressor
+
+rng = np.random.default_rng(0)
+x = rng.standard_normal((100, 2))
+y = 1.5 * x[:, 0] - 0.8 * x[:, 1] + 2.0 + rng.standard_normal(100) * 0.3
+
+model = OlsMultiRegressor(x, y)
+print(f"Coefficients: {model.coefficients()}")
+print(f"Intercept: {model.intercept():.4f}")
+print(f"R²: {model.r_squared():.4f}")
+print(f"F-statistic: {model.f_statistic():.4f}")
+print(f"P-value: {model.p_value():.4e}")
+
+x_new = np.array([[1.0, -0.5], [0.0, 2.0]])
+print(f"Predictions: {model.predict(x_new)}")
+```
+
 ## OLS vs TLS
 
 | | OLS | TLS |
