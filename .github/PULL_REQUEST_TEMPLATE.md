@@ -1,84 +1,61 @@
-※Remove unnecessary sections to make review easier
+<!-- # PULL_REQUEST_TEMPLATE -->
 
-## Related URLs
+<!-- Remove unnecessary sections to keep the review focused -->
 
-- Related Issues
-- URLs to accessible screens, etc.
+## Related Links
+
+- Issues
+  - <!-- <https://github.com/connect0459/rustgression/issues/xxx> -->
+- PRs
+  - <!-- <https://github.com/connect0459/rustgression/pull/xxx> -->
 
 ## [Required] Overview
 
-- Describe the problem you want to solve, its background, and how things will change when this PR is released.
-- Links to wiki, tickets, or project overview documents are also acceptable.
+- Describe the problem being solved, its background, and what changes when this PR is merged.
+- Links to specs, design documents, or other references are welcome.
 
 ```txt
-It's difficult to review without knowing the specifications and background.
+It is difficult to review without knowing the specifications and background.
 ```
 
-## [Required] Release
+## Scope of Change
 
-- Release date
-  - Please provide an approximate timeline even if not finalized.
-- Release considerations
-  - Dependencies on other PRs being released first, etc.
+- [ ] Rust core
+- [ ] Python bindings
+- [ ] Tooling / CI
+- [ ] Documentation
+
+## Breaking Changes
+
+- [ ] No breaking changes
+- [ ] Breaking changes (describe below)
+
+<!--
+If this changes the public API, describe what breaks and why the breakage is justified.
+-->
 
 ## Deferred Items and TODOs
 
-- Items that were deferred and the reasons why.
+- Items intentionally deferred and the reasons why.
 
 ```txt
-If you intentionally deferred something due to time constraints, please document it.
-If reviewers can't tell whether something was intentionally deferred or overlooked,
-they may make unnecessary comments.
+If you deferred something due to time constraints, document it here.
+Reviewers cannot tell whether something was intentionally skipped or overlooked
+without this information.
 ```
 
 ## Test Items
 
-- Describe any tests beyond unit tests. This should be documented before testing begins.
-- Consider what you would test in production after release.
-
-## Release Preparation
-
-- Document any special release procedures if applicable.
-
-## Post-Release Verification
-
-- Post-release verification steps
-- Rollback procedures if things aren't working correctly
-
-```txt
-Describe what conditions indicate a successful release completion.
-If you can verify that the production implementation works correctly,
-the same items as test items are fine.
-Also document rollback procedures in case of issues, e.g., Revert.
-```
-
-## Areas That Need Special Review Attention
-
-- Design decisions you're struggling with or struggled with.
-- Areas you're somewhat concerned about.
-- Feel free to highlight parts you think went well.
+- Describe any test considerations beyond unit tests.
+- Note whether both Rust tests (`cargo test`) and Python tests (`uv run pytest`) were validated.
 
 ## [Required] Quality Checklist
 
-### Please check all items before merging
+**Please check all items before merging.**
 
-- [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/test-and-build.yml)
-- [ ] Coverage is maintained (target 80%+)
-- [ ] Design decisions documented in ADR (if applicable)
+- [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/ci.yml)
+- [ ] **Code Comments**: Code comments and doc-comments are in sync with the changes
+- [ ] **Reference Docs**: `docs/api.md` is updated for any public API change
 - [ ] **Version Update** (for release PRs): Executed `./scripts/version-update.sh <new-version>` to update all version files consistently
 
-> 💡 **Important**: This checklist ensures quality. Please verify all items before requesting review.
-
-## Work Time
-
-- Estimate
-  - xx hours
-- Actual time spent
-  - xx hours
-- Reason for time difference (over/under estimate)
-  - More work than anticipated, etc.
-
-```txt
-Please record approximate work time estimates and actuals until PR closure.
-This helps with retrospectives and similar future work.
-```
+> **Important**: This checklist ensures quality. Please verify all items before requesting review.
