@@ -32,6 +32,10 @@ fi
 # Check for version downgrade by comparing with current Cargo.toml version
 CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
 if [ -n "$CURRENT_CARGO_VERSION" ]; then
+    if [ "$NEW_VERSION" = "$CURRENT_CARGO_VERSION" ]; then
+        info "Already at version $NEW_VERSION; nothing to do."
+        exit 0
+    fi
     if ! compare_versions "$NEW_VERSION" "$CURRENT_CARGO_VERSION"; then
         warning "WARNING: Version downgrade detected!"
         warning "  Current version: $CURRENT_CARGO_VERSION"
