@@ -40,6 +40,14 @@ fi
 
 ARG_VERSION=$1
 
+if ! [[ $ARG_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
+    error "Error: Version must be in semver format"
+    echo "Examples: 1.0.0, 1.0.0-alpha.1, 1.0.0-beta.2, 1.0.0-rc.1"
+    exit 1
+fi
+
+PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
+
 # Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
 compare_versions() {
     local v1=$1
@@ -91,6 +99,9 @@ compare_versions() {
 
 echo "Checking version consistency..."
 echo "Expected version: $ARG_VERSION"
+if [ "$ARG_VERSION" != "$PYTHON_VERSION" ]; then
+    echo "Expected Python version: $PYTHON_VERSION"
+fi
 
 # Get version from src-py/rustgression/__init__.py
 INIT_VERSION=$(grep '^__version__ = ' src-py/rustgression/__init__.py | cut -d '"' -f2)
@@ -119,18 +130,17 @@ echo "Version consistency check results:"
 ERRORS=0
 
 # Check for potential version downgrade
-CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
-if [ -n "$CURRENT_CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CURRENT_CARGO_VERSION" ]; then
-    if ! compare_versions "$ARG_VERSION" "$CURRENT_CARGO_VERSION"; then
+if [ -n "$CARGO_VERSION" ] && [ "$ARG_VERSION" != "$CARGO_VERSION" ]; then
+    if ! compare_versions "$ARG_VERSION" "$CARGO_VERSION"; then
         warning "WARNING: Potential version downgrade detected!"
-        warning "  Current Cargo.toml version: $CURRENT_CARGO_VERSION"
+        warning "  Current Cargo.toml version: $CARGO_VERSION"
         warning "  Expected version:           $ARG_VERSION"
         echo ""
     fi
 fi
 
-if [ "$ARG_VERSION" != "$INIT_VERSION" ]; then
-    error "[FAIL] src-py/rustgression/__init__.py version mismatch: expected=$ARG_VERSION, actual=$INIT_VERSION"
+if [ "$PYTHON_VERSION" != "$INIT_VERSION" ]; then
+    error "[FAIL] src-py/rustgression/__init__.py version mismatch: expected=$PYTHON_VERSION, actual=$INIT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] src-py/rustgression/__init__.py"
@@ -143,8 +153,8 @@ else
     success "[PASS] Cargo.toml"
 fi
 
-if [ "$ARG_VERSION" != "$PYPROJECT_VERSION" ]; then
-    error "[FAIL] pyproject.toml version mismatch: expected=$ARG_VERSION, actual=$PYPROJECT_VERSION"
+if [ "$PYTHON_VERSION" != "$PYPROJECT_VERSION" ]; then
+    error "[FAIL] pyproject.toml version mismatch: expected=$PYTHON_VERSION, actual=$PYPROJECT_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] pyproject.toml"
@@ -157,8 +167,8 @@ else
     success "[PASS] Cargo.lock"
 fi
 
-if [ "$ARG_VERSION" != "$UV_LOCK_VERSION" ]; then
-    error "[FAIL] uv.lock version mismatch: expected=$ARG_VERSION, actual=$UV_LOCK_VERSION"
+if [ "$PYTHON_VERSION" != "$UV_LOCK_VERSION" ]; then
+    error "[FAIL] uv.lock version mismatch: expected=$PYTHON_VERSION, actual=$UV_LOCK_VERSION"
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] uv.lock"
@@ -167,7 +177,11 @@ fi
 echo ""
 
 if [ $ERRORS -eq 0 ]; then
-    success "SUCCESS: All versions match: $ARG_VERSION"
+    if [ "$ARG_VERSION" != "$PYTHON_VERSION" ]; then
+        success "SUCCESS: All versions match (Rust: $ARG_VERSION / Python: $PYTHON_VERSION)"
+    else
+        success "SUCCESS: All versions match: $ARG_VERSION"
+    fi
     exit 0
 else
     error "ERROR: Found $ERRORS version inconsistencies"
