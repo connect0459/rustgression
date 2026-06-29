@@ -30,7 +30,7 @@ if ! [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc
 fi
 
 # Check for version downgrade by comparing with current Cargo.toml version
-CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
+CURRENT_CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | cut -d '"' -f2 | tr -d '\r')
 if [ -n "$CURRENT_CARGO_VERSION" ]; then
     if [ "$NEW_VERSION" = "$CURRENT_CARGO_VERSION" ]; then
         info "Already at version $NEW_VERSION; nothing to do."
