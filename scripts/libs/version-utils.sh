@@ -58,3 +58,14 @@ compare_versions() {
 
     if [ "$v1_pre_num" -ge "$v2_pre_num" ]; then return 0; else return 1; fi
 }
+
+_AWK_PYPROJECT_WRITE_VERSION='
+/^\[/ { in_project = ($0 == "[project]") }
+in_project && /^version = "/ { print "version = \"" ver "\""; next }
+{ print }
+'
+
+_AWK_PYPROJECT_READ_VERSION='
+/^\[/ { in_project = ($0 == "[project]") }
+in_project && /^version = "/ { print; exit }
+'

@@ -35,7 +35,7 @@ if [ -n "$CURRENT_CARGO_VERSION" ]; then
     if [ "$NEW_VERSION" = "$CURRENT_CARGO_VERSION" ]; then
         _EXPECTED_PY=$(to_python_version "$NEW_VERSION")
         _ACTUAL_PY_INIT=$(grep '^__version__ = ' src-py/rustgression/__init__.py | cut -d '"' -f2 | tr -d '\r')
-        _ACTUAL_PYPROJECT=$(grep '^version = ' pyproject.toml | head -1 | cut -d '"' -f2 | tr -d '\r')
+        _ACTUAL_PYPROJECT=$(awk "$_AWK_PYPROJECT_READ_VERSION" pyproject.toml | cut -d '"' -f2 | tr -d '\r')
         if [ "$_ACTUAL_PY_INIT" = "$_EXPECTED_PY" ] && [ "$_ACTUAL_PYPROJECT" = "$_EXPECTED_PY" ]; then
             info "Already at version $NEW_VERSION; nothing to do."
             exit 0
@@ -67,7 +67,8 @@ sed -i.bak "s/^version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml
 
 # 3. Update version in pyproject.toml (convert alpha/beta format)
 echo "Updating pyproject.toml..."
-sed -i.bak "s/^version = \".*\"/version = \"$PYTHON_VERSION\"/" pyproject.toml
+awk -v ver="$PYTHON_VERSION" "$_AWK_PYPROJECT_WRITE_VERSION" \
+    pyproject.toml > pyproject.toml.bak && mv pyproject.toml.bak pyproject.toml
 
 # 4. Update Cargo.lock (check project with cargo command)
 echo "Updating Cargo.lock..."
