@@ -38,54 +38,8 @@ fi
 
 NEW_VERSION=$1
 
-# Function to compare semantic versions (returns 0 if v1 >= v2, 1 if v1 < v2)
-compare_versions() {
-    local v1=$1
-    local v2=$2
-
-    # Extract version parts (major.minor.patch) and prerelease
-    local v1_base=$(echo "$v1" | cut -d'-' -f1)
-    local v2_base=$(echo "$v2" | cut -d'-' -f1)
-    local v1_pre=$(echo "$v1" | cut -d'-' -f2- | sed "s/^$v1_base\$//")
-    local v2_pre=$(echo "$v2" | cut -d'-' -f2- | sed "s/^$v2_base\$//")
-
-    # Split version parts
-    IFS='.' read -r v1_major v1_minor v1_patch <<< "$v1_base"
-    IFS='.' read -r v2_major v2_minor v2_patch <<< "$v2_base"
-
-    # Compare major.minor.patch
-    if [ "$v1_major" -gt "$v2_major" ]; then return 0; fi
-    if [ "$v1_major" -lt "$v2_major" ]; then return 1; fi
-    if [ "$v1_minor" -gt "$v2_minor" ]; then return 0; fi
-    if [ "$v1_minor" -lt "$v2_minor" ]; then return 1; fi
-    if [ "$v1_patch" -gt "$v2_patch" ]; then return 0; fi
-    if [ "$v1_patch" -lt "$v2_patch" ]; then return 1; fi
-
-    # If base versions are equal, compare prerelease
-    # No prerelease (stable) > prerelease
-    if [ -z "$v1_pre" ] && [ -n "$v2_pre" ]; then return 0; fi
-    if [ -n "$v1_pre" ] && [ -z "$v2_pre" ]; then return 1; fi
-
-    # Both have prerelease or both stable
-    if [ -z "$v1_pre" ] && [ -z "$v2_pre" ]; then return 0; fi  # Equal
-
-    # Compare prerelease types and numbers
-    # alpha < beta < rc
-    local v1_pre_type=$(echo "$v1_pre" | cut -d'.' -f1)
-    local v2_pre_type=$(echo "$v2_pre" | cut -d'.' -f1)
-    local v1_pre_num=$(echo "$v1_pre" | cut -d'.' -f2)
-    local v2_pre_num=$(echo "$v2_pre" | cut -d'.' -f2)
-
-    if [ "$v1_pre_type" != "$v2_pre_type" ]; then
-        case "$v1_pre_type-$v2_pre_type" in
-            alpha-beta|alpha-rc|beta-rc) return 1 ;;
-            beta-alpha|rc-alpha|rc-beta) return 0 ;;
-        esac
-    fi
-
-    # Same prerelease type, compare numbers
-    if [ "$v1_pre_num" -ge "$v2_pre_num" ]; then return 0; else return 1; fi
-}
+# shellcheck source=lib/version-utils.sh
+source "$(dirname "$0")/lib/version-utils.sh"
 
 # Check version format (semver format, supports prerelease)
 if ! [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
