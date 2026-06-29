@@ -84,14 +84,14 @@ This is a Rust-Python hybrid project that implements fast Total Least Squares (T
 Use the version update script to update all version files consistently:
 
 ```bash
-./scripts/version-update.sh 0.2.1
-./scripts/version-update.sh 0.3.0-alpha.1
+just version-update 0.2.1
+just version-update 0.3.0-alpha.1
 ```
 
 Check version consistency across all files:
 
 ```bash
-./scripts/version-check.sh 0.2.1
+just version-check 0.2.1
 ```
 
 The update script handles different version formats:

@@ -94,30 +94,31 @@ docker compose down -v
 
 ## Version management
 
-Use `scripts/version-update.sh` to update all version files consistently:
+Use `just version-update` to update all version files consistently:
 
 ```bash
 # Regular version update (e.g., 0.2.0 → 0.2.1)
-./scripts/version-update.sh 0.2.1
+just version-update 0.2.1
 
 # Alpha release
-./scripts/version-update.sh 0.3.0-alpha.1
+just version-update 0.3.0-alpha.1
 
 # Beta release
-./scripts/version-update.sh 0.3.0-beta.1
+just version-update 0.3.0-beta.1
 ```
 
-This script updates the following files:
+This command updates the following files:
 
 - `Cargo.toml` — Rust package version
 - `pyproject.toml` — Python package version
 - `src-py/rustgression/__init__.py` — Package version constant
-- `Cargo.lock` — Dependency lock file
+- `Cargo.lock` — Rust dependency lock file
+- `uv.lock` — Python dependency lock file
 
 Check version consistency across all files:
 
 ```bash
-./scripts/version-check.sh 0.2.1
+just version-check 0.2.1
 ```
 
 Always run tests after version updates and verify consistency before releases.

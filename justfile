@@ -29,3 +29,11 @@ test: build
 run-examples: build
     uv run --extra examples python examples/simple_example.py
     uv run --extra examples python examples/scientific_example.py
+
+# Check version consistency across all files
+version-check VERSION:
+    ./scripts/version-check.sh {{VERSION}}
+
+# Update version across all files (Cargo.toml, pyproject.toml, __init__.py, lock files)
+version-update VERSION:
+    ./scripts/version-update.sh {{VERSION}}
