@@ -5,7 +5,7 @@ Tests for Total Least Squares (TLS) regression.
 import numpy as np
 import pytest
 
-from rustgression import TlsRegressionParams, TlsRegressor
+from rustgression import NumericalWarning, TlsRegressionParams, TlsRegressor
 
 
 @pytest.fixture
@@ -70,7 +70,8 @@ class TestTlsRegressor:
         x = np.array(x_data)
         y = np.array(y_data)
 
-        regressor = TlsRegressor(x, y)
+        with pytest.warns(NumericalWarning):
+            regressor = TlsRegressor(x, y)
 
         assert abs(regressor.slope() - expected_slope) < 1e-10, (
             f"Slope mismatch: expected {expected_slope}, got {regressor.slope()}"
@@ -84,7 +85,8 @@ class TestTlsRegressor:
         # Minimum data points: y = 3x, so TLS slope=3, intercept=0
         x = np.array([1.0, 2.0])
         y = np.array([3.0, 6.0])
-        regressor = TlsRegressor(x, y)
+        with pytest.warns(NumericalWarning):
+            regressor = TlsRegressor(x, y)
         assert abs(regressor.slope() - 3.0) < 1e-10
         assert abs(regressor.intercept() - 0.0) < 1e-10
 

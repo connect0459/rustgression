@@ -5,7 +5,7 @@ Tests for comparing OLS and TLS regression methods.
 import numpy as np
 import pytest
 
-from rustgression import OlsRegressor, TlsRegressor
+from rustgression import NumericalWarning, OlsRegressor, TlsRegressor
 
 
 @pytest.fixture
@@ -50,7 +50,8 @@ class TestMethodComparison:
         y = np.array(y_data)
 
         ols = OlsRegressor(x, y)
-        tls = TlsRegressor(x, y)
+        with pytest.warns(NumericalWarning):
+            tls = TlsRegressor(x, y)
 
         # For perfect correlation, correlation coefficient should be 1.0 or -1.0
         # but slope and intercept may differ due to TLS algorithm characteristics
