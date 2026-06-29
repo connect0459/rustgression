@@ -123,6 +123,9 @@ echo "Cargo.lock version: $CARGO_LOCK_VERSION"
 UV_LOCK_VERSION=$(grep -A 10 '^\[\[package\]\]' uv.lock | grep -A 10 'name = "rustgression"' | grep '^version = ' | head -1 | cut -d '"' -f2)
 echo "uv.lock version: $UV_LOCK_VERSION"
 
+# Check whether CHANGELOG.md contains an entry for the target version
+CHANGELOG_ENTRY=$(grep -c "^## \[$ARG_VERSION\]" CHANGELOG.md || true)
+
 # Check version consistency
 echo ""
 echo "Version consistency check results:"
@@ -172,6 +175,13 @@ if [ "$PYTHON_VERSION" != "$UV_LOCK_VERSION" ]; then
     ERRORS=$((ERRORS + 1))
 else
     success "[PASS] uv.lock"
+fi
+
+if [ "$CHANGELOG_ENTRY" -eq 0 ]; then
+    error "[FAIL] CHANGELOG.md has no entry for version $ARG_VERSION"
+    ERRORS=$((ERRORS + 1))
+else
+    success "[PASS] CHANGELOG.md"
 fi
 
 echo ""
