@@ -33,8 +33,9 @@ OlsRegressor(x: np.ndarray, y: np.ndarray)
 import numpy as np
 from rustgression import OlsRegressor
 
+rng = np.random.default_rng(42)
 x = np.linspace(0, 10, 100)
-y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
+y = 2.0 * x + 1.0 + rng.normal(0, 0.5, 100)
 
 model = OlsRegressor(x, y)
 print(f"Slope: {model.slope():.4f}")
@@ -96,8 +97,9 @@ TlsRegressor(x: np.ndarray, y: np.ndarray)
 import numpy as np
 from rustgression import TlsRegressor
 
+rng = np.random.default_rng(42)
 x = np.linspace(0, 10, 100)
-y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
+y = 2.0 * x + 1.0 + rng.normal(0, 0.5, 100)
 
 model = TlsRegressor(x, y)
 print(f"Slope: {model.slope():.4f}")
@@ -192,14 +194,15 @@ import numpy as np
 from rustgression import create_regressor
 
 # "ols" and "tls" accept a 1D x array
+rng = np.random.default_rng(42)
 x = np.linspace(0, 10, 100)
-y = 2.0 * x + 1.0 + np.random.normal(0, 0.5, 100)
+y = 2.0 * x + 1.0 + rng.normal(0, 0.5, 100)
 
 ols_model = create_regressor(x, y, method="ols")
 tls_model = create_regressor(x, y, method="tls")
 
 # "ols_multi" requires a 2D x array of shape (n, p)
-rng = np.random.default_rng(0)
+rng = np.random.default_rng(42)
 x_multi = rng.standard_normal((100, 2))
 y_multi = 1.5 * x_multi[:, 0] - 0.8 * x_multi[:, 1] + 2.0 + rng.standard_normal(100) * 0.3
 multi_model = create_regressor(x_multi, y_multi, method="ols_multi")
