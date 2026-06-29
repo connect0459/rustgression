@@ -1,9 +1,15 @@
 import shlex
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="version scripts are POSIX shell scripts, not applicable on Windows",
+)
 
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
 _VERSION_UTILS = _PROJECT_ROOT / "scripts" / "libs" / "version-utils.sh"
