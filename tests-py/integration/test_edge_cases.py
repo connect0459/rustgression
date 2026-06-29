@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy import stats
 
-from rustgression import OlsRegressor, TlsRegressor
+from rustgression import NumericalWarning, OlsRegressor, TlsRegressor
 
 
 class TestRegressorEdgeCases:
@@ -18,7 +18,8 @@ class TestRegressorEdgeCases:
         y = np.array([2.0, 4.0, 6.0])
 
         ols = OlsRegressor(x, y)
-        tls = TlsRegressor(x, y)
+        with pytest.warns(NumericalWarning):
+            tls = TlsRegressor(x, y)
 
         # Test __repr__ method (line 135 in base.py)
         ols_repr = repr(ols)
@@ -66,11 +67,13 @@ class TestRegressorEdgeCases:
         y = np.array([2.0, 4.0, 6.0])
 
         ols = OlsRegressor(x, y)
-        tls = TlsRegressor(x, y)
+        with pytest.warns(NumericalWarning):
+            tls = TlsRegressor(x, y)
 
-        # Test get_params method exists and returns something
-        ols_params = ols.get_params()
-        tls_params = tls.get_params()
+        with pytest.warns(DeprecationWarning):
+            ols_params = ols.get_params()
+        with pytest.warns(DeprecationWarning):
+            tls_params = tls.get_params()
 
         # Basic validation that params are returned
         assert ols_params is not None
@@ -91,7 +94,8 @@ class TestRegressorEdgeCases:
         y = np.array([1.5, 3.5, 5.5, 7.5])
 
         regressor = OlsRegressor(x, y)
-        params = regressor.get_params()
+        with pytest.warns(DeprecationWarning):
+            params = regressor.get_params()
 
         # Test that properties match params
         assert abs(regressor.slope() - params.slope) < 1e-10
@@ -159,8 +163,7 @@ class TestRegressorEdgeCases:
         """
         x = np.array([1e-150, 2e-150, 3e-150])
         y = np.array([2e-150, 4e-150, 6e-150])
-        ref = stats.linregress(x, y)
 
         regressor = OlsRegressor(x, y)
 
-        assert abs(regressor.r_value() - ref.rvalue) < 1e-10
+        assert abs(regressor.r_value() - 1.0) < 1e-10
