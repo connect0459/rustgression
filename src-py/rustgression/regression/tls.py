@@ -107,34 +107,22 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         """
         return self._intercept_stderr
 
+    @staticmethod
+    def _percentile_bounds(alpha: float) -> tuple[float, float]:
+        lo = 100.0 * alpha / 2.0
+        return lo, 100.0 - lo
+
     def confidence_interval(
         self,
         alpha: float = 0.05,
         n_bootstrap: int = 1000,
         random_state: int | np.random.Generator | None = None,
     ) -> dict[str, tuple[float, float]]:
-        """Return bootstrap confidence intervals for slope and intercept.
-
-        Parameters
-        ----------
-        alpha : float, optional
-            Significance level. Defaults to 0.05 (95% CI).
-        n_bootstrap : int, optional
-            Number of bootstrap resamples. Defaults to 1000.
-        random_state : int, numpy.random.Generator, or None, optional
-            Seed or generator for reproducible results.
-
-        Returns
-        -------
-        dict[str, tuple[float, float]]
-            A dict with keys ``"slope"`` and ``"intercept"``, each mapped to
-            a ``(lower, upper)`` tuple.
-
-        Raises
-        ------
-        ValueError
-            If fewer than 3 data points are available.
-        """
+        """Return bootstrap confidence intervals for slope and intercept."""
+        if not (0.0 < alpha < 1.0):
+            raise ValueError(f"alpha must be in the open interval (0, 1), got {alpha}.")
+        if n_bootstrap < 1:
+            raise ValueError(f"n_bootstrap must be at least 1, got {n_bootstrap}.")
         n = len(self.x)
         if n < 3:
             raise ValueError(
@@ -146,22 +134,28 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         boot_slopes = np.empty(n_bootstrap)
         boot_intercepts = np.empty(n_bootstrap)
 
-        for i in range(n_bootstrap):
-            idx = rng.integers(0, n, size=n)
-            try:
-                with _warnings.catch_warnings():
-                    _warnings.simplefilter("ignore")
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
+            for i in range(n_bootstrap):
+                idx = rng.integers(0, n, size=n)
+                try:
                     _, slope_b, intercept_b, *_ = calculate_tls_regression(
                         self.x[idx], self.y[idx]
                     )
-                boot_slopes[i] = slope_b
-                boot_intercepts[i] = intercept_b
-            except Exception:
-                boot_slopes[i] = np.nan
-                boot_intercepts[i] = np.nan
+                    boot_slopes[i] = slope_b
+                    boot_intercepts[i] = intercept_b
+                except (ValueError, RuntimeError):
+                    boot_slopes[i] = np.nan
+                    boot_intercepts[i] = np.nan
 
-        lo = 100.0 * alpha / 2.0
-        hi = 100.0 - lo
+        valid = int(np.sum(np.isfinite(boot_slopes) & np.isfinite(boot_intercepts)))
+        if valid < n_bootstrap // 2:
+            raise RuntimeError(
+                f"Bootstrap failed: only {valid}/{n_bootstrap} resamples "
+                "produced finite estimates. The data may be nearly singular."
+            )
+
+        lo, hi = self._percentile_bounds(alpha)
         return {
             "slope": (
                 float(np.nanpercentile(boot_slopes, lo)),
@@ -180,30 +174,11 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         n_bootstrap: int = 1000,
         random_state: int | np.random.Generator | None = None,
     ) -> np.ndarray:
-        """Return residual-bootstrap prediction intervals for new observations.
-
-        Parameters
-        ----------
-        x_new : np.ndarray
-            New x values for which to compute prediction intervals.
-        alpha : float, optional
-            Significance level. Defaults to 0.05 (95% PI).
-        n_bootstrap : int, optional
-            Number of bootstrap resamples. Defaults to 1000.
-        random_state : int, numpy.random.Generator, or None, optional
-            Seed or generator for reproducible results.
-
-        Returns
-        -------
-        np.ndarray
-            Array of shape ``(len(x_new), 2)`` where each row is
-            ``[lower, upper]``.
-
-        Raises
-        ------
-        ValueError
-            If fewer than 3 data points are available.
-        """
+        """Return residual-bootstrap prediction intervals for new observations."""
+        if not (0.0 < alpha < 1.0):
+            raise ValueError(f"alpha must be in the open interval (0, 1), got {alpha}.")
+        if n_bootstrap < 1:
+            raise ValueError(f"n_bootstrap must be at least 1, got {n_bootstrap}.")
         x_new = np.asarray(x_new, dtype=np.float64).ravel()
         n = len(self.x)
         if n < 3:
@@ -217,22 +192,32 @@ class TlsRegressor(BaseRegressor[TlsRegressionParams]):
         m = len(x_new)
         boot_preds = np.empty((n_bootstrap, m))
 
-        for i in range(n_bootstrap):
-            idx = rng.integers(0, n, size=n)
-            try:
-                with _warnings.catch_warnings():
-                    _warnings.simplefilter("ignore")
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
+            for i in range(n_bootstrap):
+                idx = rng.integers(0, n, size=n)
+                # Pre-sample residual indices so the RNG state advances by the
+                # same number of steps whether or not the regression succeeds,
+                # preserving reproducibility across mixed success/failure runs.
+                eps_idx = rng.integers(0, n, size=m)
+                try:
                     _, slope_b, intercept_b, *_ = calculate_tls_regression(
                         self.x[idx], self.y[idx]
                     )
-                y_line = slope_b * x_new + intercept_b
-                eps = original_residuals[rng.integers(0, n, size=m)]
-                boot_preds[i] = y_line + eps
-            except Exception:
-                boot_preds[i] = np.nan
+                    boot_preds[i] = (
+                        slope_b * x_new + intercept_b + original_residuals[eps_idx]
+                    )
+                except (ValueError, RuntimeError):
+                    boot_preds[i] = np.nan
 
-        lo = 100.0 * alpha / 2.0
-        hi = 100.0 - lo
+        failed = int(np.sum(np.all(~np.isfinite(boot_preds), axis=1)))
+        if failed > n_bootstrap // 2:
+            raise RuntimeError(
+                f"Bootstrap failed: {failed}/{n_bootstrap} resamples produced "
+                "non-finite predictions. The data may be nearly singular."
+            )
+
+        lo, hi = self._percentile_bounds(alpha)
         lower = np.nanpercentile(boot_preds, lo, axis=0)
         upper = np.nanpercentile(boot_preds, hi, axis=0)
         return np.column_stack([lower, upper])
