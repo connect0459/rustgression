@@ -200,12 +200,8 @@ multi_model = create_regressor(x_multi, y_multi, method="ols_multi")
 | :--- | :--- | :--- | :--- |
 | Variables | 1 predictor | 1 predictor | p predictors |
 | Error direction | Y only | Both X and Y | Y only |
-| Use case | One predictor, errors only in y | Both variables have measurement error | Multiple predictors, errors only in y |
+| Use case | Errors only in y | Both variables have measurement error | Multiple predictors, errors only in y |
 | Algorithm | Rust-backed linear regression | Rust-backed SVD orthogonal regression | Rust-backed multiple linear regression |
-
-Use **TLS** when both variables have measurement errors (e.g., sensor data, scientific measurements).
-Use **OLS** when only the dependent variable has errors (e.g., time-series prediction).
-Use **Multi-OLS** when you have multiple independent variables and errors only in y.
 
 ## More Examples
 
