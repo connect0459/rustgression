@@ -47,7 +47,7 @@ CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f2)
 echo "Cargo.toml version: $CARGO_VERSION"
 
 # Get version from pyproject.toml
-PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f2)
+PYPROJECT_VERSION=$(awk "$_AWK_PYPROJECT_READ_VERSION" pyproject.toml | cut -d '"' -f2)
 echo "pyproject.toml version: $PYPROJECT_VERSION"
 
 # Get version from Cargo.lock
