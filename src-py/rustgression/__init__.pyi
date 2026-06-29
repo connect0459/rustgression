@@ -16,7 +16,7 @@ from .regression.tls import TlsRegressor
 
 __version__: str
 
-class NumericalWarning(Warning): ...
+class NumericalWarning(UserWarning): ...
 
 def create_regressor(
     x: NDArray[np.floating],
