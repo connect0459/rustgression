@@ -1,8 +1,24 @@
 #!/bin/bash
 
-# compare_versions v1 v2
-# Returns 0 if v1 >= v2, 1 if v1 < v2.
-# Accepts semver strings with optional -alpha.N / -beta.N / -rc.N prerelease.
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+error()   { echo -e "${RED}$1${NC}"; }
+warning() { echo -e "${YELLOW}$1${NC}"; }
+success() { echo -e "${GREEN}$1${NC}"; }
+info()    { echo -e "${BLUE}$1${NC}"; }
+
+to_python_version() {
+    local v=$1
+    v=${v/-alpha./a}
+    v=${v/-beta./b}
+    v=${v/-rc./rc}
+    echo "$v"
+}
+
 compare_versions() {
     local v1=$1
     local v2=$2
@@ -22,14 +38,11 @@ compare_versions() {
     if [ "$v1_patch" -gt "$v2_patch" ]; then return 0; fi
     if [ "$v1_patch" -lt "$v2_patch" ]; then return 1; fi
 
-    # No prerelease (stable) > prerelease
     if [ -z "$v1_pre" ] && [ -n "$v2_pre" ]; then return 0; fi
     if [ -n "$v1_pre" ] && [ -z "$v2_pre" ]; then return 1; fi
 
-    # Both stable or both prerelease
     if [ -z "$v1_pre" ] && [ -z "$v2_pre" ]; then return 0; fi
 
-    # alpha < beta < rc
     local v1_pre_type=$(echo "$v1_pre" | cut -d'.' -f1)
     local v2_pre_type=$(echo "$v2_pre" | cut -d'.' -f1)
     local v1_pre_num=$(echo "$v1_pre" | cut -d'.' -f2)

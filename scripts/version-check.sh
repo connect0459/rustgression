@@ -6,29 +6,13 @@
 
 set -e
 
-# Color definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Color functions
-error() {
-    echo -e "${RED}$1${NC}"
-}
-
-warning() {
-    echo -e "${YELLOW}$1${NC}"
-}
-
-success() {
-    echo -e "${GREEN}$1${NC}"
-}
-
-info() {
-    echo -e "${BLUE}$1${NC}"
-}
+_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
+if [ ! -f "$_VERSION_UTILS" ]; then
+    echo "Error: required library not found: $_VERSION_UTILS" >&2
+    exit 1
+fi
+# shellcheck source=lib/version-utils.sh
+source "$_VERSION_UTILS"
 
 # Specify version as argument
 if [ $# -ne 1 ]; then
@@ -46,15 +30,7 @@ if ! [[ $ARG_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc
     exit 1
 fi
 
-PYTHON_VERSION=$(echo "$ARG_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
-
-_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
-if [ ! -f "$_VERSION_UTILS" ]; then
-    echo "Error: required library not found: $_VERSION_UTILS" >&2
-    exit 1
-fi
-# shellcheck source=lib/version-utils.sh
-source "$_VERSION_UTILS"
+PYTHON_VERSION=$(to_python_version "$ARG_VERSION")
 
 echo "Checking version consistency..."
 echo "Expected version: $ARG_VERSION"

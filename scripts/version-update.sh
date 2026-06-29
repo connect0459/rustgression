@@ -6,29 +6,13 @@
 
 set -e
 
-# Color definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Color functions
-error() {
-    echo -e "${RED}$1${NC}"
-}
-
-warning() {
-    echo -e "${YELLOW}$1${NC}"
-}
-
-success() {
-    echo -e "${GREEN}$1${NC}"
-}
-
-info() {
-    echo -e "${BLUE}$1${NC}"
-}
+_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
+if [ ! -f "$_VERSION_UTILS" ]; then
+    echo "Error: required library not found: $_VERSION_UTILS" >&2
+    exit 1
+fi
+# shellcheck source=lib/version-utils.sh
+source "$_VERSION_UTILS"
 
 if [ $# -ne 1 ]; then
     error "Usage: $0 <new_version>"
@@ -37,14 +21,6 @@ if [ $# -ne 1 ]; then
 fi
 
 NEW_VERSION=$1
-
-_VERSION_UTILS="$(dirname "$0")/lib/version-utils.sh"
-if [ ! -f "$_VERSION_UTILS" ]; then
-    echo "Error: required library not found: $_VERSION_UTILS" >&2
-    exit 1
-fi
-# shellcheck source=lib/version-utils.sh
-source "$_VERSION_UTILS"
 
 # Check version format (semver format, supports prerelease)
 if ! [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
@@ -73,7 +49,7 @@ echo "Updating version to $NEW_VERSION..."
 
 # 1. Update __version__ in src-py/rustgression/__init__.py (convert alpha/beta format)
 echo "Updating src-py/rustgression/__init__.py..."
-PYTHON_VERSION=$(echo "$NEW_VERSION" | sed 's/-alpha\./a/;s/-beta\./b/;s/-rc\./rc/')
+PYTHON_VERSION=$(to_python_version "$NEW_VERSION")
 sed -i.bak "s/__version__ = \".*\"/__version__ = \"$PYTHON_VERSION\"/" src-py/rustgression/__init__.py
 
 # 2. Update version in Cargo.toml
