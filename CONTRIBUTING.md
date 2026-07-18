@@ -141,7 +141,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). Project-spe
 
 ## Pull request process
 
-1. Fork the repository and create a branch: `feature/xxx`, `fix/xxx`, `docs/xxx`.
+1. Fork the repository and create a branch: `feat/xxx`, `fix/xxx`, `docs/xxx`.
 2. Follow the Red → Green → Refactor cycle.
 3. Run `just lint` and `just test`, and ensure all pass.
 4. Open a pull request — CI runs Rust and Python test suites automatically.
