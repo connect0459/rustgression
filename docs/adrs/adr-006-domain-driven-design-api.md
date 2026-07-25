@@ -46,7 +46,14 @@ Change the Regressor class itself to expose statistical values as property metho
 class OlsRegressor:
     def __init__(self, x, y):
         # Run regression and compute statistics at instantiation time
-        self._slope, self._intercept, self._r_value, self._p_value, self._stderr, self._intercept_stderr = self._calculate_regression(x, y)
+        (
+            self._slope,
+            self._intercept,
+            self._r_value,
+            self._p_value,
+            self._stderr,
+            self._intercept_stderr,
+        ) = self._calculate_regression(x, y)
 
     def slope(self) -> float:
         """Return the slope of the regression line."""

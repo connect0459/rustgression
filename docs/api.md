@@ -204,7 +204,9 @@ tls_model = create_regressor(x, y, method="tls")
 # "ols_multi" requires a 2D x array of shape (n, p)
 rng = np.random.default_rng(42)
 x_multi = rng.standard_normal((100, 2))
-y_multi = 1.5 * x_multi[:, 0] - 0.8 * x_multi[:, 1] + 2.0 + rng.standard_normal(100) * 0.3
+y_multi = (
+    1.5 * x_multi[:, 0] - 0.8 * x_multi[:, 1] + 2.0 + rng.standard_normal(100) * 0.3
+)
 multi_model = create_regressor(x_multi, y_multi, method="ols_multi")
 ```
 
