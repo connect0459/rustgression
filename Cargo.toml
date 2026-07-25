@@ -18,4 +18,4 @@ extension-module = ["pyo3/extension-module"]
 pyo3 = { version = "0.26" }
 numpy = "0.26"
 nalgebra = "0.35"
-statrs = "0.18"
+statrs = "0.19"
