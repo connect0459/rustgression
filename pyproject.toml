@@ -96,7 +96,7 @@ managed = true
 
 [dependency-groups]
 release = [
-  "twine==6.2.0",
+  "twine==7.0.0",
 ]
 dev = [
   {include-group = "release"},
