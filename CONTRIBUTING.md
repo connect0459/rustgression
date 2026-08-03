@@ -2,9 +2,10 @@
 
 ## Prerequisites
 
-- [just](https://just.systems/) — command runner
 - [rustup](https://rustup.rs/) — Rust toolchain manager (`rust-toolchain.toml` pins the version automatically)
 - [uv](https://docs.astral.sh/uv/) — Python package manager
+- [just](https://just.systems/) — command runner
+- [pre-commit](https://pre-commit.com/) — hook runner
 
 On Linux, the following system packages are required before running `just setup` (scipy depends on them):
 
