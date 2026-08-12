@@ -1,24 +1,42 @@
 name: Release to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: {}
 
-run-name: Release to PyPI ${{ github.event.release.tag_name }}
+run-name: Release to PyPI ${{ github.event_name == 'push' && github.ref_name || 'dry run' }}
 
 jobs:
   # Step 1: Version consistency check
   version-check:
     runs-on: ubuntu-latest
-    if: github.event.release.target_commitish == 'main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
+      # release: types: [published] used to guarantee this via
+      # target_commitish == 'main'; push: tags has no equivalent, so check
+      # it explicitly to keep a release tag from ever being cut off a branch.
+      - name: Verify tag points to a commit on main
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME (commit $GITHUB_SHA) is not reachable from origin/main."
+            exit 1
+          fi
+
+      # Skipped on workflow_dispatch: GITHUB_REF is a branch there, not a tag,
+      # so there is no release version to check against.
       - name: Check version consistency
+        if: github.event_name == 'push'
         shell: bash
         run: |
           # Extract version from release tag (v0.0.1 -> 0.0.1)
@@ -120,9 +138,49 @@ jobs:
           path: target/wheels/*.whl
           retention-days: 1
 
-  # Step 3: Publish all wheels to PyPI after successful builds
+  # Step 3: Create the GitHub Release from the matching CHANGELOG.md section.
+  # Runs in parallel with build; publish (Step 4) waits on this too, so a
+  # missing/malformed CHANGELOG section blocks the PyPI release as well.
+  create-release:
+    needs: version-check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Extract changelog section for this version
+        shell: bash
+        run: |
+          RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$RELEASE_VERSION" '
+            /^## \[/ {
+              if (capture) exit
+              if (index($0, "## [" ver "]") == 1) { capture = 1; next }
+            }
+            /^---/ { if (capture) exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "::error::No CHANGELOG.md section found for [$RELEASE_VERSION]. Retitle [Unreleased] to [$RELEASE_VERSION] - YYYY-MM-DD before tagging."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+
+  # Step 4: Publish all wheels to PyPI after successful builds
   publish:
-    needs: [version-check, build]
+    needs: [version-check, build, create-release]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
