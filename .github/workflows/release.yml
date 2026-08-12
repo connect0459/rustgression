@@ -139,7 +139,8 @@ jobs:
           retention-days: 1
 
   # Step 3: Create the GitHub Release from the matching CHANGELOG.md section.
-  # Runs in parallel with build/publish; it does not gate PyPI publishing.
+  # Runs in parallel with build; publish (Step 4) waits on this too, so a
+  # missing/malformed CHANGELOG section blocks the PyPI release as well.
   create-release:
     needs: version-check
     if: github.event_name == 'push'
@@ -178,7 +179,7 @@ jobs:
 
   # Step 4: Publish all wheels to PyPI after successful builds
   publish:
-    needs: [version-check, build]
+    needs: [version-check, build, create-release]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
