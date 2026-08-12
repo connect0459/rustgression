@@ -17,11 +17,11 @@ When cutting a new release, update THREE places in this file:
     ```
 
    Pushing the tag triggers `.github/workflows/release.yml`, which checks
-   version consistency, extracts this file's `[X.Y.Z]` section, and creates
-   the GitHub Release from it automatically before building and publishing to
-   PyPI. Do not run `gh release create` manually; it would create the
-   tag/Release ahead of the workflow with hand-pasted notes instead of the
-   CHANGELOG-derived ones.
+   version consistency, then builds the wheels and extracts this file's
+   `[X.Y.Z]` section to create the GitHub Release in parallel; PyPI
+   publishing waits for both to succeed. Do not run `gh release create`
+   manually; it would create the tag/Release ahead of the workflow with
+   hand-pasted notes instead of the CHANGELOG-derived ones.
 -->
 
 All notable changes to this project will be documented in this file.
