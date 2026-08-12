@@ -17,7 +17,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
+
+      # release: types: [published] used to guarantee this via
+      # target_commitish == 'main'; push: tags has no equivalent, so check
+      # it explicitly to keep a release tag from ever being cut off a branch.
+      - name: Verify tag points to a commit on main
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME (commit $GITHUB_SHA) is not reachable from origin/main."
+            exit 1
+          fi
 
       # Skipped on workflow_dispatch: GITHUB_REF is a branch there, not a tag,
       # so there is no release version to check against.
