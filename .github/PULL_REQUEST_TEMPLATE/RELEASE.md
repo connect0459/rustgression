@@ -18,18 +18,6 @@
 It is difficult to review without knowing the specifications and background.
 ```
 
-## GitHub Release draft
-
-<details>
-
-<summary>Expand the GitHub Release draft</summary>
-
-<!-- # vX.Y.Z -->
-
-<!-- Paste the GitHub Release draft notes here. -->
-
-</details>
-
 ## Scope of Change
 
 - [ ] Rust core
@@ -69,5 +57,6 @@ without this information.
 - [ ] **Code Comments**: Code comments and doc-comments are in sync with the changes
 - [ ] **Reference Docs**: `docs/api.md` is updated for any public API change
 - [ ] **Version Update** (for release PRs): Executed `just version-update <new-version>` to update all version files consistently
+- [ ] **Release Notes** (for release PRs): The `[X.Y.Z]` section added to `CHANGELOG.md` in this diff reads well on its own — pushing the release tag copies it verbatim into the GitHub Release body
 
 > **Important**: This checklist ensures quality. Please verify all items before requesting review.
