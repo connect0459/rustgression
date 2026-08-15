@@ -103,6 +103,13 @@ jobs:
             choco install cmake -y
           }
 
+          # Override the Unix-style path from .cargo/config.toml: uv creates
+          # .venv/Scripts/python.exe on Windows, not .venv/bin/python3. Use an
+          # absolute path, since (unlike .cargo/config.toml's `relative = true`
+          # resolution) a plain relative env var isn't resolved against the
+          # repo root by pyo3-build-config's build script.
+          "PYO3_PYTHON=$env:GITHUB_WORKSPACE\.venv\Scripts\python.exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       # Sync Python dependencies
       - name: Install Python dependencies
         if: steps.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
