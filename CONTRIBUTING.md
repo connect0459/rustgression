@@ -49,9 +49,7 @@ just test
 just lint
 ```
 
-Pre-commit hooks installed by `just setup` run additional hygiene checks
-(trailing whitespace, end-of-file, YAML/TOML validation, markdown lint)
-automatically on each `git commit`. To run them across all files manually:
+Pre-commit hooks installed by `just setup` run additional hygiene checks (trailing whitespace, end-of-file, YAML/TOML validation, markdown lint) automatically on each `git commit`. To run them across all files manually:
 
 ```sh
 uv run pre-commit run --all-files
@@ -65,9 +63,7 @@ just run-examples
 
 ## Docker (optional)
 
-A Docker environment is available as an alternative to the local setup. It is useful on Linux where
-installing BLAS/LAPACK/gfortran locally is inconvenient. The image builds the Rust toolchain and
-all system dependencies at image-build time.
+A Docker environment is available as an alternative to the local setup. It is useful on Linux where installing BLAS/LAPACK/gfortran locally is inconvenient. The image builds the Rust toolchain and all system dependencies at image-build time.
 
 Start the container and work from inside:
 
