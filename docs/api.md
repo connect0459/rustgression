@@ -2,8 +2,7 @@
 
 ## OlsRegressor
 
-Ordinary Least Squares regression. Minimizes the sum of squared residuals in the
-y-direction (Σ(yᵢ − ŷᵢ)²). Assumes errors exist only in the dependent variable y.
+Ordinary Least Squares regression. Minimizes the sum of squared residuals in the y-direction (Σ(yᵢ − ŷᵢ)²). Assumes errors exist only in the dependent variable y.
 
 ### Constructor
 
@@ -56,9 +55,7 @@ print(f"Prediction intervals: {pi}")
 
 ## TlsRegressor
 
-Total Least Squares (orthogonal) regression. Minimizes the sum of squared orthogonal
-distances from each point to the regression line (Σdᵢ²). Assumes measurement errors
-exist in both x and y.
+Total Least Squares (orthogonal) regression. Minimizes the sum of squared orthogonal distances from each point to the regression line (Σdᵢ²). Assumes measurement errors exist in both x and y.
 
 > **Note on r_squared():** Returns the squared Pearson correlation coefficient
 > (r²), which does **not** equal 1 − SS\_res / SS\_tot for TLS. TLS minimises
@@ -123,8 +120,7 @@ except NotImplementedError as e:
 
 ## OlsMultiRegressor
 
-Multiple Ordinary Least Squares regression. Fits a model of the form
-y = b₀ + b₁x₁ + … + bₚxₚ by minimizing the sum of squared residuals in y.
+Multiple Ordinary Least Squares regression. Fits a model of the form y = b₀ + b₁x₁ + … + bₚxₚ by minimizing the sum of squared residuals in y.
 
 ### Constructor
 
@@ -132,8 +128,7 @@ y = b₀ + b₁x₁ + … + bₚxₚ by minimizing the sum of squared residuals 
 OlsMultiRegressor(x: np.ndarray, y: np.ndarray)
 ```
 
-`x` must be a 2D array of shape `(n, p)` where n is the number of observations
-and p is the number of predictor variables. `y` is a 1D response vector of length n.
+`x` must be a 2D array of shape `(n, p)` where n is the number of observations and p is the number of predictor variables. `y` is a 1D response vector of length n.
 
 ### Methods
 

@@ -16,12 +16,7 @@ When cutting a new release, update THREE places in this file:
     git tag vX.Y.Z && git push origin vX.Y.Z
     ```
 
-   Pushing the tag triggers `.github/workflows/release.yml`, which checks
-   version consistency, then builds the wheels and extracts this file's
-   `[X.Y.Z]` section to create the GitHub Release in parallel; PyPI
-   publishing waits for both to succeed. Do not run `gh release create`
-   manually; it would create the tag/Release ahead of the workflow with
-   hand-pasted notes instead of the CHANGELOG-derived ones.
+   Pushing the tag triggers `.github/workflows/release.yml`, which checks version consistency, then builds the wheels and extracts this file's `[X.Y.Z]` section to create the GitHub Release in parallel; PyPI publishing waits for both to succeed. Do not run `gh release create` manually; it would create the tag/Release ahead of the workflow with hand-pasted notes instead of the CHANGELOG-derived ones.
 -->
 
 All notable changes to this project will be documented in this file.

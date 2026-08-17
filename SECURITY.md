@@ -2,14 +2,11 @@
 
 ## Supported Versions
 
-Only the latest minor release receives security fixes. Pre-release versions
-(`alpha`, `beta`) are not covered.
+Only the latest minor release receives security fixes. Pre-release versions (`alpha`, `beta`) are not covered.
 
 ## Reporting a Vulnerability
 
-Please use [GitHub's private vulnerability reporting](https://github.com/connect0459/rustgression/security/advisories/new)
-to disclose security issues. This keeps the disclosure out of public issues
-until a fix is ready.
+Please use [GitHub's private vulnerability reporting](https://github.com/connect0459/rustgression/security/advisories/new) to disclose security issues. This keeps the disclosure out of public issues until a fix is ready.
 
 **What to include:**
 
@@ -34,5 +31,4 @@ The following classes of issues are in scope:
   crates (`cargo audit`) or Python dependencies that affect `rustgression`
   users.
 
-Pure performance regressions and feature requests are out of scope for
-security reports; please open a regular issue instead.
+Pure performance regressions and feature requests are out of scope for security reports; please open a regular issue instead.
