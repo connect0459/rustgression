@@ -6,9 +6,7 @@
 - [x] Accepted
 - [x] Deprecated
 
-Deprecated in v0.5.0: multilingual documentation (`docs/en/`, `docs/ja/`) was consolidated into a
-single English structure (`docs/development.md`, `docs/api.md`). See the updated documentation tree
-in the Consequences section below.
+Deprecated in v0.5.0: multilingual documentation (`docs/en/`, `docs/ja/`) was consolidated into a single English structure (`docs/development.md`, `docs/api.md`). See the updated documentation tree in the Consequences section below.
 
 ## Context
 

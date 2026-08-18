@@ -26,8 +26,7 @@ After cloning, run once:
 just setup
 ```
 
-This installs Python dependencies and installs pre-commit hooks.
-Before running tests or importing the package, build the Rust extension:
+This installs Python dependencies and installs pre-commit hooks. Before running tests or importing the package, build the Rust extension:
 
 ```bash
 just build

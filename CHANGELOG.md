@@ -21,8 +21,7 @@ When cutting a new release, update THREE places in this file:
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -30,38 +29,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **OlsMultiRegressor**: new class for multi-predictor OLS regression backed by a Rust
-  implementation (`calculate_ols_multi_regression`); supports `predict()`, `r_squared()`,
-  `f_statistic()`, `p_value()`, and `get_params()`; also accessible via `create_regressor(x, y, method="ols_multi")`
+- **OlsMultiRegressor**: new class for multi-predictor OLS regression backed by a Rust implementation (`calculate_ols_multi_regression`); supports `predict()`, `r_squared()`, `f_statistic()`, `p_value()`, and `get_params()`; also accessible via `create_regressor(x, y, method="ols_multi")`
 - **BaseRegressor**: `r_squared()` — returns the coefficient of determination (R²)
 - **BaseRegressor**: `residuals()` — returns vertical residuals `y − ŷ`
 - **OlsRegressor**: `confidence_interval(alpha)` — t-based confidence intervals for slope and intercept
-- **OlsRegressor**: `prediction_interval(x_new, alpha)` — t-based prediction intervals for new observations
-  (`TlsRegressor` raises `NotImplementedError` for both; TLS bootstrap intervals are deferred)
-- **NumericalWarning**: new warning type emitted when subnormal input values are detected;
-  exported from the package public API and routed through Python's `warnings` module
+- **OlsRegressor**: `prediction_interval(x_new, alpha)` — t-based prediction intervals for new observations (`TlsRegressor` raises `NotImplementedError` for both; TLS bootstrap intervals are deferred)
+- **NumericalWarning**: new warning type emitted when subnormal input values are detected; exported from the package public API and routed through Python's `warnings` module
 
 ### Fixed
 
-- **TLS**: replace OLS stderr formula with the Deming orthogonal-regression formula for more
-  accurate slope and intercept standard errors
-- **OLS**: fix product underflow in `r_value()` for sub-epsilon x variance using a scale-aware
-  `compute_r_value` approach
+- **TLS**: replace OLS stderr formula with the Deming orthogonal-regression formula for more accurate slope and intercept standard errors
+- **OLS**: fix product underflow in `r_value()` for sub-epsilon x variance using a scale-aware `compute_r_value` approach
 - **OLS**: add overflow guard for intercept on extreme-scale inputs for consistency with slope
-- **TlsRegressor**: `.pyi` stub now correctly declares `NoReturn` on `confidence_interval` and
-  `prediction_interval`
-- **deps**: add `scipy` to runtime dependencies (required by `confidence_interval` and
-  `prediction_interval` but was previously missing)
-- **`__init__.pyi`**: add missing exports (`NumericalWarning`, `OlsMultiRegressor`,
-  `OlsMultiRegressionParams`) and `"ols_multi"` literal to `create_regressor` overload;
-  resolves type errors for mypy/pyright users (#198)
+- **TlsRegressor**: `.pyi` stub now correctly declares `NoReturn` on `confidence_interval` and `prediction_interval`
+- **deps**: add `scipy` to runtime dependencies (required by `confidence_interval` and `prediction_interval` but was previously missing)
+- **`__init__.pyi`**: add missing exports (`NumericalWarning`, `OlsMultiRegressor`, `OlsMultiRegressionParams`) and `"ols_multi"` literal to `create_regressor` overload; resolves type errors for mypy/pyright users (#198)
 
 ### Changed
 
 - **src layout**: Python package moved from `rustgression/` to `src-py/rustgression/`
 - **test layout**: tests reorganized under `tests-py/integration/` and `tests-py/e2e/` tiers
-- **NumericalWarning**: numerical diagnostics previously emitted via `eprintln!` are now
-  routed through Python's `warnings` module so callers can suppress or escalate them
+- **NumericalWarning**: numerical diagnostics previously emitted via `eprintln!` are now routed through Python's `warnings` module so callers can suppress or escalate them
 
 ### Miscellaneous
 
@@ -69,8 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **dev**: simplify Docker dev environment to a local-first workflow
 - **chore**: add `just version-update` and `just version-check` recipes; include `CHANGELOG.md` in source distribution
 - **docs**: consolidate development and commit guidelines into `CONTRIBUTING.md`
-- **chore**: remove redundant `scipy` from `optional-dependencies.examples` after its
-  promotion to core runtime dependency (#198)
+- **chore**: remove redundant `scipy` from `optional-dependencies.examples` after its promotion to core runtime dependency (#198)
 
 ## [0.5.1] - 2026-05-28
 
