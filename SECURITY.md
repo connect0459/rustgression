@@ -20,15 +20,8 @@ You can expect an acknowledgement within 7 days and a status update within 30 da
 
 The following classes of issues are in scope:
 
-- **Rust panics / unsound FFI** — any input that triggers a Rust `panic!`,
-  unwrap failure, or undefined behavior through the PyO3 boundary (e.g.,
-  NaN / Inf arrays, zero-length inputs, dimension mismatches that are not
-  caught before the Rust layer executes).
-- **Incorrect numerical results** — silent data corruption or wrong
-  regression output (OLS / TLS) that violates documented numerical guarantees
-  in a security-relevant context.
-- **Dependency vulnerabilities** — security advisories in upstream Rust
-  crates (`cargo audit`) or Python dependencies that affect `rustgression`
-  users.
+- **Rust panics / unsound FFI** — any input that triggers a Rust `panic!`, unwrap failure, or undefined behavior through the PyO3 boundary (e.g., NaN / Inf arrays, zero-length inputs, dimension mismatches that are not caught before the Rust layer executes).
+- **Incorrect numerical results** — silent data corruption or wrong regression output (OLS / TLS) that violates documented numerical guarantees in a security-relevant context.
+- **Dependency vulnerabilities** — security advisories in upstream Rust crates (`cargo audit`) or Python dependencies that affect `rustgression` users.
 
 Pure performance regressions and feature requests are out of scope for security reports; please open a regular issue instead.
