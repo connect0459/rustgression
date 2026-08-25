@@ -25,6 +25,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-25
+
+### Added
+
+- **TlsRegressor**: `confidence_interval(alpha)` and `prediction_interval(x_new, alpha)` — bootstrap-based confidence and prediction intervals, filling the `NotImplementedError` gap left by v0.6.0's t-based `OlsRegressor` intervals (#206)
+
+### Fixed
+
+- **TlsRegressor**: guard bootstrap confidence/prediction intervals against silent NaN propagation (#206)
+
+### Miscellaneous
+
+- **ci**: create GitHub Release from CHANGELOG.md on tag push, gate PyPI publish on its success, and restore the main-branch guard for release tags (#234)
+- **ci**: append a Full Changelog comparison link to the Release body, linking the tag itself for a repo's first release (#235)
+- **ci**: promote CHANGELOG heading levels in extracted release notes (#236)
+- **ci**: render the Full Changelog link as its own section and fix related formatting issues in extracted release notes (#237)
+- **ci**: replace inline changelog extraction with the extract-changelog action, later repointed at its renamed repository (#238, #245)
+- **ci**: fix PyO3 Python resolution on Windows CI (#242)
+- **ci**: consolidate required checks into a single gate job and run CI on push to main (#246, #247)
+- **chore**: harden the version-check/version-update scripts (pre-release format handling, CHANGELOG validation, section-aware `pyproject.toml` parsing, same-version no-op) (#207, #208, #211, #212, #213)
+- **refactor**: drop `mod.rs` in favor of edition 2018+ file modules (#232)
+- **docs**: add `CODE_OF_CONDUCT.md` and project-specific `SECURITY.md`; unify README/CONTRIBUTING sections and badge order across the repo; unwrap hard-wrapped Markdown prose (#214, #215, #220, #221, #229, #243, #244, #248)
+- **chore**: flatten the PR template into a single file (#227, #251)
+
 ## [0.6.0] - 2026-06-29
 
 ### Added
@@ -138,7 +162,8 @@ Initial public release.
 
 ---
 
-[Unreleased]: <https://github.com/connect0459/rustgression/compare/v0.6.0...HEAD>
+[Unreleased]: <https://github.com/connect0459/rustgression/compare/v0.7.0...HEAD>
+[0.7.0]: <https://github.com/connect0459/rustgression/compare/v0.6.0...v0.7.0>
 [0.6.0]: <https://github.com/connect0459/rustgression/compare/v0.5.1...v0.6.0>
 [0.5.1]: <https://github.com/connect0459/rustgression/compare/v0.5.0...v0.5.1>
 [0.5.0]: <https://github.com/connect0459/rustgression/compare/v0.4.1...v0.5.0>
