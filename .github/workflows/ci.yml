@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # Detect changed files to skip subsequent steps when no relevant files are modified
+      # Detect changed files to determine whether the run job should execute
       - name: Detect changed files
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
@@ -45,6 +45,7 @@ jobs:
 
   run:
     needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false # prevent one failing environment from cancelling all others
@@ -59,13 +60,11 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python (uv)
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
 
       - name: Cache Cargo registry
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -77,13 +76,12 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Set up Rust
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         # automatically reads rust-toolchain.toml to set up the toolchain
 
       # Set up Rust build dependencies for Linux (Ubuntu)
       - name: Set up Rust build dependencies (Ubuntu)
-        if: (needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch') && matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: |
           if command -v cmake &> /dev/null; then
             echo "cmake is already installed"
@@ -95,7 +93,7 @@ jobs:
 
       # Set up Rust build dependencies for macOS
       - name: Set up Rust build dependencies (macOS)
-        if: (needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch') && matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest'
         run: |
           if command -v cmake &> /dev/null; then
             echo "cmake is already installed"
@@ -106,7 +104,7 @@ jobs:
 
       # Set up Rust build dependencies for Windows
       - name: Set up Rust build dependencies (Windows)
-        if: (needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch') && matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         run: |
           if (Get-Command cmake -ErrorAction SilentlyContinue) {
             Write-Output "cmake is already installed"
@@ -124,7 +122,6 @@ jobs:
 
       # Sync Python dependencies
       - name: Install Python dependencies
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           uv run python --version
@@ -135,7 +132,6 @@ jobs:
 
       # Rust lint and format checks
       - name: Lint and format Rust
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           cargo fmt --all --check
@@ -143,7 +139,6 @@ jobs:
 
       # Python lint and format checks
       - name: Lint and format Python
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           uv run ruff check
@@ -151,13 +146,11 @@ jobs:
 
       # Run Rust unit tests
       - name: Run Rust tests
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: cargo test
 
       # Build and install Python package
       - name: Build and install Python wheels
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           # Clean up pre-generated wheels
@@ -181,7 +174,6 @@ jobs:
 
       # Run Python tests
       - name: Run Python tests
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           # Verify import (fail the workflow if import fails)
@@ -195,20 +187,12 @@ jobs:
 
       # Run examples as smoke tests for the public API
       - name: Run examples
-        if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           for f in examples/*.py; do
             echo "Running $f..."
             uv run python "$f"
           done
-
-      # Success message when no relevant changes are detected
-      - name: Skip CI checks (no relevant changes)
-        if: needs.changes.outputs.code != 'true' && github.event_name != 'workflow_dispatch'
-        shell: bash
-        run: |
-          echo "No changes detected in code-related files."
 
   # Single point of truth for branch protection: the OS matrix in `run`
   # produces one status check per leg (e.g. "run (windows-latest)"), which
