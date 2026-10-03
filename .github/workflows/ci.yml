@@ -74,6 +74,14 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         # automatically reads rust-toolchain.toml to set up the toolchain
+        with:
+          # Disable target-dir caching: uv installs Python into an ephemeral
+          # per-job temp directory, and .python-version floats on the latest
+          # 3.11.x patch. A cached target/ dir can retain PyO3 link metadata
+          # pointing at a previous run's (now-deleted) Python path, breaking
+          # `cargo test` with "unable to find library -lpython3.11" whenever
+          # the resolved patch version differs between runs.
+          cache-targets: false
 
       # Set up Rust build dependencies for Linux (Ubuntu)
       - name: Set up Rust build dependencies (Ubuntu)
