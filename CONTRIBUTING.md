@@ -142,6 +142,8 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). Project-spe
 3. Run `just lint` and `just test`, and ensure all pass.
 4. Open a pull request — CI runs Rust and Python test suites automatically.
 
+Do not edit `CHANGELOG.md` in regular pull requests. Changelog entries are written all at once in the Release PR.
+
 ## Code style
 
 - No code comments unless the **why** is genuinely non-obvious.
