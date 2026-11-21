@@ -106,7 +106,7 @@ dev = [
   "pre-commit==4.7.0",
   "pytest==9.2.0",
   "pytest-cov==7.1.0",
-  "ruff==0.17.4",
+  "ruff==0.17.5",
   "scikit-learn>=1.0.0",
   "scipy>=1.15.2",
   "setuptools==84.2.1",
