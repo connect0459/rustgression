@@ -57,7 +57,7 @@ print(f"Prediction intervals: {pi}")
 
 Total Least Squares (orthogonal) regression. Minimizes the sum of squared orthogonal distances from each point to the regression line (Σdᵢ²). Assumes measurement errors exist in both x and y.
 
-> **Note on r_squared():** Returns the squared Pearson correlation coefficient (r²), which does **not** equal 1 − SS\_res / SS\_tot for TLS. TLS minimises orthogonal distances while `residuals()` returns vertical residuals, so the classical coefficient-of-determination identity does not hold.
+> **Note on r_squared():** Returns the squared Pearson correlation coefficient (r²), which does **not** equal 1 − SS\_res / SS\_tot for TLS. TLS minimizes orthogonal distances while `residuals()` returns vertical residuals, so the classical coefficient-of-determination identity does not hold.
 >
 > **Raises RuntimeError:** When the null-vector y-component falls below the numerical stability threshold, a `RuntimeError` is raised rather than returning silently incorrect output.
 
@@ -211,4 +211,4 @@ multi_model = create_regressor(x_multi, y_multi, method="ols_multi")
 
 ## More Examples
 
-Please see <https://github.com/connect0459/rustgression/tree/main/examples>.
+See <https://github.com/connect0459/rustgression/tree/main/examples>.

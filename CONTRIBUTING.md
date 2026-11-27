@@ -24,13 +24,13 @@ After cloning, run once:
 just setup
 ```
 
-`just setup` installs Python dependencies and installs pre-commit hooks. Before running tests or importing the package, build the Rust extension:
+`just setup` installs the Python dependencies and the pre-commit hooks. Before running tests or importing the package, build the Rust extension:
 
 ```bash
 just build
 ```
 
-Run this again whenever Rust source changes.
+Run this again whenever the Rust source changes.
 
 ## Running tests and linters
 
@@ -62,7 +62,7 @@ just run-examples
 
 ## Docker (optional)
 
-A Docker environment is available as an alternative to the local setup. It is useful on Linux where installing BLAS/LAPACK/gfortran locally is inconvenient. The image builds the Rust toolchain and all system dependencies at image-build time.
+A Docker environment is available as an alternative to the local setup. It is useful on Linux where installing BLAS/LAPACK/gfortran locally is inconvenient. The image includes the Rust toolchain and all system dependencies, installed at build time.
 
 Start the container and work from inside:
 
@@ -133,13 +133,13 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). Project-spe
 
 - **Extra type**: `tidy` — small, safe cleanup (< 2 min; no behavior change)
 - **Scopes**: use `rust`, `python`, `deps`, or `deps-dev` when the change targets a specific layer; omit for project-wide changes
-- **Prefer to separate Rust and Python changes** — mixing is fine when the concern is a single cohesive unit
+- **Prefer to keep Rust and Python changes separate** — mixing them is fine when they form a single cohesive unit
 
 ## Pull request process
 
 1. Fork the repository and create a branch: `feat/xxx`, `fix/xxx`, `docs/xxx`.
 2. Follow the Red → Green → Refactor cycle.
-3. Run `just lint` and `just test`, and ensure all pass.
+3. Run `just lint` and `just test`, and make sure both pass.
 4. Open a pull request — CI runs Rust and Python test suites automatically.
 
 Do not edit `CHANGELOG.md` in regular pull requests. Changelog entries are written all at once in the Release PR.

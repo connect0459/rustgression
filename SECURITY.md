@@ -14,7 +14,7 @@ Please use [GitHub's private vulnerability reporting](https://github.com/connect
 - The version of `rustgression` and the Python / OS environment
 - A description of the impact (panic, wrong result, memory unsafety, etc.)
 
-You can expect an acknowledgement within 7 days and a status update within 30 days.
+You can expect an acknowledgment within 7 days and a status update within 30 days.
 
 ## Scope
 

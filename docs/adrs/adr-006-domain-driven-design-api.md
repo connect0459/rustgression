@@ -13,7 +13,7 @@ The current rustgression library uses a getter/setter pattern with data classes 
 ### Current Problems
 
 1. **Violation of the Tell Don't Ask principle**: The codebase heavily relies on querying object state and then performing operations based on the result.
-2. **Use of getters**: The existence of `get_xxx()`-style methods risks introducing setters in the future, which would break object encapsulation. To prevent this, the library design should be unified around behaviour-oriented domain objects rather than the getter/setter pattern.
+2. **Use of getters**: The existence of `get_xxx()`-style methods risks introducing setters in the future, which would break object encapsulation. To prevent this, the library design should be unified around behavior-oriented domain objects rather than the getter/setter pattern.
 
 ### Current API Example
 
@@ -25,11 +25,11 @@ params = regressor.get_params()
 
 ## Decision
 
-Redesign the regression analysis API based on Domain-Driven Design (DDD) principles, migrating to a behaviour-centric API.
+Redesign the regression analysis API based on Domain-Driven Design (DDD) principles, migrating to a behavior-centric API.
 
 ### 1. Introduce Property Method Pattern
 
-Replace the getter/setter pattern on data classes with property methods as behaviour:
+Replace the getter/setter pattern on data classes with property methods as behavior:
 
 - `slope() -> float`
 - `intercept() -> float`
@@ -111,7 +111,7 @@ To preserve compatibility with the existing API:
 ### Expected Benefits
 
 1. **Application of Single Responsibility Principle**: The Regressor class solely owns the computation and provision of statistical values.
-2. **Behaviour-centric design**: Property methods provide data access as behaviour.
+2. **Behavior-centric design**: Property methods provide data access as behavior.
 3. **Improved API consistency**: Unified access pattern for all statistical values.
 4. **Performance improvement**: Computation is performed only once at instantiation.
 5. **Preservation of existing functionality**: All currently provided statistical values (slope, intercept, r_value, p_value, stderr, intercept_stderr) continue to be available.
